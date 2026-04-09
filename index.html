@@ -105,8 +105,8 @@ select,input[type=text],input[type=number],input[type=date]{padding:11px 12px;fo
 .btn-primary:disabled{opacity:.35;cursor:not-allowed}
 
 /* TOAST */
-.toast{position:fixed;top:70px;left:50%;transform:translateX(-50%);padding:12px 20px;border-radius:12px;font-size:13px;font-weight:500;z-index:999;max-width:320px;width:90%;text-align:center;line-height:1.5;box-shadow:0 4px 20px rgba(0,0,0,.15);opacity:0;transition:opacity .3s;pointer-events:none}
-.toast.show{opacity:1}
+.toast{position:fixed;top:16px;right:16px;left:auto;transform:none;padding:14px 18px;border-radius:12px;font-size:13px;font-weight:600;z-index:999;max-width:300px;width:auto;text-align:left;line-height:1.5;box-shadow:0 8px 30px rgba(0,0,0,.2);opacity:0;transition:opacity .3s,transform .3s;transform:translateY(-10px);pointer-events:none}
+.toast.show{opacity:1;transform:translateY(0)}
 .toast-warn{background:#92400e;color:#fef3c7}
 .toast-ok{background:#15803d;color:#dcfce7}
 .toast-info{background:#1a1a1a;color:#fff}
@@ -687,12 +687,18 @@ window.guardar = async () => {
     setTimeout(()=>msgEl.innerHTML='',3000);
     // Sincronizar con Google Sheets
     try {
-      await fetch('/.netlify/functions/sync-sheets', {
+      const syncRes = await fetch('/.netlify/functions/sync-sheets', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({fecha, tipo, tipoIngreso: tipo==='Ingreso'?cat:'', categoria: tipo!=='Ingreso'?cat:'', monto, formaPago:pago, pago:quien, mes:fecha.slice(0,7)})
       });
-    } catch(e) { console.log('Sheets sync error:', e); }
+      const syncData = await syncRes.json();
+      if (!syncRes.ok || syncData.error) {
+        console.error('Sheets sync error:', syncData.error);
+      } else {
+        console.log('Sheets sync ok:', syncData.id);
+      }
+    } catch(e) { console.error('Sheets sync failed:', e); }
   } catch(e) { msgEl.innerHTML=`<div class="alert alert-err">Error: ${e.message}</div>`; }
   btn.disabled=false; btn.textContent='Guardar movimiento';
 };
@@ -796,15 +802,14 @@ window.toggleTipo = () => {
 actualizarCategorias();
 const hoy=new Date();
 document.getElementById('inp-fecha').value=`${hoy.getFullYear()}-${pad(hoy.getMonth()+1)}-${pad(hoy.getDate())}`;
-</script>
 
-<script>
-// ── EDITAR ─────────────────────────────────────────
+// ── EDITAR ────────────────────────────────────────
 let editandoId = null;
 
 window.actualizarCategoriasEdit = () => {
   const tipo = document.getElementById('edit-tipo').value;
-  const sel = document.getElementById('edit-cat');
+  const sel  = document.getElementById('edit-cat');
+  if (!sel) return;
   const cats = CATEGORIAS[tipo] || CATEGORIAS['Gasto variable'];
   sel.innerHTML = cats.map(c=>`<option value="${c}">${c}</option>`).join('');
 };
@@ -813,15 +818,15 @@ window.abrirEdicion = (id) => {
   const g = gastos.find(x=>x.id===id);
   if (!g) return;
   editandoId = id;
-  document.getElementById('edit-fecha').value = g.fecha || '';
-  document.getElementById('edit-tipo').value = g.tipo || 'Gasto variable';
-  actualizarCategoriasEdit();
+  document.getElementById('edit-fecha').value  = g.fecha || '';
+  document.getElementById('edit-tipo').value   = g.tipo  || 'Gasto variable';
+  window.actualizarCategoriasEdit();
   const cat = g.categoria || g.tipoIngreso || '';
   const sel = document.getElementById('edit-cat');
   for (let o of sel.options) { if (o.value === cat) { o.selected = true; break; } }
-  document.getElementById('edit-monto').value = g.monto || '';
-  document.getElementById('edit-pago').value = g.formaPago || 'Transferencia';
-  document.getElementById('edit-quien').value = g.pago || 'Sebas';
+  document.getElementById('edit-monto').value  = g.monto || '';
+  document.getElementById('edit-pago').value   = g.formaPago || 'Transferencia';
+  document.getElementById('edit-quien').value  = g.pago || 'Sebas';
   document.getElementById('edit-msg').innerHTML = '';
   document.getElementById('modal-editar').style.display = 'block';
 };
@@ -833,14 +838,14 @@ window.cerrarModal = () => {
 
 window.guardarEdicion = async () => {
   if (!editandoId) return;
-  const btn = document.querySelector('#modal-editar .btn-primary');
+  const btn   = document.querySelector('#modal-editar .btn-primary');
   const msgEl = document.getElementById('edit-msg');
-  const fecha  = document.getElementById('edit-fecha').value;
-  const tipo   = document.getElementById('edit-tipo').value;
-  const cat    = document.getElementById('edit-cat').value;
-  const monto  = parseFloat(document.getElementById('edit-monto').value)||0;
-  const pago   = document.getElementById('edit-pago').value;
-  const quien  = document.getElementById('edit-quien').value;
+  const fecha = document.getElementById('edit-fecha').value;
+  const tipo  = document.getElementById('edit-tipo').value;
+  const cat   = document.getElementById('edit-cat').value;
+  const monto = parseFloat(document.getElementById('edit-monto').value)||0;
+  const pago  = document.getElementById('edit-pago').value;
+  const quien = document.getElementById('edit-quien').value;
   if (!fecha||!monto) { msgEl.innerHTML='<div class="alert alert-err">Completá fecha y monto</div>'; return; }
   btn.disabled=true; btn.textContent='Guardando...';
   try {
@@ -853,14 +858,16 @@ window.guardarEdicion = async () => {
       editadoEn: serverTimestamp(),
       usuario: auth.currentUser?.email||''
     });
-    toast(`✓ Movimiento actualizado`, 'ok', 2500);
-    cerrarModal();
+    toast('✓ Movimiento actualizado', 'ok', 2500);
+    window.cerrarModal();
   } catch(e) {
     msgEl.innerHTML=`<div class="alert alert-err">Error: ${e.message}</div>`;
   }
   btn.disabled=false; btn.textContent='Guardar cambios';
 };
+</script>
 
+<script>
 window.nav = (id,btn) => {
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.bnav-btn').forEach(b=>b.classList.remove('active'));
