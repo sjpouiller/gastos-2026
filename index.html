@@ -225,27 +225,7 @@ select,input[type=text],input[type=number],input[type=date]{padding:11px 12px;fo
           </select>
         </div>
         <div class="form-group" id="grp-cat"><label>Categoría</label>
-          <select id="inp-cat">
-            <option>Supermercado</option><option>Verduleria</option><option>Carniceria</option>
-            <option>Delivery</option><option>Salidas a comer</option><option>Comida con amigos</option>
-            <option>Almuerzos</option><option>Cafe</option><option>Cosas casa</option>
-            <option>Nafta</option><option>Taxi/Uber</option><option>Viajes</option>
-            <option>Ropa</option><option>Bienestar</option><option>Regalos</option>
-            <option>Salidas con los chicos</option><option>Farmacia</option><option>Kiosko</option>
-            <option>Estacionamiento</option><option>Libreria</option><option>Otros</option>
-            <option>Expensas</option><option>Impuestos Municipales</option><option>Impuestos</option>
-            <option>Seguros</option><option>Colegio</option><option>Peajes</option>
-            <option>Empleada domestica</option><option>CUBA</option>
-            <option>Servicios - Luz</option><option>Servicios - Gas</option>
-            <option>Servicios - Internet</option><option>Servicios - Movistar</option>
-            <option>Servicios - Streaming</option><option>Cuotas tarjetas de crédito</option>
-          </select>
-        </div>
-        <div class="form-group" id="grp-tipo-ing" style="display:none"><label>Tipo de ingreso</label>
-          <select id="inp-tipo-ing">
-            <option>Sueldo</option><option>Hotel</option><option>Constructora</option>
-            <option>Beruparc</option><option>Canchitas</option><option>La Recova</option><option>Otros</option>
-          </select>
+          <select id="inp-cat"></select>
         </div>
         <div class="form-group"><label>Monto ($)</label><input type="number" id="inp-monto" placeholder="0" inputmode="numeric"></div>
         <div class="form-group"><label>Forma de pago</label>
@@ -636,7 +616,7 @@ window.guardar = async () => {
   const msgEl = document.getElementById('carga-msg');
   const fecha  = document.getElementById('inp-fecha').value;
   const tipo   = document.getElementById('inp-tipo').value;
-  const cat    = tipo==='Ingreso'?document.getElementById('inp-tipo-ing').value:document.getElementById('inp-cat').value;
+  const cat    = document.getElementById('inp-cat').value;
   const monto  = parseFloat(document.getElementById('inp-monto').value)||0;
   const pago   = document.getElementById('inp-pago').value;
   const quien  = document.getElementById('inp-quien-carga').value;
@@ -692,7 +672,7 @@ window.guardar = async () => {
       await fetch('/.netlify/functions/sync-sheets', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({fecha, tipo, tipoIngreso: tipo==='Ingreso'?cat:'', categoria: tipo!=='Ingreso'?cat:'', monto, formaPago:pago, pago:quien, mes})
+        body: JSON.stringify({fecha, tipo, tipoIngreso: tipo==='Ingreso'?cat:'', categoria: tipo!=='Ingreso'?cat:'', monto, formaPago:pago, pago:quien, mes:fecha.slice(0,7)})
       });
     } catch(e) { console.log('Sheets sync error:', e); }
   } catch(e) { msgEl.innerHTML=`<div class="alert alert-err">Error: ${e.message}</div>`; }
@@ -761,13 +741,41 @@ window.cambiarAnio = a => {
   renderGastos();
   renderCashflow();
 };
-window.toggleTipo = () => {
-  const t=document.getElementById('inp-tipo').value;
-  document.getElementById('grp-cat').style.display=t==='Ingreso'?'none':'block';
-  document.getElementById('grp-tipo-ing').style.display=t==='Ingreso'?'block':'none';
-  document.getElementById('alertas-carga-card').style.display='none';
+const CATEGORIAS = {
+  'Ingreso': ['Aguinaldo','Freelance','Lanusses','Otros ingresos','Sueldo','Venta activos'],
+  'Gasto fijo': [
+    'ABL / ARBA','Colegio','CUBA','Cuotas préstamos','Empleada doméstica',
+    'Expensas','Impuestos','Impuestos Municipales','Internet','Jardinero/Piletero',
+    'Obra social / Prepaga','Otros fijos','Seguro auto','Seguro hogar',
+    'Servicios - Agua','Servicios - Gas','Servicios - Luz','Servicios - Movistar',
+    'Servicios - Streaming (Netflix, Disney, Spotify, etc)'
+  ],
+  'Gasto variable': [
+    'Bienestar','Cafe','Carniceria','Colegios / útiles','Comida con amigos',
+    'Cosas casa','Delivery','Estacionamiento','Farmacia','Gimnasio','Kiosco',
+    'Limpieza','Mantenimiento auto','Nafta','Otros','Peajes','Regalos','Ropa',
+    'Salidas a comer','Salidas con los chicos','Suscripciones','Uber / Taxi',
+    'Vacaciones','Verduleria','Viajes'
+  ],
+  'Ahorro': ['Ahorro general','Compra USD','Fondo emergencia','Inversiones']
 };
 
+function actualizarCategorias() {
+  const tipo = document.getElementById('inp-tipo').value;
+  const sel = document.getElementById('inp-cat');
+  if (!sel) return;
+  const cats = CATEGORIAS[tipo] || CATEGORIAS['Gasto variable'];
+  sel.innerHTML = cats.map(c => `<option value="${c}">${c}</option>`).join('');
+}
+
+window.toggleTipo = () => {
+  const t = document.getElementById('inp-tipo').value;
+  document.getElementById('grp-cat').style.display = 'block';
+  document.getElementById('alertas-carga-card').style.display = 'none';
+  actualizarCategorias();
+};
+
+actualizarCategorias();
 const hoy=new Date();
 document.getElementById('inp-fecha').value=`${hoy.getFullYear()}-${pad(hoy.getMonth()+1)}-${pad(hoy.getDate())}`;
 </script>
