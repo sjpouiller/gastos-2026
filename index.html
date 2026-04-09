@@ -198,17 +198,27 @@ select,input[type=text],input[type=number],input[type=date]{padding:11px 12px;fo
 
     <!-- GASTOS -->
     <div id="sec-gastos" class="section">
-      <div class="filter-row">
-        <select id="fil-tipo" onchange="renderGastos()">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+        <select id="fil-tipo" onchange="renderGastos()" style="padding:9px 10px;font-size:12px;border:0.5px solid #d1d5db;border-radius:10px;background:#fff;color:#1a1a1a;appearance:none;-webkit-appearance:none">
           <option value="">Todos los tipos</option>
           <option value="Gasto fijo">Fijos</option>
           <option value="Gasto variable">Variables</option>
           <option value="Ingreso">Ingresos</option>
+          <option value="Ahorro">Ahorro</option>
         </select>
-        <select id="fil-quien" onchange="renderGastos()">
+        <select id="fil-quien" onchange="renderGastos()" style="padding:9px 10px;font-size:12px;border:0.5px solid #d1d5db;border-radius:10px;background:#fff;color:#1a1a1a;appearance:none;-webkit-appearance:none">
           <option value="">Todos</option>
           <option value="Sebas">Sebas</option>
           <option value="Male">Male</option>
+        </select>
+        <select id="fil-fecha" onchange="renderGastos()" style="padding:9px 10px;font-size:12px;border:0.5px solid #d1d5db;border-radius:10px;background:#fff;color:#1a1a1a;appearance:none;-webkit-appearance:none">
+          <option value="desc">Fecha: nueva → vieja</option>
+          <option value="asc">Fecha: vieja → nueva</option>
+        </select>
+        <select id="fil-monto" onchange="renderGastos()" style="padding:9px 10px;font-size:12px;border:0.5px solid #d1d5db;border-radius:10px;background:#fff;color:#1a1a1a;appearance:none;-webkit-appearance:none">
+          <option value="">Monto: sin ordenar</option>
+          <option value="desc">Monto: mayor → menor</option>
+          <option value="asc">Monto: menor → mayor</option>
         </select>
       </div>
       <div id="gastos-list"></div>
@@ -507,11 +517,18 @@ window.renderResumen = () => {
 
 // ── GASTOS ────────────────────────────────────────────
 window.renderGastos = () => {
-  const tipo  = document.getElementById('fil-tipo')?.value||'';
-  const quien = document.getElementById('fil-quien')?.value||'';
+  const tipo       = document.getElementById('fil-tipo')?.value||'';
+  const quien      = document.getElementById('fil-quien')?.value||'';
+  const ordenFecha = document.getElementById('fil-fecha')?.value||'desc';
+  const ordenMonto = document.getElementById('fil-monto')?.value||'';
   let d = gastos.filter(g=>g.mes===mesSel);
   if (tipo)  d = d.filter(g=>g.tipo===tipo);
   if (quien) d = d.filter(g=>g.pago===quien);
+  // Ordenar
+  if (ordenMonto === 'desc') d = [...d].sort((a,b)=>(b.monto||0)-(a.monto||0));
+  else if (ordenMonto === 'asc') d = [...d].sort((a,b)=>(a.monto||0)-(b.monto||0));
+  else if (ordenFecha === 'asc') d = [...d].sort((a,b)=>(a.fecha||'').localeCompare(b.fecha||''));
+  else d = [...d].sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||''));
 
   const prev = mesAnterior(mesSel);
   // mapa acumulado por categoría+persona del mes anterior
@@ -542,7 +559,7 @@ window.renderGastos = () => {
         <div class="gasto-right" style="display:flex;flex-direction:column;align-items:flex-end;gap:3px">
           <div class="gasto-monto ${g.tipo==='Ingreso'?'pos':''}">${g.tipo==='Ingreso'?'+':''}${fmt(g.monto)}</div>
           ${badge?`<div class="gasto-var">${badge} vs ${mesCorto(prev)}</div>`:''}
-          <button onclick="abrirEdicion('${g.id}')" style="font-size:10px;color:#888;background:none;border:0.5px solid #e5e5e0;border-radius:6px;padding:2px 7px;cursor:pointer;margin-top:2px">editar</button>
+          <button onclick="abrirEdicion('${g.id}')" style="font-size:15px;background:none;border:none;cursor:pointer;padding:2px 4px;color:#aaa" title="Editar">✏️</button>
         </div>
       </div>`;
     }).join('')
