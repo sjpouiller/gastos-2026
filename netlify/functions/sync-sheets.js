@@ -1,7 +1,7 @@
 const { google } = require('googleapis');
 
 const SPREADSHEET_ID = '1S6CNMsnqbjEy7zu21RWCAWYeiIOdgDI0h7y2CuVETPM';
-const SHEET_NAME = 'Gastos';
+const SHEET_NAME = 'Cargas_App';
 
 exports.handler = async function(event) {
   const headers = {
