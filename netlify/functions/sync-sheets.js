@@ -21,12 +21,21 @@ exports.handler = async function(event) {
     });
     const sheets = google.sheets({ version: 'v4', auth });
 
+    // Primero obtener las hojas disponibles para verificar el nombre exacto
+    const spreadsheet = await sheets.spreadsheets.get({ spreadsheetId: SPREADSHEET_ID });
+    const sheetNames = spreadsheet.data.sheets.map(s => s.properties.title);
+    console.log('Available sheets:', sheetNames);
+
+    // Buscar la hoja correcta (Cargas_App o similar)
+    const targetSheet = sheetNames.find(n => n.toLowerCase().includes('carga')) || sheetNames[0];
+    console.log('Using sheet:', targetSheet);
+
     const newId = `APP-${Date.now()}`;
     const fecha = gasto.fecha || '';
     const [year, month, day] = fecha.split('-');
     const fechaFormateada = `${parseInt(day)}/${parseInt(month)}/${year}`;
     const mesFormateado = `1/${parseInt(month)}/${year}`;
-    const montoFormateado = ` $${parseInt(gasto.monto).toLocaleString('es-AR')}`;
+    const montoNum = parseInt(gasto.monto) || 0;
 
     const nuevaFila = [
       newId,
@@ -34,23 +43,24 @@ exports.handler = async function(event) {
       gasto.tipo || '',
       gasto.tipoIngreso || '',
       gasto.categoria || '',
-      montoFormateado,
+      `$${montoNum.toLocaleString('es-AR')}`,
       gasto.formaPago || '',
       gasto.pago || '',
       mesFormateado,
-      parseInt(gasto.monto) || 0,
+      montoNum,
     ];
 
     await sheets.spreadsheets.values.append({
       spreadsheetId: SPREADSHEET_ID,
-      range: `${SHEET_NAME}!A:J`,
+      range: `'${targetSheet}'!A:J`,
       valueInputOption: 'USER_ENTERED',
       insertDataOption: 'INSERT_ROWS',
       requestBody: { values: [nuevaFila] },
     });
 
-    return { statusCode: 200, headers, body: JSON.stringify({ success: true, id: newId }) };
+    return { statusCode: 200, headers, body: JSON.stringify({ success: true, id: newId, sheet: targetSheet }) };
   } catch(e) {
+    console.error('Sync error:', e.message);
     return { statusCode: 500, headers, body: JSON.stringify({ error: e.message }) };
   }
 };
