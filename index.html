@@ -559,7 +559,10 @@ window.renderGastos = () => {
         <div class="gasto-right" style="display:flex;flex-direction:column;align-items:flex-end;gap:3px">
           <div class="gasto-monto ${g.tipo==='Ingreso'?'pos':''}">${g.tipo==='Ingreso'?'+':''}${fmt(g.monto)}</div>
           ${badge?`<div class="gasto-var">${badge} vs ${mesCorto(prev)}</div>`:''}
-          <button onclick="abrirEdicion('${g.id}')" style="font-size:15px;background:none;border:none;cursor:pointer;padding:2px 4px;color:#aaa" title="Editar">✏️</button>
+          <div style="display:flex;gap:4px">
+            <button onclick="abrirEdicion('${g.id}')" style="font-size:15px;background:none;border:none;cursor:pointer;padding:2px 4px;color:#aaa" title="Editar">✏️</button>
+            <button onclick="confirmarEliminar('${g.id}')" style="font-size:15px;background:none;border:none;cursor:pointer;padding:2px 4px;color:#f87171" title="Eliminar">🗑️</button>
+          </div>
         </div>
       </div>`;
     }).join('')
@@ -685,6 +688,12 @@ window.guardar = async () => {
     document.getElementById('inp-monto').value='';
     toast(`✓ ${cat} · ${fmt(monto)}`, 'ok', 2500);
     setTimeout(()=>msgEl.innerHTML='',3000);
+    // Reset formulario
+    document.getElementById('inp-tipo').value = 'Gasto variable';
+    document.getElementById('inp-monto').value = '';
+    document.getElementById('inp-pago').value = 'Transferencia';
+    document.getElementById('inp-quien-carga').value = 'Sebas';
+    actualizarCategorias();
     // Sincronizar con Google Sheets
     try {
       const syncRes = await fetch('/.netlify/functions/sync-sheets', {
@@ -802,6 +811,27 @@ window.toggleTipo = () => {
 actualizarCategorias();
 const hoy=new Date();
 document.getElementById('inp-fecha').value=`${hoy.getFullYear()}-${pad(hoy.getMonth()+1)}-${pad(hoy.getDate())}`;
+
+// ── ELIMINAR ─────────────────────────────────────
+window.confirmarEliminar = (id) => {
+  const g = gastos.find(x=>x.id===id);
+  if (!g) return;
+  const cat = g.categoria || g.tipoIngreso || g.tipo;
+  const confirmado = confirm(`¿Eliminar este movimiento?\n\n${g.fecha} · ${cat} · $${Math.round(g.monto||0).toLocaleString('es-AR')}`);
+  if (!confirmado) return;
+  eliminarGasto(id);
+};
+
+window.eliminarGasto = async (id) => {
+  try {
+    const { deleteDoc } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+    await deleteDoc(doc(db,'gastos',id));
+    toast('🗑️ Movimiento eliminado', 'info', 2500);
+  } catch(e) {
+    toast('Error al eliminar: '+e.message, 'warn', 3000);
+    console.error(e);
+  }
+};
 
 // ── EDITAR ────────────────────────────────────────
 let editandoId = null;
