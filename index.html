@@ -571,19 +571,19 @@ window.renderGastos = () => {
 
 // ── CASHFLOW ──────────────────────────────────────────
 window.renderCashflow = () => {
-  // Solo meses con datos reales
-  const mesesConDatos = [...new Set(gastos.map(g=>g.mes))].filter(m=>m?.startsWith(anioSel)).sort().filter(m=>
-    sumarMes(m,'Ingreso')>0 || sumarMes(m,'Gasto fijo')>0 || sumarMes(m,'Gasto variable')>0
-  );
+  const mesesConDatos = [...new Set(gastos.map(g=>g.mes))]
+    .filter(m=>m?.startsWith(anioSel)).sort()
+    .filter(m=>sumarMes(m,'Ingreso')>0||sumarMes(m,'Gasto fijo')>0||sumarMes(m,'Gasto variable')>0);
   if (!mesesConDatos.length) return;
 
-  // Proyección: promedio de últimos 3 meses con datos
+  // Proyeccion basada en promedio de los ultimos 3 meses reales
   const ultimos3 = mesesConDatos.slice(-3);
-  const n = ultimos3.length || 1;
-  const avgIng = ultimos3.reduce((s,m)=>s+sumarMes(m,'Ingreso'),0)/n;
-  const avgFij = ultimos3.reduce((s,m)=>s+sumarMes(m,'Gasto fijo'),0)/n;
-  const avgVrs = ultimos3.reduce((s,m)=>s+sumarMes(m,'Gasto variable'),0)/n;
+  const n = ultimos3.length||1;
+  const avgIng = Math.round(ultimos3.reduce((s,m)=>s+sumarMes(m,'Ingreso'),0)/n);
+  const avgFij = Math.round(ultimos3.reduce((s,m)=>s+sumarMes(m,'Gasto fijo'),0)/n);
+  const avgVrs = Math.round(ultimos3.reduce((s,m)=>s+sumarMes(m,'Gasto variable'),0)/n);
   const avgSal = avgIng - avgFij - avgVrs;
+  const avgAhP = avgIng>0?Math.round(avgSal/avgIng*100):0;
 
   const ultimo = mesesConDatos[mesesConDatos.length-1];
   const mesesProj = [];
@@ -592,17 +592,16 @@ window.renderCashflow = () => {
     const d = new Date(y, mo-1+i, 1);
     mesesProj.push(`${d.getFullYear()}-${pad(d.getMonth()+1)}`);
   }
-  
 
   const filas = [
-    {label:'Ingresos', fn:m=>sumarMes(m,'Ingreso'), proj:avgIng},
-    {label:'Fijos',    fn:m=>sumarMes(m,'Gasto fijo'), proj:avgFij},
-    {label:'Variables',fn:m=>sumarMes(m,'Gasto variable'), proj:avgVrs},
-    {label:'Resultado',fn:m=>sumarMes(m,'Ingreso')-sumarMes(m,'Gasto fijo')-sumarMes(m,'Gasto variable'), proj:avgSal, total:true},
+    {label:'Ingresos',  fn:m=>sumarMes(m,'Ingreso'), proj:avgIng, posReal:true},
+    {label:'Fijos',     fn:m=>sumarMes(m,'Gasto fijo'), proj:avgFij},
+    {label:'Variables', fn:m=>sumarMes(m,'Gasto variable'), proj:avgVrs},
+    {label:'Resultado', fn:m=>sumarMes(m,'Ingreso')-sumarMes(m,'Gasto fijo')-sumarMes(m,'Gasto variable'), proj:avgSal, total:true},
   ];
 
   const thead = `<thead><tr>
-    <th></th>
+    <th style="min-width:70px"></th>
     ${mesesConDatos.map(m=>`<th>${mesCorto(m)}</th>`).join('')}
     ${mesesProj.map(m=>`<th class="proj-head">${mesCorto(m)}*</th>`).join('')}
   </tr></thead>`;
@@ -611,23 +610,25 @@ window.renderCashflow = () => {
     <td>${f.label}</td>
     ${mesesConDatos.map(m=>{
       const v=f.fn(m);
-      return `<td class="real-val ${f.total?(v>=0?'pos':'neg'):''}">${fmtK(v)}</td>`;
+      const cls=f.total?(v>=0?'pos':'neg'):f.posReal?'pos':'';
+      return `<td class="real-val ${cls}">${fmtK(v)}</td>`;
     }).join('')}
-    ${mesesProj.map(()=>`<td class="proj ${f.total?(f.proj>=0?'pos':'neg'):''}">${fmtK(f.proj)}</td>`).join('')}
+    ${mesesProj.map(()=>{
+      const cls=f.total?(f.proj>=0?'pos':'neg'):'';
+      return `<td class="proj ${cls}">${fmtK(f.proj)}</td>`;
+    }).join('')}
   </tr>`).join('');
 
   document.getElementById('cf-table').innerHTML = thead+`<tbody>${tbody}</tbody>`;
 
-  // Alertas
   const als = mesesConDatos.map(m=>{
     const s=sumarMes(m,'Ingreso')-sumarMes(m,'Gasto fijo')-sumarMes(m,'Gasto variable');
     const i=sumarMes(m,'Ingreso');
     const p=i>0?Math.round(s/i*100):0;
     const cls=s<0?'alert-err':p>=30?'alert-ok':'alert-warn';
-    const icon=s<0?'⚠':'✓';
-    return `<div class="alert ${cls}">${icon} <strong>${nombreMes(m)}:</strong> ${fmtK(s)} · ahorro ${p}%</div>`;
+    return `<div class="alert ${cls}">${s>=0?'✓':'⚠'} <strong>${nombreMes(m)}:</strong> ${fmtK(s)} · ahorro ${p}%</div>`;
   });
-  als.push(`<div class="alert alert-info">📊 Proyección próx. 3 meses: ~${fmtK(avgSal)}/mes · ahorro proyectado ~${avgIng>0?Math.round(avgSal/avgIng*100):0}%</div>`);
+  als.push(`<div class="alert alert-info">📊 Proyección* = promedio de ${ultimos3.map(m=>mesCorto(m)).join(' + ')}: Ing ${fmtK(avgIng)} · Fijos ${fmtK(avgFij)} · Vars ${fmtK(avgVrs)} · Resultado ${fmtK(avgSal)} (ahorro ~${avgAhP}%)</div>`);
   document.getElementById('alertas-cf').innerHTML = als.join('');
 };
 

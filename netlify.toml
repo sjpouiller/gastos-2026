@@ -3,3 +3,9 @@
 
 [[plugins]]
   package = "@netlify/plugin-functions-install-core"
+
+[functions."email-semanal"]
+  schedule = "0 12 * * 1"
+
+[functions."email-mensual"]
+  schedule = "0 12 1 * *"
