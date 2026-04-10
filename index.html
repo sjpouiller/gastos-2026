@@ -429,7 +429,7 @@ onAuthStateChanged(auth, user => {
     dot.className = 'sync-dot syncing'; txt.textContent = 'cargando...';
 
     // Ordenar por fecha desc, luego por creadoEn desc (último cargado primero dentro del mismo día)
-    unsub = onSnapshot(query(collection(db,'gastos'), orderBy('fecha','desc'), orderBy('creadoEn','desc')), snap => {
+    unsub = onSnapshot(query(collection(db,'gastos'), orderBy('fecha','desc')), snap => {
       gastos = snap.docs.map(d=>({id:d.id,...d.data()}));
       dot.className = 'sync-dot'; txt.textContent = gastos.length+' mov.';
       renderResumen(); renderGastos(); renderCashflow();
