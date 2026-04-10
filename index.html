@@ -48,6 +48,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#1
 .mes-tabs::-webkit-scrollbar{display:none}
 .mes-tab{padding:6px 14px;border-radius:999px;font-size:12px;font-weight:600;border:1px solid #e5e5e0;background:#fff;color:#888;white-space:nowrap;cursor:pointer;flex-shrink:0}
 .mes-tab.active{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
+.mes-tab.todo-tab{border-style:dashed}
+.mes-tab.todo-tab.active{border-style:solid}
 
 /* METRICS */
 .metric-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
@@ -133,6 +135,11 @@ select,input[type=text],input[type=number],input[type=date]{padding:11px 12px;fo
 .alert-err{background:#fee2e2;color:#dc2626}
 .alert-info{background:#dbeafe;color:#1d4ed8}
 
+/* USD card */
+.usd-card{background:#fff;border:0.5px solid #e5e5e0;border-radius:12px;padding:14px 16px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
+.usd-val{font-size:20px;font-weight:700;color:#1d4ed8}
+.usd-sub{font-size:11px;color:#888;margin-top:3px}
+
 /* CHAT */
 .chat-msgs{background:#f9f9f7;border:0.5px solid #e5e5e0;border-radius:12px;min-height:240px;max-height:360px;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;margin-bottom:12px}
 .msg{padding:10px 14px;border-radius:12px;font-size:13px;line-height:1.6;max-width:90%}
@@ -147,6 +154,11 @@ select,input[type=text],input[type=number],input[type=date]{padding:11px 12px;fo
 .loader{display:inline-block;width:10px;height:10px;border:2px solid #ddd;border-top-color:#888;border-radius:50%;animation:spin .7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 .empty-state{text-align:center;padding:3rem 1rem;color:#bbb;font-size:14px}
+
+/* campo dolar */
+.dolar-field{display:none;margin-top:10px;padding:10px 12px;background:#eff6ff;border:0.5px solid #bfdbfe;border-radius:10px}
+.dolar-field label{font-size:12px;font-weight:600;color:#1d4ed8;margin-bottom:5px;display:block}
+.dolar-field input{border-color:#bfdbfe;background:#fff}
 </style>
 </head>
 <body>
@@ -189,14 +201,12 @@ select,input[type=text],input[type=number],input[type=date]{padding:11px 12px;fo
         <div class="mes-tabs" id="mes-tabs"></div>
       </div>
       <div class="metric-grid" id="metrics"></div>
+      <div id="ahorro-resumen"></div>
+      <div id="usd-resumen"></div>
       <div id="personas"></div>
-      <div class="card">
-        <div class="card-title">Forma de pago</div>
-        <div id="formas-pago"></div>
-      </div>
     </div>
 
-    <!-- GASTOS -->
+    <!-- MOVIMIENTOS (antes Gastos) -->
     <div id="sec-gastos" class="section">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
         <select id="fil-tipo" onchange="renderGastos()" style="padding:9px 10px;font-size:12px;border:0.5px solid #d1d5db;border-radius:10px;background:#fff;color:#1a1a1a;appearance:none;-webkit-appearance:none">
@@ -235,9 +245,14 @@ select,input[type=text],input[type=number],input[type=date]{padding:11px 12px;fo
           </select>
         </div>
         <div class="form-group" id="grp-cat"><label>Categoría</label>
-          <select id="inp-cat"></select>
+          <select id="inp-cat" onchange="toggleDolarField()"></select>
         </div>
         <div class="form-group"><label>Monto ($)</label><input type="number" id="inp-monto" placeholder="0" inputmode="numeric"></div>
+        <!-- Campo dólares — se muestra solo para Sueldo USD, Compra USD, Venta USD -->
+        <div class="dolar-field" id="grp-dolar">
+          <label>Cantidad en dólares (USD)</label>
+          <input type="number" id="inp-dolar" placeholder="0" inputmode="numeric">
+        </div>
         <div class="form-group"><label>Forma de pago</label>
           <select id="inp-pago">
             <option>Transferencia</option><option>Efectivo</option>
@@ -299,7 +314,7 @@ select,input[type=text],input[type=number],input[type=date]{padding:11px 12px;fo
 
 <div class="bottom-nav" id="bottom-nav" style="display:none">
   <button class="bnav-btn active" onclick="nav('resumen',this)"><span class="bnav-icon">📊</span>Resumen</button>
-  <button class="bnav-btn" onclick="nav('gastos',this)"><span class="bnav-icon">📋</span>Gastos</button>
+  <button class="bnav-btn" onclick="nav('gastos',this)"><span class="bnav-icon">📋</span>Movimientos</button>
   <button class="bnav-btn" onclick="nav('carga',this)"><span class="bnav-icon">➕</span>Cargar</button>
   <button class="bnav-btn" onclick="nav('cashflow',this)"><span class="bnav-icon">📈</span>Cashflow</button>
   <button class="bnav-btn" onclick="nav('agente',this)"><span class="bnav-icon">🤖</span>Agente</button>
@@ -324,14 +339,18 @@ const auth = getAuth(fbApp);
 const provider = new GoogleAuthProvider();
 const AUTORIZADOS = ["sjpouiller@gmail.com","malelanusse@odiseaswimwear.com.ar"];
 
+// Saldo USD inicial hardcodeado
+const USD_INICIAL = 5152;
+
 let gastos = [];
 let anioSel = '2026';
-let mesSel  = '2026-04';
+let mesSel  = 'todo'; // 'todo' = vista anual
 let unsub   = null;
 
 // ── UTILS ─────────────────────────────────────────────
 const fmt  = n => (n||n===0) ? '$'+Math.round(n).toLocaleString('es-AR') : '-';
 const fmtK = n => Math.abs(n)>=1000000 ? (n<0?'-':'')+'$'+(Math.abs(n)/1000000).toFixed(1)+'M' : Math.abs(n)>=1000 ? (n<0?'-':'')+'$'+Math.round(Math.abs(n)/1000)+'k' : fmt(n);
+const fmtUSD = n => 'U$S '+Math.round(n).toLocaleString('es-AR');
 const pad  = n => String(n).padStart(2,'0');
 const MESES_FULL = {
   '01':'Enero','02':'Febrero','03':'Marzo','04':'Abril','05':'Mayo','06':'Junio',
@@ -353,6 +372,13 @@ function sumarMes(mes, tipo) {
   return gastos.filter(g=>g.mes===mes&&(tipo?g.tipo===tipo:true)).reduce((s,g)=>s+(g.monto||0),0);
 }
 
+// Calcula saldo USD acumulado histórico
+function calcSaldoUSD() {
+  const compras = gastos.filter(g=>g.categoria==='Compra USD'||g.tipoIngreso==='Sueldo USD').reduce((s,g)=>s+(g.montoDolar||0),0);
+  const ventas  = gastos.filter(g=>g.tipoIngreso==='Venta USD').reduce((s,g)=>s+(g.montoDolar||0),0);
+  return USD_INICIAL + compras - ventas;
+}
+
 // variación: invertido=true significa que subir es malo (gastos)
 function varBadge(actual, anterior, invertido=false) {
   if (!anterior || anterior === 0) return '<span class="badge-neu">nuevo</span>';
@@ -360,7 +386,7 @@ function varBadge(actual, anterior, invertido=false) {
   if (Math.abs(pct) < 1) return '<span class="badge-neu">sin cambio</span>';
   const sube = pct > 0;
   const esBueno = invertido ? !sube : sube;
-  const cls = esBueno ? 'badge-down' : 'badge-up'; // verde=down para gastos, rojo=up
+  const cls = esBueno ? 'badge-down' : 'badge-up';
   return `<span class="${cls}">${sube?'▲':'▼'}${Math.abs(pct)}%</span>`;
 }
 
@@ -402,7 +428,8 @@ onAuthStateChanged(auth, user => {
     const txt = document.getElementById('sync-txt');
     dot.className = 'sync-dot syncing'; txt.textContent = 'cargando...';
 
-    unsub = onSnapshot(query(collection(db,'gastos'), orderBy('fecha','desc')), snap => {
+    // Ordenar por fecha desc, luego por creadoEn desc (último cargado primero dentro del mismo día)
+    unsub = onSnapshot(query(collection(db,'gastos'), orderBy('fecha','desc'), orderBy('creadoEn','desc')), snap => {
       gastos = snap.docs.map(d=>({id:d.id,...d.data()}));
       dot.className = 'sync-dot'; txt.textContent = gastos.length+' mov.';
       renderResumen(); renderGastos(); renderCashflow();
@@ -425,20 +452,96 @@ window.renderResumen = () => {
     `<button class="year-tab ${a===anioSel?'active':''}" onclick="cambiarAnio('${a}')">${a}</button>`
   ).join('');
 
-  // Meses en orden cronológico (más reciente primero)
+  // Meses en orden cronológico ascendente (Ene → Dic), precedidos por "Todo el año"
   const meses = [...new Set(gastos.filter(g=>g.mes?.startsWith(anioSel)).map(g=>g.mes))]
-    .filter(Boolean).sort().reverse();
+    .filter(Boolean).sort(); // ascendente
   if (!meses.length) { document.getElementById('mes-tabs').innerHTML=''; return; }
-  if (!meses.includes(mesSel)) mesSel = meses[0];
 
-  document.getElementById('mes-tabs').innerHTML = meses.map(m=>
+  // Si mesSel es un mes que ya no existe, resetear a 'todo'
+  if (mesSel !== 'todo' && !meses.includes(mesSel)) mesSel = 'todo';
+
+  const todoBtn = `<button class="mes-tab todo-tab ${mesSel==='todo'?'active':''}" onclick="cambiarMes('todo')">Todo el año</button>`;
+  const mesesBtns = meses.map(m=>
     `<button class="mes-tab ${m===mesSel?'active':''}" onclick="cambiarMes('${m}')">${nombreMes(m)}</button>`
   ).join('');
+  document.getElementById('mes-tabs').innerHTML = todoBtn + mesesBtns;
 
-  const prev = mesAnterior(mesSel);
-  const ing=sumarMes(mesSel,'Ingreso'), ingP=sumarMes(prev,'Ingreso');
-  const fij=sumarMes(mesSel,'Gasto fijo'), fijP=sumarMes(prev,'Gasto fijo');
-  const vrs=sumarMes(mesSel,'Gasto variable'), vrsP=sumarMes(prev,'Gasto variable');
+  if (mesSel === 'todo') {
+    renderResumenAnual(anioSel);
+  } else {
+    renderResumenMes(mesSel);
+  }
+};
+
+function renderResumenAnual(anio) {
+  const gastosAnio = gastos.filter(g=>g.mes?.startsWith(anio));
+  const ing = gastosAnio.filter(g=>g.tipo==='Ingreso').reduce((s,g)=>s+(g.monto||0),0);
+  const fij = gastosAnio.filter(g=>g.tipo==='Gasto fijo').reduce((s,g)=>s+(g.monto||0),0);
+  const vrs = gastosAnio.filter(g=>g.tipo==='Gasto variable').reduce((s,g)=>s+(g.monto||0),0);
+  const sal = ing - fij - vrs;
+  const ahP = ing>0?Math.round(sal/ing*100):0;
+
+  document.getElementById('metrics').innerHTML = `
+    <div class="metric">
+      <div class="metric-label">Ingresos</div>
+      <div class="metric-value pos">${fmtK(ing)}</div>
+      <div class="metric-var"><span style="font-size:11px;color:#888">acumulado ${anio}</span></div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Gastos fijos</div>
+      <div class="metric-value">${fmtK(fij)}</div>
+      <div class="metric-var"><span style="font-size:11px;color:#888">acumulado ${anio}</span></div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Variables</div>
+      <div class="metric-value">${fmtK(vrs)}</div>
+      <div class="metric-var"><span style="font-size:11px;color:#888">acumulado ${anio}</span></div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Saldo neto</div>
+      <div class="metric-value ${sal>=0?'pos':'neg'}">${fmtK(sal)}</div>
+      <div class="metric-var"><span style="font-size:11px;color:#888">ahorro ${ahP}%</span></div>
+    </div>`;
+
+  // Ahorro anual
+  const ahorros = gastosAnio.filter(g=>g.tipo==='Ahorro');
+  const totalAhorro = ahorros.reduce((s,g)=>s+(g.monto||0),0);
+  const CATS_AHORRO = ['Ahorro general','Compra USD','Fondo emergencia','Inversiones'];
+  const ahorroMap = ahorros.reduce((a,g)=>{a[g.categoria]=(a[g.categoria]||0)+(g.monto||0);return a},{});
+  document.getElementById('ahorro-resumen').innerHTML = `
+    <div class="card">
+      <div class="card-title">Ahorro acumulado · ${anio}</div>
+      <div style="display:flex;justify-content:space-between;align-items:baseline;padding-bottom:10px;border-bottom:0.5px solid #f3f3f0;margin-bottom:8px">
+        <div style="font-size:13px;font-weight:700">Total ahorrado</div>
+        <div style="font-size:16px;font-weight:700;color:#16a34a">${fmt(totalAhorro)}</div>
+      </div>
+      ${CATS_AHORRO.map(cat=>`
+        <div class="row-item">
+          <span class="row-cat">${cat}</span>
+          <span style="font-size:13px;font-weight:700">${ahorroMap[cat]?fmt(ahorroMap[cat]):'—'}</span>
+        </div>`).join('')}
+    </div>`;
+
+  // USD
+  const saldoUSD = calcSaldoUSD();
+  document.getElementById('usd-resumen').innerHTML = `
+    <div class="usd-card">
+      <div>
+        <div style="font-size:13px;font-weight:700">Saldo USD acumulado</div>
+        <div class="usd-sub">histórico total · todas las operaciones</div>
+      </div>
+      <div class="usd-val">${fmtUSD(saldoUSD)}</div>
+    </div>`;
+
+  // Top 10 por persona (anual)
+  renderPersonas(gastosAnio, null);
+}
+
+function renderResumenMes(mes) {
+  const prev = mesAnterior(mes);
+  const ing=sumarMes(mes,'Ingreso'), ingP=sumarMes(prev,'Ingreso');
+  const fij=sumarMes(mes,'Gasto fijo'), fijP=sumarMes(prev,'Gasto fijo');
+  const vrs=sumarMes(mes,'Gasto variable'), vrsP=sumarMes(prev,'Gasto variable');
   const sal=ing-fij-vrs, salP=ingP-fijP-vrsP;
   const ahP=ing>0?Math.round(sal/ing*100):0;
 
@@ -464,85 +567,143 @@ window.renderResumen = () => {
       <div class="metric-var">${varBadge(sal,salP,false)}<span style="font-size:11px;color:#888">ahorro ${ahP}%</span></div>
     </div>`;
 
-  // Top 10 por persona con variación
-  const gm = gastos.filter(g=>g.mes===mesSel);
+  // Ahorro del mes con variación
+  const ahorrosMes  = gastos.filter(g=>g.mes===mes&&g.tipo==='Ahorro');
+  const ahorrosPrev = gastos.filter(g=>g.mes===prev&&g.tipo==='Ahorro');
+  const totalAhorro  = ahorrosMes.reduce((s,g)=>s+(g.monto||0),0);
+  const totalAhorroPrev = ahorrosPrev.reduce((s,g)=>s+(g.monto||0),0);
+  const ahorroMap  = ahorrosMes.reduce((a,g)=>{a[g.categoria]=(a[g.categoria]||0)+(g.monto||0);return a},{});
+  const ahorroMapP = ahorrosPrev.reduce((a,g)=>{a[g.categoria]=(a[g.categoria]||0)+(g.monto||0);return a},{});
+  const CATS_AHORRO = ['Ahorro general','Compra USD','Fondo emergencia','Inversiones'];
+  document.getElementById('ahorro-resumen').innerHTML = `
+    <div class="card">
+      <div class="card-title">Ahorro · ${nombreMes(mes)}</div>
+      <div style="display:flex;justify-content:space-between;align-items:baseline;padding-bottom:10px;border-bottom:0.5px solid #f3f3f0;margin-bottom:8px">
+        <div>
+          <div style="font-size:13px;font-weight:700">Total ahorrado</div>
+          <div style="font-size:11px;color:#888;margin-top:3px">vs ${mesCorto(prev)}: ${varBadge(totalAhorro,totalAhorroPrev,false)}</div>
+        </div>
+        <div style="font-size:16px;font-weight:700;color:#16a34a">${fmt(totalAhorro)}</div>
+      </div>
+      ${CATS_AHORRO.map(cat=>`
+        <div class="row-item">
+          <span class="row-cat">${cat}</span>
+          <div class="row-right">
+            <span style="font-size:13px;font-weight:700">${ahorroMap[cat]?fmt(ahorroMap[cat]):'—'}</span>
+            ${ahorroMap[cat]&&ahorroMapP[cat]?varBadge(ahorroMap[cat],ahorroMapP[cat],false):''}
+          </div>
+        </div>`).join('')}
+    </div>`;
+
+  // USD con variación mensual
+  const saldoUSD = calcSaldoUSD();
+  // delta USD del mes
+  const usdMes  = gastos.filter(g=>g.mes===mes&&(g.categoria==='Compra USD'||g.tipoIngreso==='Sueldo USD')).reduce((s,g)=>s+(g.montoDolar||0),0)
+                - gastos.filter(g=>g.mes===mes&&g.tipoIngreso==='Venta USD').reduce((s,g)=>s+(g.montoDolar||0),0);
+  const usdPrev = gastos.filter(g=>g.mes===prev&&(g.categoria==='Compra USD'||g.tipoIngreso==='Sueldo USD')).reduce((s,g)=>s+(g.montoDolar||0),0)
+                - gastos.filter(g=>g.mes===prev&&g.tipoIngreso==='Venta USD').reduce((s,g)=>s+(g.montoDolar||0),0);
+  document.getElementById('usd-resumen').innerHTML = `
+    <div class="usd-card">
+      <div>
+        <div style="font-size:13px;font-weight:700">Saldo USD acumulado</div>
+        <div class="usd-sub" style="display:flex;align-items:center;gap:6px;margin-top:3px">
+          este mes: ${usdMes>=0?'+':''}${fmtUSD(usdMes)} ${varBadge(usdMes,usdPrev,false)}
+        </div>
+      </div>
+      <div class="usd-val">${fmtUSD(saldoUSD)}</div>
+    </div>`;
+
+  // Top 10 por persona del mes con badges
+  const gm     = gastos.filter(g=>g.mes===mes);
   const gmPrev = gastos.filter(g=>g.mes===prev);
+  renderPersonas(gm, gmPrev);
+}
+
+function renderPersonas(gm, gmPrev) {
   let ph = '';
   ['Sebas','Male'].forEach(p => {
-    const pg = gm.filter(g=>g.pago===p&&g.tipo!=='Ingreso'&&g.tipo!=='Ahorro');
-    const pgP = gmPrev.filter(g=>g.pago===p&&g.tipo!=='Ingreso'&&g.tipo!=='Ahorro');
-    const tot = pg.reduce((s,g)=>s+(g.monto||0),0);
-    const totP = pgP.reduce((s,g)=>s+(g.monto||0),0);
-    const prevMap = pgP.reduce((a,g)=>{const k=g.categoria||g.tipoIngreso||'?';a[k]=(a[k]||0)+(g.monto||0);return a},{});
-    const top = Object.entries(pg.reduce((a,g)=>{const k=g.categoria||g.tipoIngreso||'?';a[k]=(a[k]||0)+(g.monto||0);return a},{}))
-      .sort((a,b)=>b[1]-a[1]).slice(0,10);
+    const pg    = gm.filter(g=>g.pago===p&&(g.tipo==='Gasto fijo'||g.tipo==='Gasto variable'));
+    const pgPrev = gmPrev ? gmPrev.filter(g=>g.pago===p&&(g.tipo==='Gasto fijo'||g.tipo==='Gasto variable')) : [];
+    const tot   = pg.reduce((s,g)=>s+(g.monto||0),0);
+    const totP  = pgPrev.reduce((s,g)=>s+(g.monto||0),0);
+    const prevMap = pgPrev.reduce((a,g)=>{const k=g.categoria||g.tipoIngreso||'?';a[k]=(a[k]||0)+(g.monto||0);return a},{});
+    const catMap  = pg.reduce((a,g)=>{const k=g.categoria||g.tipoIngreso||'?';a[k]=(a[k]||0)+(g.monto||0);return a},{});
+    const top10 = Object.entries(catMap).sort((a,b)=>b[1]-a[1]).slice(0,10);
+    const maxV = top10[0]?.[1]||1;
     const col = p==='Sebas'?'#3b82f6':'#f59e0b';
+
     ph += `<div class="persona-card">
       <div class="persona-header">
         <div class="avatar ${p==='Sebas'?'av-s':'av-m'}">${p.slice(0,2).toUpperCase()}</div>
         <div style="flex:1">
           <div class="persona-name">${p}</div>
-          <div class="persona-total">${fmt(tot)} ${varBadge(tot,totP,true)}</div>
+          <div class="persona-total">${fmt(tot)} ${gmPrev?varBadge(tot,totP,true):''}</div>
         </div>
       </div>
-      ${top.map(([cat,monto])=>{
-        const pct = tot>0?Math.round(monto/tot*100):0;
+      ${top10.map(([cat,monto])=>{
+        const pct = Math.round(monto/maxV*100);
+        const badge = gmPrev && prevMap[cat]>0 ? varBadge(monto,prevMap[cat],true) : '';
         return `<div class="row-item">
           <span class="row-cat">${cat}</span>
-          <span class="row-right">
+          <div class="row-right">
             <span style="font-size:13px;font-weight:700">${fmt(monto)}</span>
-            ${varBadge(monto,prevMap[cat]||0,true)}
-          </span>
+            ${badge}
+          </div>
         </div>
         <div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${col}"></div></div>`;
       }).join('')}
     </div>`;
   });
   document.getElementById('personas').innerHTML = ph;
+}
 
-  // Forma de pago
-  const fp = gm.filter(g=>g.tipo!=='Ingreso'&&g.tipo!=='Ahorro')
-    .reduce((a,g)=>{a[g.formaPago]=(a[g.formaPago]||0)+(g.monto||0);return a},{});
-  const fps = Object.entries(fp).sort((a,b)=>b[1]-a[1]).slice(0,5);
-  const fmax = fps[0]?.[1]||1;
-  document.getElementById('formas-pago').innerHTML = fps.map(([n,m])=>`
-    <div class="row-item" style="flex-direction:column;align-items:stretch;gap:4px">
-      <div style="display:flex;justify-content:space-between">
-        <span class="row-cat">${n}</span>
-        <span style="font-size:13px;font-weight:700">${fmt(m)}</span>
-      </div>
-      <div class="progress-bar"><div class="progress-fill" style="width:${Math.round(m/fmax*100)}%;background:#6366f1"></div></div>
-    </div>`).join('')||'<div style="color:#bbb;text-align:center;padding:1rem;font-size:13px">Sin datos</div>';
-};
-
-// ── GASTOS ────────────────────────────────────────────
+// ── MOVIMIENTOS ────────────────────────────────────────────
 window.renderGastos = () => {
   const tipo       = document.getElementById('fil-tipo')?.value||'';
   const quien      = document.getElementById('fil-quien')?.value||'';
   const ordenFecha = document.getElementById('fil-fecha')?.value||'desc';
   const ordenMonto = document.getElementById('fil-monto')?.value||'';
-  let d = gastos.filter(g=>g.mes===mesSel);
+
+  // Usar mesSel activo; si es 'todo' mostrar todos los gastos del año
+  const mesFiltro = mesSel === 'todo' ? null : mesSel;
+  let d = mesFiltro ? gastos.filter(g=>g.mes===mesFiltro) : gastos.filter(g=>g.mes?.startsWith(anioSel));
+
   if (tipo)  d = d.filter(g=>g.tipo===tipo);
   if (quien) d = d.filter(g=>g.pago===quien);
-  // Ordenar
+
+  // Ordenar: monto tiene prioridad; sino por fecha+creadoEn
   if (ordenMonto === 'desc') d = [...d].sort((a,b)=>(b.monto||0)-(a.monto||0));
   else if (ordenMonto === 'asc') d = [...d].sort((a,b)=>(a.monto||0)-(b.monto||0));
-  else if (ordenFecha === 'asc') d = [...d].sort((a,b)=>(a.fecha||'').localeCompare(b.fecha||''));
-  else d = [...d].sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||''));
+  else if (ordenFecha === 'asc') {
+    d = [...d].sort((a,b)=>{
+      const fc = (a.fecha||'').localeCompare(b.fecha||'');
+      if (fc !== 0) return fc;
+      const ta = a.creadoEn?.toMillis?.() || 0;
+      const tb = b.creadoEn?.toMillis?.() || 0;
+      return ta - tb;
+    });
+  } else {
+    d = [...d].sort((a,b)=>{
+      const fc = (b.fecha||'').localeCompare(a.fecha||'');
+      if (fc !== 0) return fc;
+      const ta = a.creadoEn?.toMillis?.() || 0;
+      const tb = b.creadoEn?.toMillis?.() || 0;
+      return tb - ta; // más reciente primero dentro del mismo día
+    });
+  }
 
-  const prev = mesAnterior(mesSel);
-  // mapa acumulado por categoría+persona del mes anterior
-  const prevMap = gastos.filter(g=>g.mes===prev).reduce((a,g)=>{
+  const mesMostrado = mesFiltro || mesSel;
+  const prev = mesFiltro ? mesAnterior(mesFiltro) : null;
+  const prevMap = prev ? gastos.filter(g=>g.mes===prev).reduce((a,g)=>{
     const k=(g.categoria||g.tipoIngreso||'?')+'|||'+g.pago;
     a[k]=(a[k]||0)+(g.monto||0); return a;
-  },{});
-  // mapa acumulado mes actual (para badge de categoría)
+  },{}) : {};
   const currMap = d.reduce((a,g)=>{
     const k=(g.categoria||g.tipoIngreso||'?')+'|||'+g.pago;
     a[k]=(a[k]||0)+(g.monto||0); return a;
   },{});
 
-  if (!d.length) { document.getElementById('gastos-list').innerHTML='<div class="empty-state">📭<br>Sin movimientos para este mes</div>'; return; }
+  if (!d.length) { document.getElementById('gastos-list').innerHTML='<div class="empty-state">📭<br>Sin movimientos</div>'; return; }
 
   document.getElementById('gastos-list').innerHTML = `<div class="gastos-list">${
     d.slice(0,100).map(g=>{
@@ -550,7 +711,8 @@ window.renderGastos = () => {
       const cat = g.categoria||g.tipoIngreso||g.tipo;
       const f = g.fecha?g.fecha.slice(8)+'/'+g.fecha.slice(5,7):'';
       const k = cat+'|||'+g.pago;
-      const badge = prevMap[k]>0 ? varBadge(currMap[k]||0, prevMap[k], g.tipo!=='Ingreso') : '';
+      const badge = prev && prevMap[k]>0 ? varBadge(currMap[k]||0, prevMap[k], g.tipo!=='Ingreso') : '';
+      const usdExtra = g.montoDolar ? `<span style="font-size:10px;color:#1d4ed8;font-weight:600">U$S ${g.montoDolar}</span>` : '';
       return `<div class="gasto-item">
         <div class="gasto-info">
           <div class="gasto-cat">${cat}</div>
@@ -558,7 +720,8 @@ window.renderGastos = () => {
         </div>
         <div class="gasto-right" style="display:flex;flex-direction:column;align-items:flex-end;gap:3px">
           <div class="gasto-monto ${g.tipo==='Ingreso'?'pos':''}">${g.tipo==='Ingreso'?'+':''}${fmt(g.monto)}</div>
-          ${badge?`<div class="gasto-var">${badge} vs ${mesCorto(prev)}</div>`:''}
+          ${usdExtra}
+          ${badge?`<div class="gasto-var">${badge} vs ${prev?mesCorto(prev):''}</div>`:''}
           <div style="display:flex;gap:4px">
             <button onclick="abrirEdicion('${g.id}')" style="font-size:15px;background:none;border:none;cursor:pointer;padding:2px 4px;color:#aaa" title="Editar">✏️</button>
             <button onclick="confirmarEliminar('${g.id}')" style="font-size:15px;background:none;border:none;cursor:pointer;padding:2px 4px;color:#f87171" title="Eliminar">🗑️</button>
@@ -571,21 +734,30 @@ window.renderGastos = () => {
 
 // ── CASHFLOW ──────────────────────────────────────────
 window.renderCashflow = () => {
-  const mesesConDatos = [...new Set(gastos.map(g=>g.mes))]
-    .filter(m=>m?.startsWith(anioSel)).sort()
-    .filter(m=>sumarMes(m,'Ingreso')>0||sumarMes(m,'Gasto fijo')>0||sumarMes(m,'Gasto variable')>0);
-  if (!mesesConDatos.length) return;
+  const hoy = new Date();
+  const mesActualStr = `${hoy.getFullYear()}-${pad(hoy.getMonth()+1)}`;
 
-  // Proyeccion basada en promedio de los ultimos 3 meses reales
-  const ultimos3 = mesesConDatos.slice(-3);
+  // Solo meses pasados + mes actual con datos reales
+  const todosMeses = [...new Set(gastos.map(g=>g.mes))]
+    .filter(m=>m?.startsWith(anioSel)).sort();
+
+  // Meses reales: hasta mes actual inclusive
+  const mesesReales = todosMeses.filter(m => m <= mesActualStr)
+    .filter(m=>sumarMes(m,'Ingreso')>0||sumarMes(m,'Gasto fijo')>0||sumarMes(m,'Gasto variable')>0);
+
+  if (!mesesReales.length) return;
+
+  // Últimos 3 meses reales para proyección
+  const ultimos3 = mesesReales.slice(-3);
   const n = ultimos3.length||1;
   const avgIng = Math.round(ultimos3.reduce((s,m)=>s+sumarMes(m,'Ingreso'),0)/n);
   const avgFij = Math.round(ultimos3.reduce((s,m)=>s+sumarMes(m,'Gasto fijo'),0)/n);
   const avgVrs = Math.round(ultimos3.reduce((s,m)=>s+sumarMes(m,'Gasto variable'),0)/n);
+  const avgAho = Math.round(ultimos3.reduce((s,m)=>s+sumarMes(m,'Ahorro'),0)/n);
   const avgSal = avgIng - avgFij - avgVrs;
   const avgAhP = avgIng>0?Math.round(avgSal/avgIng*100):0;
 
-  const ultimo = mesesConDatos[mesesConDatos.length-1];
+  const ultimo = mesesReales[mesesReales.length-1];
   const mesesProj = [];
   for (let i=1; i<=3; i++) {
     const [y,mo] = ultimo.split('-').map(Number);
@@ -594,21 +766,22 @@ window.renderCashflow = () => {
   }
 
   const filas = [
-    {label:'Ingresos',  fn:m=>sumarMes(m,'Ingreso'), proj:avgIng, posReal:true},
+    {label:'Ingresos',  fn:m=>sumarMes(m,'Ingreso'),   proj:avgIng, posReal:true},
     {label:'Fijos',     fn:m=>sumarMes(m,'Gasto fijo'), proj:avgFij},
     {label:'Variables', fn:m=>sumarMes(m,'Gasto variable'), proj:avgVrs},
+    {label:'Ahorro',    fn:m=>sumarMes(m,'Ahorro'),     proj:avgAho, posReal:true},
     {label:'Resultado', fn:m=>sumarMes(m,'Ingreso')-sumarMes(m,'Gasto fijo')-sumarMes(m,'Gasto variable'), proj:avgSal, total:true},
   ];
 
   const thead = `<thead><tr>
     <th style="min-width:70px"></th>
-    ${mesesConDatos.map(m=>`<th>${mesCorto(m)}</th>`).join('')}
+    ${mesesReales.map(m=>`<th>${mesCorto(m)}</th>`).join('')}
     ${mesesProj.map(m=>`<th class="proj-head">${mesCorto(m)}*</th>`).join('')}
   </tr></thead>`;
 
   const tbody = filas.map(f=>`<tr class="${f.total?'cf-total':''}">
     <td>${f.label}</td>
-    ${mesesConDatos.map(m=>{
+    ${mesesReales.map(m=>{
       const v=f.fn(m);
       const cls=f.total?(v>=0?'pos':'neg'):f.posReal?'pos':'';
       return `<td class="real-val ${cls}">${fmtK(v)}</td>`;
@@ -621,7 +794,7 @@ window.renderCashflow = () => {
 
   document.getElementById('cf-table').innerHTML = thead+`<tbody>${tbody}</tbody>`;
 
-  const als = mesesConDatos.map(m=>{
+  const als = mesesReales.map(m=>{
     const s=sumarMes(m,'Ingreso')-sumarMes(m,'Gasto fijo')-sumarMes(m,'Gasto variable');
     const i=sumarMes(m,'Ingreso');
     const p=i>0?Math.round(s/i*100):0;
@@ -642,13 +815,13 @@ window.guardar = async () => {
   const monto  = parseFloat(document.getElementById('inp-monto').value)||0;
   const pago   = document.getElementById('inp-pago').value;
   const quien  = document.getElementById('inp-quien-carga').value;
+  const montoDolar = parseFloat(document.getElementById('inp-dolar').value)||0;
 
   if (!fecha||!monto) { msgEl.innerHTML='<div class="alert alert-err">Completá fecha y monto</div>'; return; }
 
   const mes  = fecha.slice(0,7);
   const prev = mesAnterior(mes);
 
-  // Calcular alertas antes de guardar
   if (tipo!=='Ingreso'&&tipo!=='Ahorro') {
     const alertas = [];
     const acumCat = gastos.filter(g=>g.mes===mes&&(g.categoria===cat||g.tipoIngreso===cat)).reduce((s,g)=>s+(g.monto||0),0);
@@ -678,24 +851,29 @@ window.guardar = async () => {
 
   btn.disabled=true; btn.textContent='Guardando...';
   try {
-    await addDoc(collection(db,'gastos'),{
+    const docData = {
       fecha, tipo,
       tipoIngreso: tipo==='Ingreso'?cat:'',
       categoria:   tipo!=='Ingreso'?cat:'',
       monto, formaPago:pago, pago:quien, mes,
       creadoEn:serverTimestamp(), fuente:'app', usuario:auth.currentUser?.email||''
-    });
+    };
+    // Guardar montoDolar solo si aplica
+    if (montoDolar > 0 && (cat==='Compra USD'||cat==='Sueldo USD'||cat==='Venta USD')) {
+      docData.montoDolar = montoDolar;
+    }
+    await addDoc(collection(db,'gastos'), docData);
     msgEl.innerHTML=`<div class="alert alert-ok">✓ ${cat} · ${fmt(monto)} guardado</div>`;
     document.getElementById('inp-monto').value='';
+    document.getElementById('inp-dolar').value='';
     toast(`✓ ${cat} · ${fmt(monto)}`, 'ok', 2500);
     setTimeout(()=>msgEl.innerHTML='',3000);
-    // Reset formulario
     document.getElementById('inp-tipo').value = 'Gasto variable';
     document.getElementById('inp-monto').value = '';
     document.getElementById('inp-pago').value = 'Transferencia';
     document.getElementById('inp-quien-carga').value = 'Sebas';
     actualizarCategorias();
-    // Sincronizar con Google Sheets
+    toggleDolarField();
     try {
       const syncRes = await fetch('/.netlify/functions/sync-sheets', {
         method: 'POST',
@@ -703,11 +881,8 @@ window.guardar = async () => {
         body: JSON.stringify({fecha, tipo, tipoIngreso: tipo==='Ingreso'?cat:'', categoria: tipo!=='Ingreso'?cat:'', monto, formaPago:pago, pago:quien, mes:fecha.slice(0,7)})
       });
       const syncData = await syncRes.json();
-      if (!syncRes.ok || syncData.error) {
-        console.error('Sheets sync error:', syncData.error);
-      } else {
-        console.log('Sheets sync ok:', syncData.id);
-      }
+      if (!syncRes.ok || syncData.error) console.error('Sheets sync error:', syncData.error);
+      else console.log('Sheets sync ok:', syncData.id);
     } catch(e) { console.error('Sheets sync failed:', e); }
   } catch(e) { msgEl.innerHTML=`<div class="alert alert-err">Error: ${e.message}</div>`; }
   btn.disabled=false; btn.textContent='Guardar movimiento';
@@ -730,15 +905,16 @@ window.enviar = async () => {
     return `${mes}: Ing ${fmtK(i)}, Fijos ${fmtK(f)}, Vars ${fmtK(v)}, Saldo ${fmtK(s)}, Ahorro ${p}%`;
   }).join('\n');
 
-  const gmActual = gastos.filter(g=>g.mes===mesSel&&g.tipo==='Gasto variable');
+  const mesActivo = mesSel === 'todo' ? mesesDisp[mesesDisp.length-1] : mesSel;
+  const gmActual = gastos.filter(g=>g.mes===mesActivo&&g.tipo==='Gasto variable');
   const topCats = Object.entries(gmActual.reduce((a,g)=>{a[g.categoria]=(a[g.categoria]||0)+(g.monto||0);return a},{}))
     .sort((a,b)=>b[1]-a[1]).slice(0,6).map(([c,v])=>`${c}:${fmtK(v)}`).join(', ');
 
   const ctx = `Sos el agente financiero personal de Sebas y Male, una pareja argentina. Todos los montos están en pesos argentinos (ARS).
-Total de movimientos registrados: ${gastos.length}. Mes activo seleccionado: ${nombreMes(mesSel)}.
+Total de movimientos registrados: ${gastos.length}. Mes activo: ${nombreMes(mesActivo)}.
 Resumen financiero por mes:
 ${resumen}
-Top categorías variables en ${nombreMes(mesSel)}: ${topCats}
+Top categorías variables en ${nombreMes(mesActivo)}: ${topCats}
 Respondé en español rioplatense, de forma directa y concreta. Máximo 4 oraciones. Usá siempre montos reales con formato argentino (ej: $1.200.000).`;
 
   try {
@@ -770,15 +946,16 @@ window.cambiarMes = m => {
 };
 window.cambiarAnio = a => {
   anioSel=a;
-  mesSel=gastos.filter(g=>g.mes?.startsWith(a)).map(g=>g.mes).sort().reverse()[0] || mesSel;
+  mesSel='todo';
   renderResumen();
   renderGastos();
   renderCashflow();
 };
+
 const CATEGORIAS = {
-  'Ingreso': ['Aguinaldo','Freelance','Lanusses','Otros ingresos','Sueldo','Venta activos'],
+  'Ingreso': ['Aguinaldo','Freelance','Lanusses','Otros ingresos','Sueldo','Sueldo USD','Venta USD','Venta activos'],
   'Gasto fijo': [
-    'ABL / ARBA','Colegio','CUBA','Cuotas préstamos','Empleada doméstica',
+    'ABL / ARBA','Agua envasada','Colegio','CUBA','Cuotas préstamos','Empleada doméstica',
     'Expensas','Impuestos','Impuestos Municipales','Internet','Jardinero/Piletero',
     'Obra social / Prepaga','Otros fijos','Seguro auto','Seguro hogar',
     'Servicios - Agua','Servicios - Gas','Servicios - Luz','Servicios - Movistar',
@@ -794,16 +971,30 @@ const CATEGORIAS = {
   'Ahorro': ['Ahorro general','Compra USD','Fondo emergencia','Inversiones']
 };
 
+// Categorías que requieren campo USD
+const CATS_USD = ['Compra USD','Sueldo USD','Venta USD'];
+
 function actualizarCategorias() {
   const tipo = document.getElementById('inp-tipo').value;
   const sel = document.getElementById('inp-cat');
   if (!sel) return;
   const cats = CATEGORIAS[tipo] || CATEGORIAS['Gasto variable'];
   sel.innerHTML = cats.map(c => `<option value="${c}">${c}</option>`).join('');
+  toggleDolarField();
 }
 
+window.toggleDolarField = () => {
+  const cat = document.getElementById('inp-cat')?.value || '';
+  const grp = document.getElementById('grp-dolar');
+  if (CATS_USD.includes(cat)) {
+    grp.style.display = 'block';
+  } else {
+    grp.style.display = 'none';
+    document.getElementById('inp-dolar').value = '';
+  }
+};
+
 window.toggleTipo = () => {
-  const t = document.getElementById('inp-tipo').value;
   document.getElementById('grp-cat').style.display = 'block';
   document.getElementById('alertas-carga-card').style.display = 'none';
   actualizarCategorias();
@@ -843,6 +1034,13 @@ window.actualizarCategoriasEdit = () => {
   if (!sel) return;
   const cats = CATEGORIAS[tipo] || CATEGORIAS['Gasto variable'];
   sel.innerHTML = cats.map(c=>`<option value="${c}">${c}</option>`).join('');
+  toggleDolarFieldEdit();
+};
+
+window.toggleDolarFieldEdit = () => {
+  const cat = document.getElementById('edit-cat')?.value || '';
+  const grp = document.getElementById('grp-dolar-edit');
+  if (grp) grp.style.display = CATS_USD.includes(cat) ? 'block' : 'none';
 };
 
 window.abrirEdicion = (id) => {
@@ -856,9 +1054,11 @@ window.abrirEdicion = (id) => {
   const sel = document.getElementById('edit-cat');
   for (let o of sel.options) { if (o.value === cat) { o.selected = true; break; } }
   document.getElementById('edit-monto').value  = g.monto || '';
+  document.getElementById('edit-dolar').value  = g.montoDolar || '';
   document.getElementById('edit-pago').value   = g.formaPago || 'Transferencia';
   document.getElementById('edit-quien').value  = g.pago || 'Sebas';
   document.getElementById('edit-msg').innerHTML = '';
+  toggleDolarFieldEdit();
   document.getElementById('modal-editar').style.display = 'block';
 };
 
@@ -877,10 +1077,11 @@ window.guardarEdicion = async () => {
   const monto = parseFloat(document.getElementById('edit-monto').value)||0;
   const pago  = document.getElementById('edit-pago').value;
   const quien = document.getElementById('edit-quien').value;
+  const montoDolar = parseFloat(document.getElementById('edit-dolar').value)||0;
   if (!fecha||!monto) { msgEl.innerHTML='<div class="alert alert-err">Completá fecha y monto</div>'; return; }
   btn.disabled=true; btn.textContent='Guardando...';
   try {
-    await updateDoc(doc(db,'gastos',editandoId), {
+    const upData = {
       fecha, tipo,
       tipoIngreso: tipo==='Ingreso'?cat:'',
       categoria:   tipo!=='Ingreso'?cat:'',
@@ -888,7 +1089,9 @@ window.guardarEdicion = async () => {
       mes: fecha.slice(0,7),
       editadoEn: serverTimestamp(),
       usuario: auth.currentUser?.email||''
-    });
+    };
+    if (montoDolar > 0 && CATS_USD.includes(cat)) upData.montoDolar = montoDolar;
+    await updateDoc(doc(db,'gastos',editandoId), upData);
     toast('✓ Movimiento actualizado', 'ok', 2500);
     window.cerrarModal();
   } catch(e) {
@@ -921,8 +1124,12 @@ window.nav = (id,btn) => {
         <option>Gasto variable</option><option>Gasto fijo</option><option>Ingreso</option><option>Ahorro</option>
       </select>
     </div>
-    <div class="form-group"><label>Categoría</label><select id="edit-cat"></select></div>
+    <div class="form-group"><label>Categoría</label><select id="edit-cat" onchange="toggleDolarFieldEdit()"></select></div>
     <div class="form-group"><label>Monto ($)</label><input type="number" id="edit-monto" inputmode="numeric"></div>
+    <div class="dolar-field" id="grp-dolar-edit">
+      <label>Cantidad en dólares (USD)</label>
+      <input type="number" id="edit-dolar" inputmode="numeric">
+    </div>
     <div class="form-group"><label>Forma de pago</label>
       <select id="edit-pago">
         <option>Transferencia</option><option>Efectivo</option>

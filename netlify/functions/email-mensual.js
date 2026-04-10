@@ -10,8 +10,8 @@ let dbInstance = null;
 function getDB() {
   if (!dbInstance) {
     const credentials = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT);
-    initializeApp({ credential: cert(credentials) }, 'email-mensual-' + Date.now());
-    dbInstance = getFirestore();
+    const app = initializeApp({ credential: cert(credentials) }, 'email-mensual-app');
+    dbInstance = getFirestore(app);
   }
   return dbInstance;
 }
