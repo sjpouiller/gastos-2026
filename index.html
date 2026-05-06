@@ -179,6 +179,35 @@ select,input[type=text],input[type=number],input[type=date],input[type=month]{pa
 .margen-row{display:flex;justify-content:space-between;padding:5px 0;font-size:12px;border-bottom:0.5px solid #f3f3f0}
 .margen-row:last-child{border-bottom:none}
 .btn-sm{padding:7px 12px;background:none;border:0.5px solid #e5e5e0;border-radius:8px;font-size:12px;cursor:pointer;color:#888}
+/* METRIC CLICKABLE */
+.metric{cursor:pointer;transition:box-shadow .15s}
+.metric:active{box-shadow:0 0 0 2px #1a1a1a}
+/* METRIC MODAL */
+.metric-modal{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:400;display:none;padding:1rem;overflow-y:auto}
+.metric-modal.open{display:block}
+.metric-modal-inner{background:#fff;border-radius:16px;padding:20px;max-width:500px;margin:2rem auto}
+/* CUOTAS PANEL */
+.cuotas-panel{display:none;background:#eff6ff;border:0.5px solid #bfdbfe;border-radius:10px;padding:12px;margin-top:8px;margin-bottom:12px}
+.cuotas-panel label{font-size:12px;font-weight:600;color:#1d4ed8;margin-bottom:5px;display:block}
+.cuota-preview{font-size:13px;font-weight:700;color:#1d4ed8;margin-top:8px;padding:8px;background:#dbeafe;border-radius:8px;text-align:center}
+/* CONFIG SECTION */
+#sec-config .config-tabs{display:flex;gap:6px;margin-bottom:14px}
+#sec-config .config-tab{flex:1;padding:8px;border-radius:10px;font-size:12px;font-weight:600;border:0.5px solid #e5e5e0;background:#fff;color:#888;cursor:pointer;text-align:center}
+#sec-config .config-tab.active{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
+.cat-tag{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;background:#f3f4f6;border-radius:8px;font-size:12px;font-weight:600;color:#444;margin:3px}
+.cat-tag button{background:none;border:none;cursor:pointer;color:#dc2626;font-size:14px;padding:0;line-height:1}
+.cat-add-row{display:flex;gap:8px;margin-top:10px}
+.cat-add-row input{flex:1;padding:8px 10px;font-size:13px;border:0.5px solid #d1d5db;border-radius:8px;background:#fff;color:#1a1a1a}
+.cat-add-row button{padding:8px 14px;background:#1a1a1a;color:#fff;border:none;border-radius:8px;font-size:13px;cursor:pointer;font-weight:700}
+/* AHORRO ACCORDION */
+.ahorro-details summary{font-size:12px;color:#888;cursor:pointer;padding:6px 0;list-style:none;display:flex;align-items:center;gap:4px}
+.ahorro-details summary::-webkit-details-marker{display:none}
+.ahorro-details summary::before{content:'▶';font-size:10px;transition:transform .2s}
+.ahorro-details[open] summary::before{content:'▼'}
+/* PRES MODE TOGGLE */
+.mode-toggle{display:flex;align-items:center;gap:8px;margin-bottom:12px;font-size:12px;color:#888}
+.mode-toggle button{padding:5px 12px;border-radius:8px;font-size:11px;font-weight:700;border:0.5px solid #e5e5e0;background:#fff;color:#888;cursor:pointer}
+.mode-toggle button.active{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
 </style>
 </head>
 <body>
@@ -240,6 +269,7 @@ select,input[type=text],input[type=number],input[type=date],input[type=month]{pa
           <option value="">Monto: sin ordenar</option><option value="desc">Monto: mayor → menor</option><option value="asc">Monto: menor → mayor</option>
         </select>
       </div>
+      <div style="display:flex;justify-content:flex-end;margin-bottom:10px"><button class="btn-sm" onclick="exportarCSV()">⬇️ Exportar CSV</button></div>
       <div id="gastos-list"></div>
     </div>
     <!-- CARGAR -->
@@ -259,12 +289,24 @@ select,input[type=text],input[type=number],input[type=date],input[type=month]{pa
           <input type="number" id="inp-dolar" placeholder="0" inputmode="numeric">
         </div>
         <div class="form-group"><label>Forma de pago</label>
-          <select id="inp-pago">
+          <select id="inp-pago" onchange="toggleCuotasPanel()">
             <option>Transferencia</option><option>Efectivo</option>
             <option>Tarjeta Credito - VISA Sebas</option><option>Tarjeta Credito - MASTER Sebas</option>
             <option>Tarjeta Credito - VISA Male</option><option>Tarjeta Credito - MASTER Male</option>
             <option>Tarjeta Debito</option><option>Tatjeta Credito CUOTAS</option>
           </select>
+        </div>
+        <div class="cuotas-panel" id="cuotas-panel">
+          <label>Carga en cuotas</label>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px">
+            <div><label style="font-size:11px;color:#1d4ed8;font-weight:600;margin-bottom:4px;display:block">Cantidad de cuotas</label>
+              <select id="inp-ncuotas" onchange="prevCuotaCarga()" style="border-color:#bfdbfe"><option value="2">2</option><option value="3">3</option><option value="6">6</option><option value="9">9</option><option value="12">12</option><option value="18">18</option></select>
+            </div>
+            <div><label style="font-size:11px;color:#1d4ed8;font-weight:600;margin-bottom:4px;display:block">Mes inicio</label>
+              <input type="month" id="inp-mes-cuota" onchange="prevCuotaCarga()" style="border-color:#bfdbfe">
+            </div>
+          </div>
+          <div class="cuota-preview" id="cuota-preview-carga">Ingresá monto para ver preview</div>
         </div>
         <div class="form-group"><label>¿Quién pagó?</label>
           <select id="inp-quien-carga"><option>Sebas</option><option>Male</option><option>Otro</option></select>
@@ -289,6 +331,15 @@ select,input[type=text],input[type=number],input[type=date],input[type=month]{pa
         <div style="overflow-x:auto"><table class="cf-table" id="cf-table"></table></div>
       </div>
       <div id="alertas-cf"></div>
+    </div>
+    <!-- CONFIG -->
+    <div id="sec-config" class="section">
+      <div class="config-tabs">
+        <button class="config-tab active" onclick="configTabs('cats',this)">🏷️ Categorías</button>
+        <button class="config-tab" onclick="configTabs('proyectados',this)">📅 Ing. Proyectados</button>
+      </div>
+      <div id="config-cats"></div>
+      <div id="config-proyectados" style="display:none"></div>
     </div>
     <!-- PRESUPUESTO -->
     <div id="sec-presupuesto" class="section">
@@ -341,6 +392,16 @@ select,input[type=text],input[type=number],input[type=date],input[type=month]{pa
     </div>
   </div>
 </div>
+<!-- METRIC MODAL -->
+<div class="metric-modal" id="metric-modal" onclick="cerrarMetricModal(event)">
+  <div class="metric-modal-inner">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <div style="font-size:15px;font-weight:700" id="metric-modal-title">Detalle</div>
+      <button onclick="cerrarMetricModal()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#888">✕</button>
+    </div>
+    <div id="metric-modal-body"></div>
+  </div>
+</div>
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
 <!-- BOTTOM NAV -->
@@ -368,6 +429,7 @@ select,input[type=text],input[type=number],input[type=date],input[type=month]{pa
   <button class="drawer-btn" onclick="drawerNav('cashflow')"><span class="dicon">📈</span>Cashflow</button>
   <button class="drawer-btn" onclick="drawerNav('presupuesto')"><span class="dicon">🎯</span>Presupuesto</button>
   <div class="drawer-section">Sistema</div>
+  <button class="drawer-btn" onclick="drawerNav('config')"><span class="dicon">⚙️</span>Configuración</button>
   <button class="drawer-btn" onclick="toggleDrawer();logout()"><span class="dicon">🚪</span>Salir</button>
 </div>
 <!-- FAB AGENTE -->
@@ -498,6 +560,8 @@ onAuthStateChanged(auth,async user=>{
     dot.className='sync-dot syncing';txt.textContent='cargando...';
     await cargarPresupuestos();
     await cargarPlanItems();
+    await cargarCatCustom();
+    await cargarIngresosProyectados();
     fetchDolarBlue();
     unsub=onSnapshot(query(collection(db,'gastos'),orderBy('fecha','desc')),snap=>{
       gastos=snap.docs.map(d=>({id:d.id,...d.data()}));
@@ -572,15 +636,8 @@ function renderResumenAnual(anio){
   const fij=ga.filter(g=>g.tipo==='Gasto fijo').reduce((s,g)=>s+(g.monto||0),0);
   const vrs=ga.filter(g=>g.tipo==='Gasto variable').reduce((s,g)=>s+(g.monto||0),0);
   const sal=ing-fij-vrs;const ahP=ing>0?Math.round(sal/ing*100):0;
-  document.getElementById('metrics').innerHTML=`<div class="metric"><div class="metric-label">Ingresos</div><div class="metric-value pos">${fmtK(ing)}</div><div class="metric-var"><span style="font-size:11px;color:#888">acumulado ${anio}</span></div></div><div class="metric"><div class="metric-label">Gastos fijos</div><div class="metric-value">${fmtK(fij)}</div><div class="metric-var"><span style="font-size:11px;color:#888">acumulado ${anio}</span></div></div><div class="metric"><div class="metric-label">Variables</div><div class="metric-value">${fmtK(vrs)}</div><div class="metric-var"><span style="font-size:11px;color:#888">acumulado ${anio}</span></div></div><div class="metric"><div class="metric-label">Saldo neto</div><div class="metric-value ${sal>=0?'pos':'neg'}">${fmtK(sal)}</div><div class="metric-var"><span style="font-size:11px;color:#888">ahorro ${ahP}%</span></div></div>`;
-  const ah=ga.filter(g=>g.tipo==='Ahorro');
-  const ventasUSD=ga.filter(g=>g.tipoIngreso==='Venta USD');
-  const netVentaUSDPesos=ventasUSD.reduce((s,g)=>s+(g.monto||0),0);
-  const CA=['Ahorro general','Compra USD','Fondo emergencia','Inversiones'];
-  const am=ah.reduce((a,g)=>{a[g.categoria]=(a[g.categoria]||0)+(g.monto||0);return a},{});
-  if(netVentaUSDPesos>0&&am['Compra USD'])am['Compra USD']=Math.max(0,am['Compra USD']-netVentaUSDPesos);
-  const ta=Object.values(am).reduce((s,v)=>s+v,0);
-  document.getElementById('ahorro-resumen').innerHTML=`<div class="card"><div class="card-title">Ahorro acumulado · ${anio}</div><div style="display:flex;justify-content:space-between;align-items:baseline;padding-bottom:10px;border-bottom:0.5px solid #f3f3f0;margin-bottom:8px"><div style="font-size:13px;font-weight:700">Total ahorrado</div><div style="font-size:16px;font-weight:700;color:#16a34a">${fmt(ta)}</div></div>${CA.map(c=>`<div class="row-item"><span class="row-cat">${c}</span><span style="font-size:13px;font-weight:700">${am[c]?fmt(am[c]):'—'}</span></div>`).join('')}</div>`;
+  document.getElementById('metrics').innerHTML=`<div class="metric" onclick="abrirMetricModal('Ingreso','${anio}',null)"><div class="metric-label">Ingresos</div><div class="metric-value pos">${fmtK(ing)}</div><div class="metric-var"><span style="font-size:11px;color:#888">acumulado ${anio} · ver top ▸</span></div></div><div class="metric" onclick="abrirMetricModal('Gasto fijo','${anio}',null)"><div class="metric-label">Gastos fijos</div><div class="metric-value">${fmtK(fij)}</div><div class="metric-var"><span style="font-size:11px;color:#888">acumulado ${anio} · ver top ▸</span></div></div><div class="metric" onclick="abrirMetricModal('Gasto variable','${anio}',null)"><div class="metric-label">Variables</div><div class="metric-value">${fmtK(vrs)}</div><div class="metric-var"><span style="font-size:11px;color:#888">acumulado ${anio} · ver top ▸</span></div></div><div class="metric" onclick="abrirMetricModal('saldo','${anio}',null)"><div class="metric-label">Saldo neto</div><div class="metric-value ${sal>=0?'pos':'neg'}">${fmtK(sal)}</div><div class="metric-var"><span style="font-size:11px;color:#888">ahorro ${ahP}% · ver ▸</span></div></div>`;
+  document.getElementById('ahorro-resumen').innerHTML=renderAhorroCard(null,null);
   const sUSD=calcSaldoUSD();
   const arsBlue=dolarBlue.compra?Math.round(sUSD*dolarBlue.compra):null;
   document.getElementById('usd-resumen').innerHTML=`<div class="usd-card"><div><div style="font-size:13px;font-weight:700">Saldo USD acumulado</div><div class="usd-sub">${arsBlue?`≈ ${fmt(arsBlue)} · blue compra $${dolarBlue.compra?.toLocaleString('es-AR')}`:' histórico total · todas las operaciones'}</div></div><div><div class="usd-val">${fmtUSD(sUSD)}</div>${dolarBlue.fechaStr?`<div style="font-size:10px;color:#bbb;text-align:right;margin-top:2px">Actualizado: ${dolarBlue.fechaStr}</div>`:''}</div></div>`;
@@ -593,13 +650,8 @@ function renderResumenMes(mes){
   const fij=sumarMes(mes,'Gasto fijo'),fijP=sumarMes(prev,'Gasto fijo');
   const vrs=sumarMes(mes,'Gasto variable'),vrsP=sumarMes(prev,'Gasto variable');
   const sal=ing-fij-vrs;const ahP=ing>0?Math.round(sal/ing*100):0;
-  document.getElementById('metrics').innerHTML=`<div class="metric"><div class="metric-label">Ingresos</div><div class="metric-value pos">${fmt(ing)}</div><div class="metric-var">${varBadge(ing,ingP,false)}<span style="font-size:11px;color:#888">vs ${mesCorto(prev)}</span></div></div><div class="metric"><div class="metric-label">Gastos fijos</div><div class="metric-value">${fmt(fij)}</div><div class="metric-var">${varBadge(fij,fijP,true)}<span style="font-size:11px;color:#888">vs ${mesCorto(prev)}</span></div></div><div class="metric"><div class="metric-label">Variables</div><div class="metric-value">${fmt(vrs)}</div><div class="metric-var">${varBadge(vrs,vrsP,true)}<span style="font-size:11px;color:#888">vs ${mesCorto(prev)}</span></div></div><div class="metric"><div class="metric-label">Saldo neto</div><div class="metric-value ${sal>=0?'pos':'neg'}">${fmt(sal)}</div><div class="metric-var">${varBadge(sal,sumarMes(prev,'Ingreso')-sumarMes(prev,'Gasto fijo')-sumarMes(prev,'Gasto variable'),false)}<span style="font-size:11px;color:#888">ahorro ${ahP}%</span></div></div>`;
-  const am=gastos.filter(g=>g.mes===mes&&g.tipo==='Ahorro'),amP=gastos.filter(g=>g.mes===prev&&g.tipo==='Ahorro');
-  const ta=am.reduce((s,g)=>s+(g.monto||0),0),taP=amP.reduce((s,g)=>s+(g.monto||0),0);
-  const amap=am.reduce((a,g)=>{a[g.categoria]=(a[g.categoria]||0)+(g.monto||0);return a},{});
-  const amapP=amP.reduce((a,g)=>{a[g.categoria]=(a[g.categoria]||0)+(g.monto||0);return a},{});
-  const CA=['Ahorro general','Compra USD','Fondo emergencia','Inversiones'];
-  document.getElementById('ahorro-resumen').innerHTML=`<div class="card"><div class="card-title">Ahorro · ${nombreMes(mes)}</div><div style="display:flex;justify-content:space-between;align-items:baseline;padding-bottom:10px;border-bottom:0.5px solid #f3f3f0;margin-bottom:8px"><div><div style="font-size:13px;font-weight:700">Total ahorrado</div><div style="font-size:11px;color:#888;margin-top:3px">vs ${mesCorto(prev)}: ${varBadge(ta,taP,false)}</div></div><div style="font-size:16px;font-weight:700;color:#16a34a">${fmt(ta)}</div></div>${CA.map(c=>`<div class="row-item"><span class="row-cat">${c}</span><div class="row-right"><span style="font-size:13px;font-weight:700">${amap[c]?fmt(amap[c]):'—'}</span>${amap[c]&&amapP[c]?varBadge(amap[c],amapP[c],false):''}</div></div>`).join('')}</div>`;
+  document.getElementById('metrics').innerHTML=`<div class="metric" onclick="abrirMetricModal('Ingreso','${mes}','${prev}')"><div class="metric-label">Ingresos</div><div class="metric-value pos">${fmt(ing)}</div><div class="metric-var">${varBadge(ing,ingP,false)}<span style="font-size:11px;color:#888">vs ${mesCorto(prev)} · ver ▸</span></div></div><div class="metric" onclick="abrirMetricModal('Gasto fijo','${mes}','${prev}')"><div class="metric-label">Gastos fijos</div><div class="metric-value">${fmt(fij)}</div><div class="metric-var">${varBadge(fij,fijP,true)}<span style="font-size:11px;color:#888">vs ${mesCorto(prev)} · ver ▸</span></div></div><div class="metric" onclick="abrirMetricModal('Gasto variable','${mes}','${prev}')"><div class="metric-label">Variables</div><div class="metric-value">${fmt(vrs)}</div><div class="metric-var">${varBadge(vrs,vrsP,true)}<span style="font-size:11px;color:#888">vs ${mesCorto(prev)} · ver ▸</span></div></div><div class="metric" onclick="abrirMetricModal('saldo','${mes}','${prev}')"><div class="metric-label">Saldo neto</div><div class="metric-value ${sal>=0?'pos':'neg'}">${fmt(sal)}</div><div class="metric-var">${varBadge(sal,sumarMes(prev,'Ingreso')-sumarMes(prev,'Gasto fijo')-sumarMes(prev,'Gasto variable'),false)}<span style="font-size:11px;color:#888">ahorro ${ahP}% · ver ▸</span></div></div>`;
+  document.getElementById('ahorro-resumen').innerHTML=renderAhorroCard(mes,prev);
   const saldoUSD=calcSaldoUSD();
   const uM=gastos.filter(g=>g.mes===mes&&(g.categoria==='Compra USD'||g.tipoIngreso==='Sueldo USD')).reduce((s,g)=>s+(g.montoDolar||0),0)-gastos.filter(g=>g.mes===mes&&g.tipoIngreso==='Venta USD').reduce((s,g)=>s+(g.montoDolar||0),0);
   const uP=gastos.filter(g=>g.mes===prev&&(g.categoria==='Compra USD'||g.tipoIngreso==='Sueldo USD')).reduce((s,g)=>s+(g.montoDolar||0),0)-gastos.filter(g=>g.mes===prev&&g.tipoIngreso==='Venta USD').reduce((s,g)=>s+(g.montoDolar||0),0);
@@ -673,6 +725,21 @@ window.renderCashflow=()=>{
   als.push(`<div class="alert alert-info">📊 Proyección* = promedio de ${u3.map(m=>mesCorto(m)).join(' + ')}: Ing ${fmtK(aI)} · Fijos ${fmtK(aF)} · Vars ${fmtK(aV)} · Resultado ${fmtK(aS)} (ahorro ~${aAP}%)</div>`);
   document.getElementById('alertas-cf').innerHTML=als.join('');
 };
+// ── CUOTAS PANEL TOGGLE ──
+window.toggleCuotasPanel=()=>{
+  const pago=document.getElementById('inp-pago')?.value||'';
+  const panel=document.getElementById('cuotas-panel');
+  if(!panel)return;
+  if(pago==='Tatjeta Credito CUOTAS'){
+    panel.style.display='block';
+    const hoy=new Date();
+    document.getElementById('inp-mes-cuota').value=`${hoy.getFullYear()}-${pad(hoy.getMonth()+1)}`;
+    prevCuotaCarga();
+  } else {
+    panel.style.display='none';
+  }
+};
+
 // ── GUARDAR ──
 window.guardar=async()=>{
   const btn=document.getElementById('btn-guardar'),msgEl=document.getElementById('carga-msg');
@@ -680,8 +747,38 @@ window.guardar=async()=>{
   const cat=document.getElementById('inp-cat').value,monto=parseFloat(document.getElementById('inp-monto').value)||0;
   const pago=document.getElementById('inp-pago').value,quien=document.getElementById('inp-quien-carga').value;
   const montoDolar=parseFloat(document.getElementById('inp-dolar').value)||0;
+  const comentario=document.getElementById('inp-comentario').value.trim();
   if(!fecha||!monto){msgEl.innerHTML='<div class="alert alert-err">Completá fecha y monto</div>';return;}
   const mes=fecha.slice(0,7),prev=mesAnterior(mes);
+  // ── Cuotas mode ──
+  if(pago==='Tatjeta Credito CUOTAS'){
+    const nCuotas=parseInt(document.getElementById('inp-ncuotas')?.value)||2;
+    const mesInicioCuota=document.getElementById('inp-mes-cuota')?.value||mes;
+    if(!mesInicioCuota){msgEl.innerHTML='<div class="alert alert-err">Indicá el mes de inicio de las cuotas</div>';return;}
+    btn.disabled=true;btn.textContent='Guardando cuotas...';
+    const montoCuota=Math.round(monto/nCuotas);
+    const grupoId=Date.now().toString();
+    try{
+      for(let i=0;i<nCuotas;i++){
+        const[y,m]=mesInicioCuota.split('-').map(Number);
+        const dCuota=new Date(y,m-1+i,1);
+        const mesCuota=`${dCuota.getFullYear()}-${pad(dCuota.getMonth()+1)}`;
+        const fechaCuota=`${dCuota.getFullYear()}-${pad(dCuota.getMonth()+1)}-01`;
+        const dd={fecha:fechaCuota,tipo,tipoIngreso:'',categoria:cat,monto:montoCuota,formaPago:'Tarjeta Credito CUOTAS',pago:quien,mes:mesCuota,creadoEn:serverTimestamp(),fuente:'app',usuario:auth.currentUser?.email||'',esCuota:true,cuotaNum:i+1,cuotasTotal:nCuotas,cuotaGrupoId:grupoId};
+        if(comentario)dd.comentario=comentario;
+        await addDoc(collection(db,'gastos'),dd);
+      }
+      msgEl.innerHTML=`<div class="alert alert-ok">✓ ${nCuotas} cuotas de ${fmt(montoCuota)} guardadas · ${cat}</div>`;
+      toast(`✓ ${nCuotas} cuotas de ${fmt(montoCuota)} guardadas`,'ok',3000);
+      document.getElementById('inp-monto').value='';document.getElementById('inp-comentario').value='';
+      setTimeout(()=>msgEl.innerHTML='',4000);
+      document.getElementById('cuotas-panel').style.display='none';
+      document.getElementById('inp-pago').value='Transferencia';
+      actualizarCategorias();toggleDolarField();
+    }catch(e){msgEl.innerHTML=`<div class="alert alert-err">Error: ${e.message}</div>`;}
+    btn.disabled=false;btn.textContent='Guardar movimiento';
+    return;
+  }
   if(tipo!=='Ingreso'&&tipo!=='Ahorro'){
     const alertas=[];
     const acumCat=gastos.filter(g=>g.mes===mes&&(g.categoria===cat||g.tipoIngreso===cat)).reduce((s,g)=>s+(g.monto||0),0);
@@ -697,7 +794,6 @@ window.guardar=async()=>{
   }
   btn.disabled=true;btn.textContent='Guardando...';
   try{
-    const comentario=document.getElementById('inp-comentario').value.trim();
     const dd={fecha,tipo,tipoIngreso:tipo==='Ingreso'?cat:'',categoria:tipo!=='Ingreso'?cat:'',monto,formaPago:pago,pago:quien,mes,creadoEn:serverTimestamp(),fuente:'app',usuario:auth.currentUser?.email||''};
     if(montoDolar>0&&(cat==='Compra USD'||cat==='Sueldo USD'||cat==='Venta USD'))dd.montoDolar=montoDolar;
     if(comentario)dd.comentario=comentario;
@@ -706,7 +802,7 @@ window.guardar=async()=>{
     document.getElementById('inp-monto').value='';document.getElementById('inp-dolar').value='';document.getElementById('inp-comentario').value='';
     toast(`✓ ${cat} · ${fmt(monto)}`,'ok',2500);setTimeout(()=>msgEl.innerHTML='',3000);
     document.getElementById('inp-tipo').value='Gasto variable';document.getElementById('inp-pago').value='Transferencia';document.getElementById('inp-quien-carga').value='Sebas';
-    actualizarCategorias();toggleDolarField();
+    actualizarCategorias();toggleDolarField();toggleCuotasPanel();
     try{const sr=await fetch('/.netlify/functions/sync-sheets',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({fecha,tipo,tipoIngreso:tipo==='Ingreso'?cat:'',categoria:tipo!=='Ingreso'?cat:'',monto,formaPago:pago,pago:quien,mes:fecha.slice(0,7)})});const sd=await sr.json();if(!sr.ok||sd.error)console.error('Sheets sync error:',sd.error);}catch(e){console.error('Sheets sync failed:',e);}
   }catch(e){msgEl.innerHTML=`<div class="alert alert-err">Error: ${e.message}</div>`;}
   btn.disabled=false;btn.textContent='Guardar movimiento';
@@ -753,6 +849,8 @@ function renderPresSeg(){
   const rCG=resto.filter(c=>gC(c)>0);
   if(tResto>0||rCG.length>0)html+=`<div style="padding:10px 0;border-top:0.5px solid #f3f3f0;margin-top:4px;display:flex;justify-content:space-between;align-items:center"><div><div style="font-size:13px;font-weight:600">📦 Resto de categorías</div><div style="font-size:10px;color:#aaa;margin-top:2px">${rCG.slice(0,4).join(', ')||'sin gastos'}${rCG.length>4?'...':''}</div></div><div style="font-size:13px;font-weight:700;color:#888">${fmt(tResto)}</div></div>`;
   html+=`</div></div>`;
+  html+=alertasPresProgresivas(mes);
+  html+=`<div style="margin-top:8px"><button id="btn-sugerencia-agente" class="btn-secondary" onclick="pedirSugerenciaAgente()">🤖 Sugerencia del agente</button><div id="sugerencia-agente-panel" style="display:none;margin-top:10px"></div></div>`;
   document.getElementById('pres-seg').innerHTML=html;
 }
 
@@ -760,11 +858,15 @@ function renderPresEdit(){
   const top=getTopActivas();
   const todas=CATEGORIAS['Gasto variable'];
   const resto=todas.filter(c=>!top.includes(c));
+  const ingRef=getIngReferenciaEdit();
   let html=`<div class="alert alert-info" style="margin-bottom:12px">Top = tiene barra en Seguimiento (máx 8). Sugerido = promedio de meses donde apareció al menos 2 veces.</div>`;
+  html+=`<div class="mode-toggle"><span>Modo:</span><button class="${!presModoPorc?'active':''}" onclick="presModoPorc=false;renderPresEdit()">$</button><button class="${presModoPorc?'active':''}" onclick="presModoPorc=true;renderPresEdit()">%</button>${presModoPorc&&ingRef>0?`<span style="color:#888">base: ${fmt(ingRef)}</span>`:''}</div>`;
   html+=`<div class="card"><div class="card-title">Con presupuesto y barra · ${top.length} categorías</div>`;
   top.forEach(cat=>{
-    const sug=calcSugerido(cat),val=presupuestos[cat]||'';
-    html+=`<div class="edit-cat-row"><div class="edit-cat-info"><div class="edit-cat-nombre">${cat}</div>${sug>0?`<div class="edit-cat-sug">sugerido: ${fmt(sug)}</div>`:''}</div><div style="display:flex;align-items:center;gap:6px"><input type="number" class="pres-input" value="${val}" placeholder="${sug||'—'}" onchange="presupuestos['${cat}']=parseFloat(this.value)||0;guardarPresupuestos()"><button class="toggle-chip on" onclick="desactivarCat('${cat}')">✓ Top</button></div></div>`;
+    const sug=calcSugerido(cat),val=presupuestos[cat]||0;
+    const dispVal=presModoPorc&&ingRef>0?Math.round(val/ingRef*100):val;
+    const dispPlaceholder=presModoPorc&&ingRef>0?(sug>0?Math.round(sug/ingRef*100)+'%':'—'):(sug||'—');
+    html+=`<div class="edit-cat-row"><div class="edit-cat-info"><div class="edit-cat-nombre">${cat}</div>${sug>0?`<div class="edit-cat-sug">sugerido: ${presModoPorc&&ingRef>0?Math.round(sug/ingRef*100)+'%':fmt(sug)}</div>`:''}</div><div style="display:flex;align-items:center;gap:6px"><input type="number" class="pres-input" value="${dispVal||''}" placeholder="${dispPlaceholder}" onchange="presupuestos['${cat}']=${presModoPorc&&ingRef>0?`Math.round(parseFloat(this.value)/100*${ingRef})||0`:`parseFloat(this.value)||0`};guardarPresupuestos()"><span style="font-size:11px;color:#aaa">${presModoPorc?'%':'$'}</span><button class="toggle-chip on" onclick="desactivarCat('${cat}')">✓ Top</button></div></div>`;
   });
   html+=`</div><div class="card"><div class="card-title">En "Resto" · sin barra individual</div>`;
   if(!resto.length)html+=`<div style="font-size:13px;color:#aaa;padding:8px 0">Todas las categorías tienen barra activa.</div>`;
@@ -923,6 +1025,229 @@ window.toggleDolarFieldEdit=()=>{const c=document.getElementById('edit-cat')?.va
 window.abrirEdicion=(id)=>{const g=gastos.find(x=>x.id===id);if(!g)return;editandoId=id;document.getElementById('edit-fecha').value=g.fecha||'';document.getElementById('edit-tipo').value=g.tipo||'Gasto variable';window.actualizarCategoriasEdit();const cat=g.categoria||g.tipoIngreso||'';const s=document.getElementById('edit-cat');for(let o of s.options){if(o.value===cat){o.selected=true;break;}}document.getElementById('edit-monto').value=g.monto||'';document.getElementById('edit-dolar').value=g.montoDolar||'';document.getElementById('edit-pago').value=g.formaPago||'Transferencia';document.getElementById('edit-quien').value=g.pago||'Sebas';document.getElementById('edit-comentario').value=g.comentario||'';document.getElementById('edit-msg').innerHTML='';toggleDolarFieldEdit();document.getElementById('modal-editar').style.display='block';};
 window.cerrarModal=()=>{document.getElementById('modal-editar').style.display='none';editandoId=null;};
 window.guardarEdicion=async()=>{if(!editandoId)return;const btn=document.querySelector('#modal-editar .btn-primary');const msgEl=document.getElementById('edit-msg');const fecha=document.getElementById('edit-fecha').value;const tipo=document.getElementById('edit-tipo').value;const cat=document.getElementById('edit-cat').value;const monto=parseFloat(document.getElementById('edit-monto').value)||0;const pago=document.getElementById('edit-pago').value;const quien=document.getElementById('edit-quien').value;const mD=parseFloat(document.getElementById('edit-dolar').value)||0;const comentario=document.getElementById('edit-comentario').value.trim();if(!fecha||!monto){msgEl.innerHTML='<div class="alert alert-err">Completá fecha y monto</div>';return;}btn.disabled=true;btn.textContent='Guardando...';try{const u={fecha,tipo,tipoIngreso:tipo==='Ingreso'?cat:'',categoria:tipo!=='Ingreso'?cat:'',monto,formaPago:pago,pago:quien,mes:fecha.slice(0,7),editadoEn:serverTimestamp(),usuario:auth.currentUser?.email||''};if(mD>0&&CATS_USD.includes(cat))u.montoDolar=mD;if(comentario)u.comentario=comentario;await updateDoc(doc(db,'gastos',editandoId),u);toast('✓ Movimiento actualizado','ok',2500);window.cerrarModal();}catch(e){msgEl.innerHTML=`<div class="alert alert-err">Error: ${e.message}</div>`;}btn.disabled=false;btn.textContent='Guardar cambios';};
+
+// ── FEATURE 1: BANNERS CLICKEABLES ──
+window.abrirMetricModal=(tipo,mes,mesP)=>{
+  const modal=document.getElementById('metric-modal');
+  const title=document.getElementById('metric-modal-title');
+  const body=document.getElementById('metric-modal-body');
+  const esAnual=!mesP;
+  let cats=[],label='';
+  if(tipo==='Ingreso'){cats=(esAnual?gastos.filter(g=>g.mes?.startsWith(anioSel)):gastos.filter(g=>g.mes===mes)).filter(g=>g.tipo==='Ingreso');label='Ingresos';}
+  else if(tipo==='Gasto fijo'){cats=(esAnual?gastos.filter(g=>g.mes?.startsWith(anioSel)):gastos.filter(g=>g.mes===mes)).filter(g=>g.tipo==='Gasto fijo');label='Gastos Fijos';}
+  else if(tipo==='Gasto variable'){cats=(esAnual?gastos.filter(g=>g.mes?.startsWith(anioSel)):gastos.filter(g=>g.mes===mes)).filter(g=>g.tipo==='Gasto variable');label='Gastos Variables';}
+  else if(tipo==='saldo'){
+    const ga=esAnual?gastos.filter(g=>g.mes?.startsWith(anioSel)):gastos.filter(g=>g.mes===mes);
+    const ing=ga.filter(g=>g.tipo==='Ingreso').reduce((s,g)=>s+(g.monto||0),0);
+    const fij=ga.filter(g=>g.tipo==='Gasto fijo').reduce((s,g)=>s+(g.monto||0),0);
+    const vrs=ga.filter(g=>g.tipo==='Gasto variable').reduce((s,g)=>s+(g.monto||0),0);
+    const saldo=ing-fij-vrs;
+    title.textContent='Saldo Neto';
+    body.innerHTML=`<div class="alert ${saldo>=0?'alert-ok':'alert-err'}" style="margin-bottom:12px"><strong>Saldo ${esAnual?anioSel:nombreMes(mes)}:</strong> ${fmt(saldo)}</div><div class="row-item"><span class="row-cat">Ingresos</span><span class="pos" style="font-weight:700">${fmt(ing)}</span></div><div class="row-item"><span class="row-cat">− Gastos fijos</span><span style="font-weight:700">${fmt(fij)}</span></div><div class="row-item"><span class="row-cat">− Gastos variables</span><span style="font-weight:700">${fmt(vrs)}</span></div><div class="row-item" style="border-top:1px solid #e5e5e0;margin-top:4px"><span class="row-cat" style="font-weight:700">= Saldo neto</span><span class="${saldo>=0?'pos':'neg'}" style="font-weight:700;font-size:15px">${fmt(saldo)}</span></div>`;
+    modal.classList.add('open');return;
+  }
+  const mapa={};cats.forEach(g=>{const k=g.categoria||g.tipoIngreso||'Otro';mapa[k]=(mapa[k]||0)+(g.monto||0);});
+  const top10=Object.entries(mapa).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  const mapaP={};
+  if(mesP){(gastos.filter(g=>g.mes===mesP&&g.tipo===tipo)).forEach(g=>{const k=g.categoria||g.tipoIngreso||'Otro';mapaP[k]=(mapaP[k]||0)+(g.monto||0);});}
+  title.textContent=`Top categorías · ${label}`;
+  const total=top10.reduce((s,[,v])=>s+v,0);
+  body.innerHTML=`<div style="font-size:11px;color:#888;margin-bottom:12px">${esAnual?anioSel:nombreMes(mes)} · total: <strong>${fmt(total)}</strong>${mesP?` · vs ${mesCorto(mesP)}`:''}</div>${top10.map(([cat,monto],i)=>{const pct=Math.round(monto/total*100);const badge=mesP&&mapaP[cat]>0?varBadge(monto,mapaP[cat],tipo!=='Ingreso'):'';return`<div class="row-item"><span class="row-cat"><strong style="color:#888;margin-right:6px">${i+1}.</strong>${cat}</span><div class="row-right"><span style="font-size:13px;font-weight:700">${fmt(monto)}</span><span style="font-size:10px;color:#aaa">${pct}%${badge?' · ':''}</span>${badge}</div></div><div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:#1a1a1a"></div></div>`;}).join('')}`;
+  modal.classList.add('open');
+};
+window.cerrarMetricModal=(e)=>{if(!e||e.target===document.getElementById('metric-modal')||e.target.tagName==='BUTTON')document.getElementById('metric-modal').classList.remove('open');};
+
+// ── FEATURE 2: CARD AHORRO ACCORDION ──
+function renderAhorroCard(mes,mesP){
+  const esAnual=!mes;
+  const ga=esAnual?gastos.filter(g=>g.mes?.startsWith(anioSel)&&g.tipo==='Ahorro'):gastos.filter(g=>g.mes===mes&&g.tipo==='Ahorro');
+  const gaP=mesP?gastos.filter(g=>g.mes===mesP&&g.tipo==='Ahorro'):[];
+  const ta=ga.reduce((s,g)=>s+(g.monto||0),0),taP=gaP.reduce((s,g)=>s+(g.monto||0),0);
+  const amap=ga.reduce((a,g)=>{a[g.categoria]=(a[g.categoria]||0)+(g.monto||0);return a},{});
+  const amapP=gaP.reduce((a,g)=>{a[g.categoria]=(a[g.categoria]||0)+(g.monto||0);return a},{});
+  // Para anual, neto compra vs venta USD
+  if(esAnual){const vUSD=gastos.filter(g=>g.mes?.startsWith(anioSel)&&g.tipoIngreso==='Venta USD').reduce((s,g)=>s+(g.monto||0),0);if(vUSD>0&&amap['Compra USD'])amap['Compra USD']=Math.max(0,amap['Compra USD']-vUSD);}
+  const CA=['Ahorro general','Compra USD','Fondo emergencia','Inversiones'];
+  const titulo=esAnual?`Ahorro acumulado · ${anioSel}`:`Ahorro · ${nombreMes(mes)}`;
+  const vsLabel=mesP?`<div style="font-size:11px;color:#888;margin-top:3px">vs ${mesCorto(mesP)}: ${varBadge(ta,taP,false)}</div>`:`<div style="font-size:11px;color:#888;margin-top:3px">acumulado ${anioSel}</div>`;
+  const detalle=CA.map(c=>`<div class="row-item"><span class="row-cat">${c}</span><div class="row-right"><span style="font-size:13px;font-weight:700">${amap[c]?fmt(amap[c]):'—'}</span>${amap[c]&&amapP[c]?varBadge(amap[c],amapP[c],false):''}</div></div>`).join('');
+  return`<div class="card"><div class="card-title">${titulo}</div><div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:10px;border-bottom:0.5px solid #f3f3f0;margin-bottom:8px"><div><div style="font-size:13px;font-weight:700">Total ahorrado</div>${vsLabel}</div><div style="font-size:22px;font-weight:700;color:#16a34a">${fmt(ta)}</div></div><details class="ahorro-details"><summary>Ver detalle por categoría</summary><div style="padding-top:6px">${detalle}</div></details></div>`;
+}
+
+// ── FEATURE 3: CARGA EN CUOTAS ──
+window.prevCuotaCarga=()=>{
+  const monto=parseFloat(document.getElementById('inp-monto')?.value)||0;
+  const n=parseInt(document.getElementById('inp-ncuotas')?.value)||1;
+  const el=document.getElementById('cuota-preview-carga');
+  if(!el)return;
+  if(monto>0)el.textContent=`${n} cuotas de ${fmt(Math.round(monto/n))}/mes`;
+  else el.textContent='Ingresá monto para ver preview';
+};
+document.getElementById('inp-monto')?.addEventListener('input',()=>{if(document.getElementById('inp-pago')?.value==='Tatjeta Credito CUOTAS')prevCuotaCarga();});
+
+// ── FEATURE 4: EXPORTAR CSV ──
+window.exportarCSV=()=>{
+  const tipo=document.getElementById('fil-tipo')?.value||'';
+  const quien=document.getElementById('fil-quien')?.value||'';
+  const oF=document.getElementById('fil-fecha')?.value||'desc';
+  const mF=mesSel==='todo'?null:mesSel;
+  let d;
+  if(mF){const prev=mesAnterior(mF);d=gastos.filter(g=>g.mes===mF||g.mes===prev);}
+  else d=gastos.filter(g=>g.mes?.startsWith(anioSel));
+  if(tipo)d=d.filter(g=>g.tipo===tipo);
+  if(quien)d=d.filter(g=>g.pago===quien);
+  if(oF==='asc')d=[...d].sort((a,b)=>(a.fecha||'').localeCompare(b.fecha||''));
+  else d=[...d].sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||''));
+  const cols=['Fecha','Tipo','Categoría','Monto','Forma de pago','Quién pagó','Comentario','Mes'];
+  const rows=d.map(g=>[g.fecha||'',g.tipo||'',g.categoria||g.tipoIngreso||'',g.monto||0,g.formaPago||'',g.pago||'',g.comentario||'',g.mes||''].map(v=>`"${String(v).replace(/"/g,'""')}"`).join(','));
+  const csv='\uFEFF'+cols.join(',')+'\n'+rows.join('\n');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const fname=`gastos_${mF||anioSel}_${new Date().toISOString().slice(0,10)}.csv`;
+  if(navigator.share&&navigator.canShare?.({files:[new File([blob],fname,{type:'text/csv'})]})){navigator.share({files:[new File([blob],fname,{type:'text/csv'})],title:'Gastos export'}).catch(()=>{});return;}
+  const a=document.createElement('a');a.href=url;a.download=fname;a.click();URL.revokeObjectURL(url);
+  toast('CSV exportado','ok',2500);
+};
+
+// ── FEATURE 5: CONFIGURACIÓN ──
+let catCustom={fijo:[],variable:[]};
+let ingresosProyectados={};
+async function cargarCatCustom(){try{const s=await getDoc(doc(db,'config','categorias'));if(s.exists()){catCustom=s.data();}}catch(e){console.error(e);}}
+async function guardarCatCustom(){try{await setDoc(doc(db,'config','categorias'),catCustom);}catch(e){console.error(e);}}
+async function cargarIngresosProyectados(){try{const s=await getDoc(doc(db,'config','ingresos_proyectados'));if(s.exists())ingresosProyectados=s.data();}catch(e){console.error(e);}}
+async function guardarIngresosProyectados(){try{await setDoc(doc(db,'config','ingresos_proyectados'),ingresosProyectados);}catch(e){console.error(e);}}
+
+window.configTabs=(id,btn)=>{
+  document.querySelectorAll('.config-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('config-cats').style.display=id==='cats'?'block':'none';
+  document.getElementById('config-proyectados').style.display=id==='proyectados'?'block':'none';
+  if(id==='cats')renderConfigCats();
+  if(id==='proyectados')renderConfigProyectados();
+};
+
+window.renderConfigSection=async()=>{
+  await cargarCatCustom();
+  await cargarIngresosProyectados();
+  renderConfigCats();
+};
+
+function getCatsActivas(tipoKey){
+  const base=tipoKey==='fijo'?CATEGORIAS['Gasto fijo']:CATEGORIAS['Gasto variable'];
+  const custom=catCustom[tipoKey]||[];
+  return [...new Set([...base,...custom])].sort();
+}
+
+function renderConfigCats(){
+  const tipos=[{key:'fijo',label:'Gastos Fijos'},{key:'variable',label:'Gastos Variables'}];
+  let html='';
+  tipos.forEach(({key,label})=>{
+    const all=getCatsActivas(key);
+    const base=key==='fijo'?CATEGORIAS['Gasto fijo']:CATEGORIAS['Gasto variable'];
+    html+=`<div class="card"><div class="card-title">${label}</div><div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px">${all.map(c=>{const isCustom=!base.includes(c);return`<span class="cat-tag">${c}${isCustom?`<button onclick="eliminarCatCustom('${key}','${c}')">×</button>`:''}</span>`;}).join('')}</div><div class="cat-add-row"><input type="text" id="new-cat-${key}" placeholder="Nueva categoría..."><button onclick="agregarCatCustom('${key}')">+</button></div></div>`;
+  });
+  document.getElementById('config-cats').innerHTML=html;
+}
+
+window.agregarCatCustom=async(key)=>{
+  const inp=document.getElementById(`new-cat-${key}`);
+  const val=inp?.value.trim();
+  if(!val){toast('Escribí un nombre','warn',2000);return;}
+  if(!catCustom[key])catCustom[key]=[];
+  if(catCustom[key].includes(val)||(key==='fijo'?CATEGORIAS['Gasto fijo']:CATEGORIAS['Gasto variable']).includes(val)){toast('Ya existe esa categoría','warn',2000);return;}
+  catCustom[key].push(val);
+  await guardarCatCustom();
+  inp.value='';
+  renderConfigCats();
+  toast(`"${val}" agregada`,'ok',2000);
+};
+
+window.eliminarCatCustom=async(key,cat)=>{
+  if(!confirm(`¿Eliminar la categoría "${cat}"?`))return;
+  catCustom[key]=(catCustom[key]||[]).filter(c=>c!==cat);
+  await guardarCatCustom();
+  renderConfigCats();
+  toast(`"${cat}" eliminada`,'info',2000);
+};
+
+function renderConfigProyectados(){
+  const anio=anioSel||'2026';
+  const data=(ingresosProyectados[anio])||{};
+  const meses=[['01','Enero'],['02','Febrero'],['03','Marzo'],['04','Abril'],['05','Mayo'],['06','Junio'],['07','Julio'],['08','Agosto'],['09','Septiembre'],['10','Octubre'],['11','Noviembre'],['12','Diciembre']];
+  let html=`<div class="card"><div class="card-title">Ingresos proyectados · ${anio}</div><div style="font-size:11px;color:#888;margin-bottom:12px">Se usan en Cashflow y el Agente cuando no hay datos reales del mes.</div>`;
+  meses.forEach(([m,nombre])=>{
+    const real=sumarMes(`${anio}-${m}`,'Ingreso');
+    html+=`<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:0.5px solid #f3f3f0"><span style="font-size:13px;color:#555;width:90px;flex-shrink:0">${nombre}</span>${real>0?`<span style="font-size:11px;color:#16a34a;flex-shrink:0">real: ${fmt(real)}</span>`:'<span style="font-size:11px;color:#bbb;flex-shrink:0">sin datos</span>'}<input type="number" value="${data[m]||''}" placeholder="Proyectado..." style="flex:1;padding:6px 8px;font-size:13px;border:0.5px solid #d1d5db;border-radius:8px;text-align:right;background:#fff;color:#1a1a1a" onchange="guardarProyectado('${anio}','${m}',this.value)"></div>`;
+  });
+  html+=`</div>`;
+  document.getElementById('config-proyectados').innerHTML=html;
+}
+
+window.guardarProyectado=async(anio,mes,val)=>{
+  if(!ingresosProyectados[anio])ingresosProyectados[anio]={};
+  ingresosProyectados[anio][mes]=parseFloat(val)||0;
+  await guardarIngresosProyectados();
+  toast('Guardado','ok',1500);
+};
+
+function getIngProyectado(mes){
+  const[y,m]=mes.split('-');
+  return ingresosProyectados[y]?.[m]||0;
+}
+
+// ── FEATURE 6: PRESUPUESTO ALERTAS 80% ──
+function alertasPresProgresivas(mes){
+  const hoy=new Date();
+  const diasMes=new Date(parseInt(mes.slice(0,4)),parseInt(mes.slice(5)),0).getDate();
+  const diaHoy=mes===`${hoy.getFullYear()}-${pad(hoy.getMonth()+1)}`?hoy.getDate():diasMes;
+  const mitadMes=diaHoy>diasMes/2;
+  const diasRestantes=diasMes-diaHoy;
+  const top=getTopActivas();
+  const alertas=[];
+  top.forEach(cat=>{
+    const gastado=gastos.filter(g=>g.mes===mes&&g.categoria===cat&&g.tipo==='Gasto variable').reduce((s,g)=>s+(g.monto||0),0);
+    const presup=presupuestos[cat]||0;
+    if(presup>0&&mitadMes){
+      const pct=gastado/presup*100;
+      if(pct>=80&&pct<100){
+        const restante=presup-gastado;
+        alertas.push(`<div class="alert alert-warn">⚠️ <strong>${cat}:</strong> te quedan ${fmt(restante)} con ${diasRestantes} días de mes (${Math.round(pct)}% usado)</div>`);
+      }
+    }
+  });
+  return alertas.join('');
+}
+
+// ── FEATURE 7: PRESUPUESTO MODO % ──
+let presModoPorc=false;
+
+function getIngReferenciaEdit(){
+  const mes=mesSel==='todo'?mesActualStr():(mesSel||mesActualStr());
+  const real=sumarMes(mes,'Ingreso');
+  if(real>0)return real;
+  return getIngProyectado(mes)||0;
+}
+
+// ── FEATURE 8: SUGERENCIA DEL AGENTE ──
+window.pedirSugerenciaAgente=async()=>{
+  const btn=document.getElementById('btn-sugerencia-agente');
+  const panel=document.getElementById('sugerencia-agente-panel');
+  if(!btn||!panel)return;
+  btn.disabled=true;btn.textContent='Consultando al agente...';
+  const mes=mesSel==='todo'?mesActualStr():(mesSel||mesActualStr());
+  const ing=sumarMes(mes,'Ingreso')||getIngProyectado(mes)||0;
+  const top=getTopActivas();
+  const gastosCats=top.map(c=>{const g=gastos.filter(x=>x.mes===mes&&x.categoria===c&&x.tipo==='Gasto variable').reduce((s,x)=>s+(x.monto||0),0);const p=presupuestos[c]||0;return`${c}: gastado ${fmt(g)}, presupuesto actual ${fmt(p)}`;}).join('\n');
+  const prompt=`Sos el agente financiero de Sebas y Male. Mes: ${nombreMes(mes)}. Ingresos: ${fmt(ing)}. Objetivo: ahorrar al menos el 20% (${fmt(Math.round(ing*0.2))}).\n\nGastos variables top y presupuestos actuales:\n${gastosCats}\n\nSugerí límites de presupuesto específicos para cada categoría para que puedan cumplir el objetivo del 20% de ahorro. Sé concreto con montos en pesos. Máximo 6 oraciones.`;
+  try{
+    const r=await fetch('/.netlify/functions/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:600,system:'Sos el agente financiero de Sebas y Male, una pareja argentina. Respondé en español rioplatense, directo y con números reales en formato $1.200.000.',messages:[{role:'user',content:prompt}]})});
+    const data=await r.json();
+    const resp=data.content?.[0]?.text||'Sin respuesta.';
+    panel.style.display='block';
+    panel.innerHTML=`<div class="alert alert-info" style="white-space:pre-wrap;line-height:1.7">${resp}</div>`;
+  }catch(e){panel.innerHTML=`<div class="alert alert-err">Error al conectar con el agente.</div>`;panel.style.display='block';}
+  btn.disabled=false;btn.textContent='🤖 Sugerencia del agente';
+};
 </script>
 <script>
 window.nav=(id,btn)=>{
@@ -934,9 +1259,10 @@ window.nav=(id,btn)=>{
   const bnavMap={resumen:'bnav-resumen',gastos:'bnav-gastos',carga:'bnav-carga'};
   if(bnavMap[id])document.getElementById(bnavMap[id])?.classList.add('active');
   const ctx=document.getElementById('sheet-ctx');
-  if(ctx)ctx.textContent={resumen:'Resumen',gastos:'Movimientos',carga:'Cargar',cashflow:'Cashflow',presupuesto:'Presupuesto'}[id]||id;
+  if(ctx)ctx.textContent={resumen:'Resumen',gastos:'Movimientos',carga:'Cargar',cashflow:'Cashflow',presupuesto:'Presupuesto',config:'Configuración'}[id]||id;
   if(id==='gastos')window.renderGastos?.();
   if(id==='presupuesto')window.renderPresSeg?.();
+  if(id==='config')window.renderConfigSection?.();
 };
 window.toggleDrawer=()=>{
   const d=document.getElementById('drawer');
