@@ -130,6 +130,15 @@ select,input[type=text],input[type=number],input[type=date],input[type=month]{pa
 .msg-bot{background:#fff;border:0.5px solid #e5e5e0;align-self:flex-start;border-radius:12px 12px 12px 3px}
 .loader{display:inline-block;width:10px;height:10px;border:2px solid #ddd;border-top-color:#888;border-radius:50%;animation:spin .7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
+/* DRAWER */
+.drawer-btn{display:flex;align-items:center;gap:12px;width:100%;padding:12px 16px;border:none;background:transparent;cursor:pointer;font-size:14px;color:#1a1a1a;text-align:left;transition:background .15s}
+.drawer-btn:active{background:#f5f5f3}
+.drawer-btn[disabled]{opacity:.35;cursor:default}
+.drawer-btn .dicon{font-size:18px;width:26px;text-align:center}
+.drawer-section{padding:5px 16px 3px;font-size:10px;font-weight:700;color:#bbb;text-transform:uppercase;letter-spacing:.08em;margin-top:6px}
+/* BOTTOM NAV ADD BUTTON */
+.bnav-add .bnav-icon{width:46px;height:46px;background:#1a1a1a;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:22px;margin-top:-14px;box-shadow:0 4px 12px rgba(0,0,0,.25)}
+.bnav-add{color:#1a1a1a!important}
 /* PRESUPUESTO */
 .pres-tabs{display:flex;gap:6px;margin-bottom:14px}
 .pres-tab{flex:1;padding:8px;border-radius:10px;font-size:12px;font-weight:600;border:0.5px solid #e5e5e0;background:#fff;color:#888;cursor:pointer;text-align:center}
@@ -260,6 +269,7 @@ select,input[type=text],input[type=number],input[type=date],input[type=month]{pa
         <div class="form-group"><label>¿Quién pagó?</label>
           <select id="inp-quien-carga"><option>Sebas</option><option>Male</option><option>Otro</option></select>
         </div>
+        <div class="form-group"><label>Comentario <span style="color:#bbb;font-weight:400">(opcional)</span></label><input type="text" id="inp-comentario" placeholder="Ej: cuota 3/6, mercado semanal..."></div>
         <button class="btn-primary" id="btn-guardar" onclick="guardar()">Guardar movimiento</button>
         <div id="carga-msg" style="margin-top:10px"></div>
       </div>
@@ -285,7 +295,6 @@ select,input[type=text],input[type=number],input[type=date],input[type=month]{pa
       <div class="pres-tabs">
         <button class="pres-tab active" onclick="presTabs('seg',this)">📊 Seguimiento</button>
         <button class="pres-tab" onclick="presTabs('edit',this)">✏️ Editar</button>
-        <button class="pres-tab" onclick="presTabs('plan',this)">🎯 Planificar</button>
       </div>
       <div id="pres-seg"></div>
       <div id="pres-edit" style="display:none"></div>
@@ -336,11 +345,30 @@ select,input[type=text],input[type=number],input[type=date],input[type=month]{pa
 <div class="toast" id="toast"></div>
 <!-- BOTTOM NAV -->
 <div class="bottom-nav" id="bottom-nav" style="display:none">
-  <button class="bnav-btn active" onclick="nav('resumen',this)"><span class="bnav-icon">📊</span>Resumen</button>
-  <button class="bnav-btn" onclick="nav('gastos',this)"><span class="bnav-icon">📋</span>Movimientos</button>
-  <button class="bnav-btn" onclick="nav('carga',this)"><span class="bnav-icon">➕</span>Cargar</button>
-  <button class="bnav-btn" onclick="nav('cashflow',this)"><span class="bnav-icon">📈</span>Cashflow</button>
-  <button class="bnav-btn" onclick="nav('presupuesto',this)"><span class="bnav-icon">🎯</span>Presupuesto</button>
+  <button class="bnav-btn active" id="bnav-resumen" onclick="nav('resumen',this)"><span class="bnav-icon">📊</span>Resumen</button>
+  <button class="bnav-btn bnav-add" id="bnav-carga" onclick="nav('carga',this)"><span class="bnav-icon">➕</span>Cargar</button>
+  <button class="bnav-btn" id="bnav-gastos" onclick="nav('gastos',this)"><span class="bnav-icon">📋</span>Movimientos</button>
+  <button class="bnav-btn" onclick="toggleDrawer()"><span class="bnav-icon">☰</span>Más</button>
+</div>
+<!-- DRAWER -->
+<div id="drawer-overlay" onclick="toggleDrawer()" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.4);z-index:250"></div>
+<div id="drawer" style="position:fixed;top:0;left:0;bottom:0;width:280px;background:#fff;z-index:260;transform:translateX(-100%);transition:transform .25s ease;overflow-y:auto;padding-bottom:30px">
+  <div style="padding:16px 16px 10px;border-bottom:0.5px solid #e5e5e0;display:flex;align-items:center;gap:10px">
+    <span style="font-size:24px">💰</span>
+    <div>
+      <div style="font-size:15px;font-weight:700">Gastos 2026</div>
+      <div style="font-size:11px;color:#888">Sebas & Male</div>
+    </div>
+  </div>
+  <div class="drawer-section">Principal</div>
+  <button class="drawer-btn" onclick="drawerNav('resumen')"><span class="dicon">📊</span>Resumen</button>
+  <button class="drawer-btn" onclick="drawerNav('gastos')"><span class="dicon">📋</span>Movimientos</button>
+  <button class="drawer-btn" onclick="drawerNav('carga')"><span class="dicon">➕</span>Cargar</button>
+  <div class="drawer-section">Análisis</div>
+  <button class="drawer-btn" onclick="drawerNav('cashflow')"><span class="dicon">📈</span>Cashflow</button>
+  <button class="drawer-btn" onclick="drawerNav('presupuesto')"><span class="dicon">🎯</span>Presupuesto</button>
+  <div class="drawer-section">Sistema</div>
+  <button class="drawer-btn" onclick="toggleDrawer();logout()"><span class="dicon">🚪</span>Salir</button>
 </div>
 <!-- FAB AGENTE -->
 <button id="fab-agente" onclick="toggleAgente()" style="display:none;position:fixed;bottom:72px;right:16px;width:52px;height:52px;border-radius:50%;background:#1a1a1a;color:#fff;border:none;font-size:22px;cursor:pointer;align-items:center;justify-content:center;z-index:200;box-shadow:0 4px 16px rgba(0,0,0,.25)">🤖</button>
@@ -400,6 +428,7 @@ select,input[type=text],input[type=number],input[type=date],input[type=month]{pa
     <div class="form-group"><label>¿Quién pagó?</label>
       <select id="edit-quien"><option>Sebas</option><option>Male</option><option>Otro</option></select>
     </div>
+    <div class="form-group"><label>Comentario <span style="color:#bbb;font-weight:400">(opcional)</span></label><input type="text" id="edit-comentario" placeholder="Ej: cuota 3/6, mercado semanal..."></div>
     <div id="edit-msg" style="margin-bottom:10px"></div>
     <button class="btn-primary" onclick="guardarEdicion()">Guardar cambios</button>
     <button onclick="cerrarModal()" style="width:100%;padding:12px;background:none;border:0.5px solid #e5e5e0;border-radius:12px;font-size:14px;cursor:pointer;margin-top:8px;color:#888">Cancelar</button>
@@ -426,6 +455,15 @@ let presupuestos={};
 let catConfigActivas=[];
 let planItems=[];
 let tipoItemActual='unico';
+let dolarBlue={compra:null,venta:null,fechaStr:''};
+
+async function fetchDolarBlue(){
+  try{
+    const r=await fetch('https://dolarapi.com/v1/dolares/blue');
+    const d=await r.json();
+    dolarBlue={compra:d.compra,venta:d.venta,fechaStr:d.fechaActualizacion?new Date(d.fechaActualizacion).toLocaleDateString('es-AR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):''};
+  }catch(e){console.error('dolarapi error',e);}
+}
 
 const fmt=n=>(n||n===0)?'$'+Math.round(n).toLocaleString('es-AR'):'-';
 const fmtK=n=>Math.abs(n)>=1000000?(n<0?'-':'')+'$'+(Math.abs(n)/1000000).toFixed(1)+'M':Math.abs(n)>=1000?(n<0?'-':'')+'$'+Math.round(Math.abs(n)/1000)+'k':fmt(n);
@@ -460,10 +498,11 @@ onAuthStateChanged(auth,async user=>{
     dot.className='sync-dot syncing';txt.textContent='cargando...';
     await cargarPresupuestos();
     await cargarPlanItems();
+    fetchDolarBlue();
     unsub=onSnapshot(query(collection(db,'gastos'),orderBy('fecha','desc')),snap=>{
       gastos=snap.docs.map(d=>({id:d.id,...d.data()}));
       dot.className='sync-dot';txt.textContent=gastos.length+' mov.';
-      if(!mesSel){const mc=mesActualStr();const md=[...new Set(gastos.map(g=>g.mes))].filter(Boolean).sort();mesSel=md.includes(mc)?mc:(md[md.length-1]||mc);}
+      if(!mesSel){mesSel=mesActualStr();}
       renderResumen();renderGastos();renderCashflow();
     },()=>{dot.className='sync-dot err';txt.textContent='error';});
   }else{
@@ -534,11 +573,17 @@ function renderResumenAnual(anio){
   const vrs=ga.filter(g=>g.tipo==='Gasto variable').reduce((s,g)=>s+(g.monto||0),0);
   const sal=ing-fij-vrs;const ahP=ing>0?Math.round(sal/ing*100):0;
   document.getElementById('metrics').innerHTML=`<div class="metric"><div class="metric-label">Ingresos</div><div class="metric-value pos">${fmtK(ing)}</div><div class="metric-var"><span style="font-size:11px;color:#888">acumulado ${anio}</span></div></div><div class="metric"><div class="metric-label">Gastos fijos</div><div class="metric-value">${fmtK(fij)}</div><div class="metric-var"><span style="font-size:11px;color:#888">acumulado ${anio}</span></div></div><div class="metric"><div class="metric-label">Variables</div><div class="metric-value">${fmtK(vrs)}</div><div class="metric-var"><span style="font-size:11px;color:#888">acumulado ${anio}</span></div></div><div class="metric"><div class="metric-label">Saldo neto</div><div class="metric-value ${sal>=0?'pos':'neg'}">${fmtK(sal)}</div><div class="metric-var"><span style="font-size:11px;color:#888">ahorro ${ahP}%</span></div></div>`;
-  const ah=ga.filter(g=>g.tipo==='Ahorro');const ta=ah.reduce((s,g)=>s+(g.monto||0),0);
+  const ah=ga.filter(g=>g.tipo==='Ahorro');
+  const ventasUSD=ga.filter(g=>g.tipoIngreso==='Venta USD');
+  const netVentaUSDPesos=ventasUSD.reduce((s,g)=>s+(g.monto||0),0);
   const CA=['Ahorro general','Compra USD','Fondo emergencia','Inversiones'];
   const am=ah.reduce((a,g)=>{a[g.categoria]=(a[g.categoria]||0)+(g.monto||0);return a},{});
+  if(netVentaUSDPesos>0&&am['Compra USD'])am['Compra USD']=Math.max(0,am['Compra USD']-netVentaUSDPesos);
+  const ta=Object.values(am).reduce((s,v)=>s+v,0);
   document.getElementById('ahorro-resumen').innerHTML=`<div class="card"><div class="card-title">Ahorro acumulado · ${anio}</div><div style="display:flex;justify-content:space-between;align-items:baseline;padding-bottom:10px;border-bottom:0.5px solid #f3f3f0;margin-bottom:8px"><div style="font-size:13px;font-weight:700">Total ahorrado</div><div style="font-size:16px;font-weight:700;color:#16a34a">${fmt(ta)}</div></div>${CA.map(c=>`<div class="row-item"><span class="row-cat">${c}</span><span style="font-size:13px;font-weight:700">${am[c]?fmt(am[c]):'—'}</span></div>`).join('')}</div>`;
-  document.getElementById('usd-resumen').innerHTML=`<div class="usd-card"><div><div style="font-size:13px;font-weight:700">Saldo USD acumulado</div><div class="usd-sub">histórico total · todas las operaciones</div></div><div class="usd-val">${fmtUSD(calcSaldoUSD())}</div></div>`;
+  const sUSD=calcSaldoUSD();
+  const arsBlue=dolarBlue.compra?Math.round(sUSD*dolarBlue.compra):null;
+  document.getElementById('usd-resumen').innerHTML=`<div class="usd-card"><div><div style="font-size:13px;font-weight:700">Saldo USD acumulado</div><div class="usd-sub">${arsBlue?`≈ ${fmt(arsBlue)} · blue compra $${dolarBlue.compra?.toLocaleString('es-AR')}`:' histórico total · todas las operaciones'}</div></div><div><div class="usd-val">${fmtUSD(sUSD)}</div>${dolarBlue.fechaStr?`<div style="font-size:10px;color:#bbb;text-align:right;margin-top:2px">Actualizado: ${dolarBlue.fechaStr}</div>`:''}</div></div>`;
   renderPersonas(ga,null);
 }
 
@@ -558,7 +603,8 @@ function renderResumenMes(mes){
   const saldoUSD=calcSaldoUSD();
   const uM=gastos.filter(g=>g.mes===mes&&(g.categoria==='Compra USD'||g.tipoIngreso==='Sueldo USD')).reduce((s,g)=>s+(g.montoDolar||0),0)-gastos.filter(g=>g.mes===mes&&g.tipoIngreso==='Venta USD').reduce((s,g)=>s+(g.montoDolar||0),0);
   const uP=gastos.filter(g=>g.mes===prev&&(g.categoria==='Compra USD'||g.tipoIngreso==='Sueldo USD')).reduce((s,g)=>s+(g.montoDolar||0),0)-gastos.filter(g=>g.mes===prev&&g.tipoIngreso==='Venta USD').reduce((s,g)=>s+(g.montoDolar||0),0);
-  document.getElementById('usd-resumen').innerHTML=`<div class="usd-card"><div><div style="font-size:13px;font-weight:700">Saldo USD acumulado</div><div class="usd-sub" style="display:flex;align-items:center;gap:6px;margin-top:3px">este mes: ${uM>=0?'+':''}${fmtUSD(uM)} ${varBadge(uM,uP,false)}</div></div><div class="usd-val">${fmtUSD(saldoUSD)}</div></div>`;
+  const arsBlueM=dolarBlue.compra?Math.round(saldoUSD*dolarBlue.compra):null;
+  document.getElementById('usd-resumen').innerHTML=`<div class="usd-card"><div><div style="font-size:13px;font-weight:700">Saldo USD acumulado</div><div class="usd-sub" style="margin-top:3px">este mes: ${uM>=0?'+':''}${fmtUSD(uM)} ${varBadge(uM,uP,false)}</div>${arsBlueM?`<div style="font-size:11px;color:#888;margin-top:2px">≈ ${fmt(arsBlueM)} · blue $${dolarBlue.compra?.toLocaleString('es-AR')}</div>`:''}</div><div><div class="usd-val">${fmtUSD(saldoUSD)}</div>${dolarBlue.fechaStr?`<div style="font-size:10px;color:#bbb;text-align:right;margin-top:2px">${dolarBlue.fechaStr}</div>`:''}</div></div>`;
   renderPersonas(gastos.filter(g=>g.mes===mes),gastos.filter(g=>g.mes===prev));
 }
 
@@ -584,7 +630,14 @@ window.renderGastos=()=>{
   const oF=document.getElementById('fil-fecha')?.value||'desc';
   const oM=document.getElementById('fil-monto')?.value||'';
   const mF=mesSel==='todo'?null:mesSel;
-  let d=mF?gastos.filter(g=>g.mes===mF):gastos.filter(g=>g.mes?.startsWith(anioSel));
+  let d;
+  if(mF){
+    // mostrar mes seleccionado + mes anterior por default
+    const prev=mesAnterior(mF);
+    d=gastos.filter(g=>g.mes===mF||g.mes===prev);
+  } else {
+    d=gastos.filter(g=>g.mes?.startsWith(anioSel));
+  }
   if(tipo)d=d.filter(g=>g.tipo===tipo);
   if(quien)d=d.filter(g=>g.pago===quien);
   if(oM==='desc')d=[...d].sort((a,b)=>(b.monto||0)-(a.monto||0));
@@ -595,7 +648,7 @@ window.renderGastos=()=>{
   const pmap=prev?gastos.filter(g=>g.mes===prev).reduce((a,g)=>{const k=(g.categoria||g.tipoIngreso||'?')+'|||'+g.pago;a[k]=(a[k]||0)+(g.monto||0);return a},{}):{}; 
   const cmap=d.reduce((a,g)=>{const k=(g.categoria||g.tipoIngreso||'?')+'|||'+g.pago;a[k]=(a[k]||0)+(g.monto||0);return a},{});
   if(!d.length){document.getElementById('gastos-list').innerHTML='<div class="empty-state">📭<br>Sin movimientos</div>';return;}
-  document.getElementById('gastos-list').innerHTML=`<div class="gastos-list">${d.slice(0,100).map(g=>{const tc=g.tipo==='Ingreso'?'tag-ing':g.tipo==='Gasto fijo'?'tag-fijo':g.tipo==='Ahorro'?'tag-aho':'tag-var';const cat=g.categoria||g.tipoIngreso||g.tipo;const f=g.fecha?g.fecha.slice(8)+'/'+g.fecha.slice(5,7):'';const k=cat+'|||'+g.pago;const badge=prev&&pmap[k]>0?varBadge(cmap[k]||0,pmap[k],g.tipo!=='Ingreso'):'';const uE=g.montoDolar?`<span style="font-size:10px;color:#1d4ed8;font-weight:600">U$S ${g.montoDolar}</span>`:'';return`<div class="gasto-item"><div class="gasto-info"><div class="gasto-cat">${cat}</div><div class="gasto-meta">${f} · <span class="tag ${tc}">${g.tipo}</span> · ${g.pago}</div></div><div class="gasto-right" style="display:flex;flex-direction:column;align-items:flex-end;gap:3px"><div class="gasto-monto ${g.tipo==='Ingreso'?'pos':''}">${g.tipo==='Ingreso'?'+':''}${fmt(g.monto)}</div>${uE}${badge?`<div class="gasto-var">${badge} vs ${prev?mesCorto(prev):''}</div>`:''}<div style="display:flex;gap:4px"><button onclick="abrirEdicion('${g.id}')" style="font-size:15px;background:none;border:none;cursor:pointer;padding:2px 4px;color:#aaa">✏️</button><button onclick="confirmarEliminar('${g.id}')" style="font-size:15px;background:none;border:none;cursor:pointer;padding:2px 4px;color:#f87171">🗑️</button></div></div></div>`;}).join('')}</div>`;
+  document.getElementById('gastos-list').innerHTML=`<div class="gastos-list">${d.slice(0,100).map(g=>{const tc=g.tipo==='Ingreso'?'tag-ing':g.tipo==='Gasto fijo'?'tag-fijo':g.tipo==='Ahorro'?'tag-aho':'tag-var';const cat=g.categoria||g.tipoIngreso||g.tipo;const f=g.fecha?g.fecha.slice(8)+'/'+g.fecha.slice(5,7):'';const k=cat+'|||'+g.pago;const badge=prev&&pmap[k]>0?varBadge(cmap[k]||0,pmap[k],g.tipo!=='Ingreso'):'';const uE=g.montoDolar?`<span style="font-size:10px;color:#1d4ed8;font-weight:600">U$S ${g.montoDolar}</span>`:'';const coment=g.comentario?`<span style="font-size:10px;color:#94a3b8;font-style:italic">💬 ${g.comentario}</span>`:'';return`<div class="gasto-item"><div class="gasto-info"><div class="gasto-cat">${cat}</div><div class="gasto-meta">${f} · <span class="tag ${tc}">${g.tipo}</span> · ${g.pago}${g.comentario?'':''}</div>${g.comentario?`<div style="font-size:10px;color:#94a3b8;font-style:italic;margin-top:2px">💬 ${g.comentario}</div>`:''}</div><div class="gasto-right" style="display:flex;flex-direction:column;align-items:flex-end;gap:3px"><div class="gasto-monto ${g.tipo==='Ingreso'?'pos':''}">${g.tipo==='Ingreso'?'+':''}${fmt(g.monto)}</div>${uE}${badge?`<div class="gasto-var">${badge} vs ${prev?mesCorto(prev):''}</div>`:''}<div style="display:flex;gap:4px"><button onclick="abrirEdicion('${g.id}')" style="font-size:15px;background:none;border:none;cursor:pointer;padding:2px 4px;color:#aaa">✏️</button><button onclick="confirmarEliminar('${g.id}')" style="font-size:15px;background:none;border:none;cursor:pointer;padding:2px 4px;color:#f87171">🗑️</button></div></div></div>`;}).join('')}</div>`;
 };
 
 // ── CASHFLOW ──
@@ -644,11 +697,13 @@ window.guardar=async()=>{
   }
   btn.disabled=true;btn.textContent='Guardando...';
   try{
+    const comentario=document.getElementById('inp-comentario').value.trim();
     const dd={fecha,tipo,tipoIngreso:tipo==='Ingreso'?cat:'',categoria:tipo!=='Ingreso'?cat:'',monto,formaPago:pago,pago:quien,mes,creadoEn:serverTimestamp(),fuente:'app',usuario:auth.currentUser?.email||''};
     if(montoDolar>0&&(cat==='Compra USD'||cat==='Sueldo USD'||cat==='Venta USD'))dd.montoDolar=montoDolar;
+    if(comentario)dd.comentario=comentario;
     await addDoc(collection(db,'gastos'),dd);
     msgEl.innerHTML=`<div class="alert alert-ok">✓ ${cat} · ${fmt(monto)} guardado</div>`;
-    document.getElementById('inp-monto').value='';document.getElementById('inp-dolar').value='';
+    document.getElementById('inp-monto').value='';document.getElementById('inp-dolar').value='';document.getElementById('inp-comentario').value='';
     toast(`✓ ${cat} · ${fmt(monto)}`,'ok',2500);setTimeout(()=>msgEl.innerHTML='',3000);
     document.getElementById('inp-tipo').value='Gasto variable';document.getElementById('inp-pago').value='Transferencia';document.getElementById('inp-quien-carga').value='Sebas';
     actualizarCategorias();toggleDolarField();
@@ -800,17 +855,32 @@ window.enviar=async()=>{
   const loader=document.createElement('div');loader.className='msg msg-bot';loader.innerHTML='<span class="loader"></span>';
   msgs.appendChild(loader);msgs.scrollTop=msgs.scrollHeight;
   const mD=[...new Set(gastos.map(g=>g.mes))].filter(Boolean).sort();
-  const res=mD.map(mes=>{const i=sumarMes(mes,'Ingreso'),f=sumarMes(mes,'Gasto fijo'),v=sumarMes(mes,'Gasto variable');const s=i-f-v,p=i>0?Math.round(s/i*100):0;return`${mes}: Ing ${fmtK(i)}, Fijos ${fmtK(f)}, Vars ${fmtK(v)}, Saldo ${fmtK(s)}, Ahorro ${p}%`;}).join('\n');
   const mA=mesSel==='todo'?mD[mD.length-1]:mesSel;
+  const res=mD.map(mes=>{
+    const i=sumarMes(mes,'Ingreso'),f=sumarMes(mes,'Gasto fijo'),v=sumarMes(mes,'Gasto variable'),a=sumarMes(mes,'Ahorro');
+    const s=i-f-v,p=i>0?Math.round(s/i*100):0;
+    // top fijos
+    const fijMap=gastos.filter(g=>g.mes===mes&&g.tipo==='Gasto fijo').reduce((a,g)=>{a[g.categoria]=(a[g.categoria]||0)+(g.monto||0);return a},{});
+    const topFij=Object.entries(fijMap).sort((a,b)=>b[1]-a[1]).slice(0,4).map(([c,v])=>`${c}:${fmtK(v)}`).join(', ');
+    // top ingresos
+    const ingMap=gastos.filter(g=>g.mes===mes&&g.tipo==='Ingreso').reduce((a,g)=>{const k=g.tipoIngreso||g.categoria||'Ingreso';a[k]=(a[k]||0)+(g.monto||0);return a},{});
+    const topIng=Object.entries(ingMap).sort((a,b)=>b[1]-a[1]).map(([c,v])=>`${c}:${fmtK(v)}`).join(', ');
+    return`${mes}: Ing ${fmtK(i)} (${topIng||'sin detalle'}), Fijos ${fmtK(f)} (${topFij||'sin detalle'}), Vars ${fmtK(v)}, Ahorro ${fmtK(a)}, Saldo ${fmtK(s)}, TasaAhorro ${p}%`;
+  }).join('\n');
   const gA=gastos.filter(g=>g.mes===mA&&g.tipo==='Gasto variable');
-  const tC=Object.entries(gA.reduce((a,g)=>{a[g.categoria]=(a[g.categoria]||0)+(g.monto||0);return a},{})).sort((a,b)=>b[1]-a[1]).slice(0,6).map(([c,v])=>`${c}:${fmtK(v)}`).join(', ');
-  const tPlan=planItems.length?'\nTablero de planificación:\n'+planItems.map(it=>`- ${it.nombre}: ${it.cuotas>1?it.cuotas+' cuotas de '+fmt(it.cuotaMensual):fmt(it.monto)} desde ${MESES_FULL[it.mesInicio.slice(5)]} ${it.mesInicio.slice(0,4)}`).join('\n'):'\nTablero: vacío.';
-  const tPres=Object.keys(presupuestos).length?'\nPresupuestos: '+Object.entries(presupuestos).map(([k,v])=>`${k}: ${fmt(v)}`).join(', '):'\nSin presupuestos.';
-  const ctx=`Sos el agente financiero personal de Sebas y Male, una pareja argentina. Todos los montos en pesos argentinos (ARS).
-Total movimientos: ${gastos.length}. Mes activo: ${nombreMes(mA||'')}.
-Resumen por mes:\n${res}
-Top categorías variables en ${nombreMes(mA||'')}: ${tC}${tPlan}${tPres}
-Respondé en español rioplatense, directo y concreto. Máximo 4 oraciones. Usá montos con formato argentino (ej: $1.200.000).
+  const tC=Object.entries(gA.reduce((a,g)=>{a[g.categoria]=(a[g.categoria]||0)+(g.monto||0);return a},{})).sort((a,b)=>b[1]-a[1]).slice(0,8).map(([c,v])=>`${c}:${fmtK(v)}`).join(', ');
+  const sUSD=calcSaldoUSD();
+  const arsBlue=dolarBlue.compra?`Saldo USD: ${fmtUSD(sUSD)} ≈ ${fmt(Math.round(sUSD*dolarBlue.compra))} (blue $${dolarBlue.compra})`:`Saldo USD: ${fmtUSD(sUSD)}`;
+  const tPlan=planItems.length?'\nCompromisos futuros:\n'+planItems.map(it=>`- ${it.nombre}: ${it.cuotas>1?it.cuotas+' cuotas de '+fmt(it.cuotaMensual)+'/mes, total '+fmt(it.monto):fmt(it.monto)} desde ${MESES_FULL[it.mesInicio.slice(5)]} ${it.mesInicio.slice(0,4)}`).join('\n'):'\nSin compromisos futuros cargados.';
+  const tPres=Object.keys(presupuestos).length?'\nPresupuestos mensuales: '+Object.entries(presupuestos).map(([k,v])=>`${k}: ${fmt(v)}`).join(', '):'\nSin presupuestos configurados.';
+  const ctx=`Sos el agente financiero personal de Sebas y Male, una pareja argentina. Montos en pesos argentinos (ARS).
+Mes activo: ${nombreMes(mA||'')}. Total movimientos históricos: ${gastos.length}.
+${arsBlue}
+Historial completo por mes (con detalle de ingresos y fijos):
+${res}
+Top gastos variables en ${nombreMes(mA||'')}: ${tC}${tPlan}${tPres}
+IMPORTANTE: Antes de responder, revisá TODOS los meses disponibles. No asumas que los ingresos proyectados son 0 si hay datos reales. Usá los datos reales de ingresos y gastos fijos para proyecciones.
+Respondé en español rioplatense, directo y con números reales. Máximo 5 oraciones. Formato argentino ($1.200.000).
 Si el usuario quiere agregar algo al tablero, terminá con: AGREGAR_TABLERO: {"nombre":"...","monto":000000,"cuotas":1,"mesInicio":"YYYY-MM","tipo":"unico|cuotas|viaje"}`;
   try{
     const r=await fetch('/.netlify/functions/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:800,system:ctx,messages:[{role:'user',content:txt}]})});
@@ -834,7 +904,7 @@ window.cambiarMes=m=>{mesSel=m;renderResumen();renderGastos();const s=document.g
 window.cambiarAnio=a=>{anioSel=a;mesSel=null;renderResumen();renderGastos();renderCashflow();};
 
 // ── CATEGORÍAS ──
-const CATEGORIAS={'Ingreso':['Aguinaldo','Freelance','Lanusses','Otros ingresos','Sueldo','Sueldo USD','Venta USD','Venta activos'],'Gasto fijo':['ABL / ARBA','Agua envasada','Colegio','CUBA','Cuotas préstamos','Empleada doméstica','Expensas','Impuestos','Impuestos Municipales','Internet','Jardinero/Piletero','Obra social / Prepaga','Otros fijos','Seguro auto','Seguro hogar','Servicios - Agua','Servicios - Gas','Servicios - Luz','Servicios - Movistar','Servicios - Streaming (Netflix, Disney, Spotify, etc)'],'Gasto variable':['Almuerzos','Bienestar','Cafe','Carniceria','Colegios / útiles','Comida con amigos','Cosas casa','Delivery','Estacionamiento','Farmacia','Gimnasio','Kiosco','Limpieza','Mantenimiento auto','Nafta','Otros','Peajes','Regalos','Ropa','Salidas a comer','Salidas con los chicos','Supermercado','Suscripciones','Uber / Taxi','Vacaciones','Verduleria','Viajes'],'Ahorro':['Ahorro general','Compra USD','Fondo emergencia','Inversiones']};
+const CATEGORIAS={'Ingreso':['Aguinaldo','Freelance','Lanusses','Otros ingresos','Sueldo','Sueldo USD','Venta USD','Venta activos'],'Gasto fijo':['ABL / ARBA','Agua envasada','Colegio','CUBA','Cuotas préstamos','Cuotas tarjetas de crédito','Empleada doméstica','Expensas','Impuestos','Impuestos Municipales','Internet','Jardinero/Piletero','Obra social / Prepaga','Otros fijos','Psicólogo','Seguro auto','Seguro hogar','Servicios - Agua','Servicios - Gas','Servicios - Luz','Servicios - Movistar','Servicios - Streaming (Netflix, Disney, Spotify, etc)'],'Gasto variable':['Almuerzos','Bienestar','Cafe','Carniceria','Colegios / útiles','Comida con amigos','Cosas casa','Delivery','Estacionamiento','Farmacia','Gimnasio','Kiosco','Librería','Limpieza','Mantenimiento auto','Nafta','Otros','Peajes','Regalos','Ropa','Salidas a comer','Salidas con los chicos','Supermercado','Suscripciones','Uber / Taxi','Vacaciones','Verduleria','Viajes'],'Ahorro':['Ahorro general','Compra USD','Fondo emergencia','Inversiones']};
 const CATS_USD=['Compra USD','Sueldo USD','Venta USD'];
 function actualizarCategorias(){const t=document.getElementById('inp-tipo').value;const s=document.getElementById('inp-cat');if(!s)return;s.innerHTML=(CATEGORIAS[t]||CATEGORIAS['Gasto variable']).map(c=>`<option value="${c}">${c}</option>`).join('');toggleDolarField();}
 window.toggleDolarField=()=>{const c=document.getElementById('inp-cat')?.value||'';const g=document.getElementById('grp-dolar');if(CATS_USD.includes(c))g.style.display='block';else{g.style.display='none';document.getElementById('inp-dolar').value='';}};
@@ -850,20 +920,35 @@ window.eliminarGasto=async(id)=>{try{await deleteDoc(doc(db,'gastos',id));toast(
 let editandoId=null;
 window.actualizarCategoriasEdit=()=>{const t=document.getElementById('edit-tipo').value;const s=document.getElementById('edit-cat');if(!s)return;s.innerHTML=(CATEGORIAS[t]||CATEGORIAS['Gasto variable']).map(c=>`<option value="${c}">${c}</option>`).join('');toggleDolarFieldEdit();};
 window.toggleDolarFieldEdit=()=>{const c=document.getElementById('edit-cat')?.value||'';const g=document.getElementById('grp-dolar-edit');if(g)g.style.display=CATS_USD.includes(c)?'block':'none';};
-window.abrirEdicion=(id)=>{const g=gastos.find(x=>x.id===id);if(!g)return;editandoId=id;document.getElementById('edit-fecha').value=g.fecha||'';document.getElementById('edit-tipo').value=g.tipo||'Gasto variable';window.actualizarCategoriasEdit();const cat=g.categoria||g.tipoIngreso||'';const s=document.getElementById('edit-cat');for(let o of s.options){if(o.value===cat){o.selected=true;break;}}document.getElementById('edit-monto').value=g.monto||'';document.getElementById('edit-dolar').value=g.montoDolar||'';document.getElementById('edit-pago').value=g.formaPago||'Transferencia';document.getElementById('edit-quien').value=g.pago||'Sebas';document.getElementById('edit-msg').innerHTML='';toggleDolarFieldEdit();document.getElementById('modal-editar').style.display='block';};
+window.abrirEdicion=(id)=>{const g=gastos.find(x=>x.id===id);if(!g)return;editandoId=id;document.getElementById('edit-fecha').value=g.fecha||'';document.getElementById('edit-tipo').value=g.tipo||'Gasto variable';window.actualizarCategoriasEdit();const cat=g.categoria||g.tipoIngreso||'';const s=document.getElementById('edit-cat');for(let o of s.options){if(o.value===cat){o.selected=true;break;}}document.getElementById('edit-monto').value=g.monto||'';document.getElementById('edit-dolar').value=g.montoDolar||'';document.getElementById('edit-pago').value=g.formaPago||'Transferencia';document.getElementById('edit-quien').value=g.pago||'Sebas';document.getElementById('edit-comentario').value=g.comentario||'';document.getElementById('edit-msg').innerHTML='';toggleDolarFieldEdit();document.getElementById('modal-editar').style.display='block';};
 window.cerrarModal=()=>{document.getElementById('modal-editar').style.display='none';editandoId=null;};
-window.guardarEdicion=async()=>{if(!editandoId)return;const btn=document.querySelector('#modal-editar .btn-primary');const msgEl=document.getElementById('edit-msg');const fecha=document.getElementById('edit-fecha').value;const tipo=document.getElementById('edit-tipo').value;const cat=document.getElementById('edit-cat').value;const monto=parseFloat(document.getElementById('edit-monto').value)||0;const pago=document.getElementById('edit-pago').value;const quien=document.getElementById('edit-quien').value;const mD=parseFloat(document.getElementById('edit-dolar').value)||0;if(!fecha||!monto){msgEl.innerHTML='<div class="alert alert-err">Completá fecha y monto</div>';return;}btn.disabled=true;btn.textContent='Guardando...';try{const u={fecha,tipo,tipoIngreso:tipo==='Ingreso'?cat:'',categoria:tipo!=='Ingreso'?cat:'',monto,formaPago:pago,pago:quien,mes:fecha.slice(0,7),editadoEn:serverTimestamp(),usuario:auth.currentUser?.email||''};if(mD>0&&CATS_USD.includes(cat))u.montoDolar=mD;await updateDoc(doc(db,'gastos',editandoId),u);toast('✓ Movimiento actualizado','ok',2500);window.cerrarModal();}catch(e){msgEl.innerHTML=`<div class="alert alert-err">Error: ${e.message}</div>`;}btn.disabled=false;btn.textContent='Guardar cambios';};
+window.guardarEdicion=async()=>{if(!editandoId)return;const btn=document.querySelector('#modal-editar .btn-primary');const msgEl=document.getElementById('edit-msg');const fecha=document.getElementById('edit-fecha').value;const tipo=document.getElementById('edit-tipo').value;const cat=document.getElementById('edit-cat').value;const monto=parseFloat(document.getElementById('edit-monto').value)||0;const pago=document.getElementById('edit-pago').value;const quien=document.getElementById('edit-quien').value;const mD=parseFloat(document.getElementById('edit-dolar').value)||0;const comentario=document.getElementById('edit-comentario').value.trim();if(!fecha||!monto){msgEl.innerHTML='<div class="alert alert-err">Completá fecha y monto</div>';return;}btn.disabled=true;btn.textContent='Guardando...';try{const u={fecha,tipo,tipoIngreso:tipo==='Ingreso'?cat:'',categoria:tipo!=='Ingreso'?cat:'',monto,formaPago:pago,pago:quien,mes:fecha.slice(0,7),editadoEn:serverTimestamp(),usuario:auth.currentUser?.email||''};if(mD>0&&CATS_USD.includes(cat))u.montoDolar=mD;if(comentario)u.comentario=comentario;await updateDoc(doc(db,'gastos',editandoId),u);toast('✓ Movimiento actualizado','ok',2500);window.cerrarModal();}catch(e){msgEl.innerHTML=`<div class="alert alert-err">Error: ${e.message}</div>`;}btn.disabled=false;btn.textContent='Guardar cambios';};
 </script>
 <script>
 window.nav=(id,btn)=>{
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.bnav-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById('sec-'+id).classList.add('active');
-  btn.classList.add('active');
+  if(btn)btn.classList.add('active');
+  // sync bottom nav highlight for drawer-launched sections
+  const bnavMap={resumen:'bnav-resumen',gastos:'bnav-gastos',carga:'bnav-carga'};
+  if(bnavMap[id])document.getElementById(bnavMap[id])?.classList.add('active');
   const ctx=document.getElementById('sheet-ctx');
   if(ctx)ctx.textContent={resumen:'Resumen',gastos:'Movimientos',carga:'Cargar',cashflow:'Cashflow',presupuesto:'Presupuesto'}[id]||id;
   if(id==='gastos')window.renderGastos?.();
   if(id==='presupuesto')window.renderPresSeg?.();
+};
+window.toggleDrawer=()=>{
+  const d=document.getElementById('drawer');
+  const o=document.getElementById('drawer-overlay');
+  const open=d.style.transform==='translateX(0px)'||d.style.transform==='translateX(0)';
+  d.style.transform=open?'translateX(-100%)':'translateX(0)';
+  o.style.display=open?'none':'block';
+};
+window.drawerNav=(id)=>{
+  toggleDrawer();
+  const fakeBtn=document.querySelector(`#bnav-${id}`)||document.createElement('button');
+  window.nav(id,fakeBtn);
 };
 </script>
 </body>

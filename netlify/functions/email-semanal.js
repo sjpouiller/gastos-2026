@@ -3,14 +3,16 @@
 // [functions."email-semanal"]
 //   schedule = "0 12 * * 1"
 
-const { initializeApp, cert } = require('firebase-admin/app');
+const { initializeApp, cert, getApps } = require('firebase-admin/app');
 const { getFirestore } = require('firebase-admin/firestore');
 
 let dbInstance = null;
 function getDB() {
   if (!dbInstance) {
     const credentials = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT);
-    const app = initializeApp({ credential: cert(credentials) }, 'email-app');
+    const appName = 'email-semanal-app';
+    const existing = getApps().find(a => a.name === appName);
+    const app = existing || initializeApp({ credential: cert(credentials) }, appName);
     dbInstance = getFirestore(app);
   }
   return dbInstance;

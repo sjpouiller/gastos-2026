@@ -50,15 +50,41 @@ exports.handler = async function(event) {
       montoNum,
     ];
 
-    await sheets.spreadsheets.values.append({
-      spreadsheetId: SPREADSHEET_ID,
-      range: `'${targetSheet}'!A:J`,
-      valueInputOption: 'USER_ENTERED',
-      insertDataOption: 'INSERT_ROWS',
-      requestBody: { values: [nuevaFila] },
-    });
-
-    return { statusCode: 200, headers, body: JSON.stringify({ success: true, id: newId, sheet: targetSheet }) };
+    try {
+      await sheets.spreadsheets.values.append({
+        spreadsheetId: SPREADSHEET_ID,
+        range: `'${targetSheet}'!A:J`,
+        valueInputOption: 'USER_ENTERED',
+        insertDataOption: 'INSERT_ROWS',
+        requestBody: { values: [nuevaFila] },
+      });
+      return { statusCode: 200, headers, body: JSON.stringify({ success: true, id: newId, sheet: targetSheet }) };
+    } catch(appendErr) {
+      // Si falla por protección, intentar en hoja de backup "Cargas_Backup"
+      console.error('Append error on protected sheet:', appendErr.message);
+      const backupSheet = 'Cargas_Backup';
+      try {
+        // Intentar crear la hoja backup si no existe
+        const sheetTitles = spreadsheet.data.sheets.map(s => s.properties.title);
+        if (!sheetTitles.includes(backupSheet)) {
+          await sheets.spreadsheets.batchUpdate({
+            spreadsheetId: SPREADSHEET_ID,
+            requestBody: { requests: [{ addSheet: { properties: { title: backupSheet } } }] }
+          });
+        }
+        await sheets.spreadsheets.values.append({
+          spreadsheetId: SPREADSHEET_ID,
+          range: `'${backupSheet}'!A:J`,
+          valueInputOption: 'USER_ENTERED',
+          insertDataOption: 'INSERT_ROWS',
+          requestBody: { values: [nuevaFila] },
+        });
+        return { statusCode: 200, headers, body: JSON.stringify({ success: true, id: newId, sheet: backupSheet, warning: 'Hoja principal protegida, guardado en ' + backupSheet }) };
+      } catch(backupErr) {
+        console.error('Backup sheet error:', backupErr.message);
+        return { statusCode: 500, headers, body: JSON.stringify({ error: 'Hoja protegida y sin acceso de backup: ' + appendErr.message }) };
+      }
+    }
   } catch(e) {
     console.error('Sync error:', e.message);
     return { statusCode: 500, headers, body: JSON.stringify({ error: e.message }) };
