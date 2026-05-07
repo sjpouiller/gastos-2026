@@ -43,10 +43,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#1
 .year-tabs{display:flex;gap:6px;margin-bottom:8px}
 .year-tab{padding:4px 14px;border-radius:999px;font-size:12px;font-weight:700;border:1px solid #e5e5e0;background:#fff;color:#888;cursor:pointer;letter-spacing:.03em}
 .year-tab.active{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
-.mes-tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;scrollbar-width:thin;scrollbar-color:#d1d5db transparent}
-.mes-tabs::-webkit-scrollbar{height:4px;display:block}
-.mes-tabs::-webkit-scrollbar-track{background:transparent}
-.mes-tabs::-webkit-scrollbar-thumb{background:#d1d5db;border-radius:2px}
+.mes-tabs{display:flex;gap:6px;overflow-x:scroll;padding-bottom:8px;scrollbar-width:thin;scrollbar-color:#c0c0bc transparent;-webkit-overflow-scrolling:touch}
+.mes-tabs::-webkit-scrollbar{height:3px}
+.mes-tabs::-webkit-scrollbar-track{background:#f0f0ee;border-radius:2px}
+.mes-tabs::-webkit-scrollbar-thumb{background:#c0c0bc;border-radius:2px}
 .mes-tab{padding:6px 14px;border-radius:999px;font-size:12px;font-weight:600;border:1px solid #e5e5e0;background:#fff;color:#888;white-space:nowrap;cursor:pointer;flex-shrink:0}
 .mes-tab.active{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
 .mes-tab.todo-tab{border-style:dashed}
@@ -391,18 +391,43 @@ select,input[type=text],input[type=number],input[type=date],input[type=month]{pa
       <!-- Sub: Perfil -->
       <div id="config-perfil" class="subpage">
         <div class="subpage-header"><button class="subpage-back" onclick="volverConfigMain()">‹</button><div class="subpage-title">Perfil</div></div>
-        <div style="display:flex;flex-direction:column;align-items:center;margin-bottom:20px">
-          <div id="perfil-avatar-big" style="width:72px;height:72px;border-radius:50%;background:#dbeafe;color:#1d4ed8;font-size:24px;font-weight:700;display:flex;align-items:center;justify-content:center;margin-bottom:10px">SP</div>
-          <div id="perfil-nombre-big" style="font-size:15px;font-weight:700">—</div>
-          <div id="perfil-email-big" style="font-size:12px;color:#aaa;margin-top:2px">—</div>
+        <!-- Foto de perfil -->
+        <div style="display:flex;flex-direction:column;align-items:center;margin-bottom:24px">
+          <div style="position:relative;margin-bottom:12px">
+            <div id="perfil-foto-wrap" style="width:80px;height:80px;border-radius:50%;background:#dbeafe;color:#1d4ed8;font-size:28px;font-weight:700;display:flex;align-items:center;justify-content:center;overflow:hidden;cursor:pointer" onclick="document.getElementById('perfil-foto-input').click()">
+              <img id="perfil-foto-img" src="" style="width:100%;height:100%;object-fit:cover;display:none">
+              <span id="perfil-foto-initials">SP</span>
+            </div>
+            <div onclick="document.getElementById('perfil-foto-input').click()" style="position:absolute;bottom:0;right:0;width:24px;height:24px;border-radius:50%;background:#1a1a1a;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;cursor:pointer;border:2px solid #f5f5f3">✏️</div>
+            <input type="file" id="perfil-foto-input" accept="image/*" style="display:none" onchange="cargarFotoPerfil(this)">
+          </div>
+          <div style="font-size:11px;color:#bbb">Tocá para cambiar la foto</div>
         </div>
-        <div class="card">
+        <!-- Campos editables -->
+        <div class="card" style="margin-bottom:12px">
+          <div class="card-title">Datos personales</div>
+          <div class="form-group" style="margin-bottom:10px">
+            <label>Nombre</label>
+            <input type="text" id="perfil-inp-nombre" placeholder="Tu nombre..." style="padding:10px 12px;font-size:14px;border:0.5px solid #d1d5db;border-radius:10px;background:#fff;color:#1a1a1a;width:100%">
+          </div>
+          <div class="form-group" style="margin-bottom:10px">
+            <label>Email</label>
+            <input type="text" id="perfil-inp-email" placeholder="tu@email.com" style="padding:10px 12px;font-size:14px;border:0.5px solid #d1d5db;border-radius:10px;background:#f5f5f3;color:#888;width:100%" readonly>
+          </div>
+          <div class="form-group" style="margin-bottom:0">
+            <label>Teléfono</label>
+            <input type="tel" id="perfil-inp-tel" placeholder="+54 11 ..." inputmode="tel" style="padding:10px 12px;font-size:14px;border:0.5px solid #d1d5db;border-radius:10px;background:#fff;color:#1a1a1a;width:100%">
+          </div>
+        </div>
+        <div id="perfil-save-msg" style="margin-bottom:8px"></div>
+        <button class="btn-primary" onclick="guardarPerfil()">Guardar perfil</button>
+        <!-- Info cuenta -->
+        <div class="card" style="margin-top:12px">
           <div class="card-title">Cuenta</div>
-          <div class="row-item"><span class="row-cat">Miembro desde</span><span style="font-size:12px;color:#aaa">Enero 2025</span></div>
           <div class="row-item"><span class="row-cat">Movimientos cargados</span><span id="perfil-mov-count" style="font-size:12px;color:#aaa">—</span></div>
           <div class="row-item"><span class="row-cat">Co-usuario</span><span style="font-size:12px;font-weight:600">Male ✓</span></div>
         </div>
-        <button class="btn-secondary" onclick="logout()" style="color:#dc2626;border-color:#fca5a5">Cerrar sesión</button>
+        <button class="btn-secondary" onclick="logout()" style="color:#dc2626;border-color:#fca5a5;margin-top:8px">Cerrar sesión</button>
       </div>
       <!-- Sub: Ingresos proyectados -->
       <div id="config-ingresos" class="subpage">
@@ -960,8 +985,10 @@ function renderResumenAnual(anio){
   document.getElementById('metrics').innerHTML=`<div class="metric" onclick="abrirMetricModal('Ingreso','${anio}',null)"><div class="metric-label">Ingresos</div><div class="metric-value pos">${fmtK(ing)}</div><div class="metric-var"><span style="font-size:11px;color:#888">acumulado ${anio} · ver top ▸</span></div></div><div class="metric" onclick="abrirMetricModal('Gasto fijo','${anio}',null)"><div class="metric-label">Gastos fijos</div><div class="metric-value">${fmtK(fij)}</div><div class="metric-var"><span style="font-size:11px;color:#888">acumulado ${anio} · ver top ▸</span></div></div><div class="metric" onclick="abrirMetricModal('Gasto variable','${anio}',null)"><div class="metric-label">Variables</div><div class="metric-value">${fmtK(vrs)}</div><div class="metric-var"><span style="font-size:11px;color:#888">acumulado ${anio} · ver top ▸</span></div></div><div class="metric" onclick="abrirMetricModal('saldo','${anio}',null)"><div class="metric-label">Saldo neto</div><div class="metric-value ${sal>=0?'pos':'neg'}">${fmtK(sal)}</div><div class="metric-var"><span style="font-size:11px;color:#888">ahorro ${ahP}% · ver ▸</span></div></div>`;
   document.getElementById('ahorro-resumen').innerHTML=renderAhorroCard(null,null);
   const sUSD=calcSaldoUSD();
-  const arsBlue=dolarBlue.compra?Math.round(sUSD*dolarBlue.compra):null;
-  document.getElementById('usd-resumen').innerHTML=`<div class="usd-card"><div><div style="font-size:13px;font-weight:700">Saldo USD acumulado</div><div class="usd-sub">${arsBlue?`≈ ${fmt(arsBlue)} en pesos`:' histórico total · todas las operaciones'}</div></div><div><div class="usd-val">${fmtUSD(sUSD)}</div>${dolarBlue.fechaStr?`<div style="font-size:10px;color:#bbb;text-align:right;margin-top:2px">Actualizado: ${dolarBlue.fechaStr}</div>`:''}</div></div>`;
+  const uAnioC=gastos.filter(g=>g.mes?.startsWith(anio)&&(g.categoria==='Compra USD'||g.tipoIngreso==='Sueldo USD')).reduce((s,g)=>s+(g.montoDolar||0),0);
+  const uAnioV=gastos.filter(g=>g.mes?.startsWith(anio)&&g.tipoIngreso==='Venta USD').reduce((s,g)=>s+(g.montoDolar||0),0);
+  const movAnio=uAnioC-uAnioV;
+  document.getElementById('usd-resumen').innerHTML=`<div class="usd-card"><div><div style="font-size:13px;font-weight:700">Saldo USD acumulado</div><div class="usd-sub" style="margin-top:3px">este año: ${movAnio>=0?'+':''}${fmtUSD(movAnio)}${uAnioC>0?` · comprado ${fmtUSD(uAnioC)}`:''}${uAnioV>0?` · vendido ${fmtUSD(uAnioV)}`:''}</div>${dolarBlue.fechaStr?`<div style="font-size:10px;color:#bbb;margin-top:3px">blue $${dolarBlue.compra?.toLocaleString('es-AR')} · ${dolarBlue.fechaStr}</div>`:''}</div><div><div class="usd-val">${fmtUSD(sUSD)}</div></div></div>`;
   renderPersonas(ga,null);
 }
 
@@ -976,8 +1003,7 @@ function renderResumenMes(mes){
   const saldoUSD=calcSaldoUSD();
   const uM=gastos.filter(g=>g.mes===mes&&(g.categoria==='Compra USD'||g.tipoIngreso==='Sueldo USD')).reduce((s,g)=>s+(g.montoDolar||0),0)-gastos.filter(g=>g.mes===mes&&g.tipoIngreso==='Venta USD').reduce((s,g)=>s+(g.montoDolar||0),0);
   const uP=gastos.filter(g=>g.mes===prev&&(g.categoria==='Compra USD'||g.tipoIngreso==='Sueldo USD')).reduce((s,g)=>s+(g.montoDolar||0),0)-gastos.filter(g=>g.mes===prev&&g.tipoIngreso==='Venta USD').reduce((s,g)=>s+(g.montoDolar||0),0);
-  const arsBlueM=dolarBlue.compra?Math.round(saldoUSD*dolarBlue.compra):null;
-  document.getElementById('usd-resumen').innerHTML=`<div class="usd-card"><div><div style="font-size:13px;font-weight:700">Saldo USD acumulado</div><div class="usd-sub" style="margin-top:3px">este mes: ${uM>=0?'+':''}${fmtUSD(uM)} ${varBadge(uM,uP,false)}</div>${arsBlueM?`<div style="font-size:11px;color:#888;margin-top:2px">≈ ${fmt(arsBlueM)} en pesos</div>`:''}</div><div><div class="usd-val">${fmtUSD(saldoUSD)}</div>${dolarBlue.fechaStr?`<div style="font-size:10px;color:#bbb;text-align:right;margin-top:2px">${dolarBlue.fechaStr}</div>`:''}</div></div>`;
+  document.getElementById('usd-resumen').innerHTML=`<div class="usd-card"><div><div style="font-size:13px;font-weight:700">Saldo USD acumulado</div><div class="usd-sub" style="margin-top:3px">este mes: ${uM>=0?'+':''}${fmtUSD(uM)} ${varBadge(uM,uP,false)}</div>${dolarBlue.compra?`<div style="font-size:10px;color:#bbb;margin-top:3px">blue $${dolarBlue.compra.toLocaleString('es-AR')}${dolarBlue.fechaStr?' · '+dolarBlue.fechaStr:''}</div>`:''}</div><div><div class="usd-val">${fmtUSD(saldoUSD)}</div></div></div>`;
   renderPersonas(gastos.filter(g=>g.mes===mes),gastos.filter(g=>g.mes===prev));
 }
 
@@ -1395,9 +1421,16 @@ function renderAhorroCard(mes,mesP){
   const CA=['Ahorro general','Compra USD','Fondo emergencia','Inversiones'];
   const titulo=esAnual?`Ahorro acumulado · ${anioSel}`:`Ahorro · ${nombreMes(mes)}`;
   const vsLabel=mesP?`<div style="font-size:11px;color:#888;margin-top:3px">vs ${mesCorto(mesP)}: ${varBadge(ta,taP,false)}</div>`:`<div style="font-size:11px;color:#888;margin-top:3px">acumulado ${anioSel}</div>`;
+  const saldoTotalUSD=calcSaldoUSD();
   const detalle=CA.map(c=>{
-    const sub=c==='Compra USD'&&amap[c]&&dolarBlue.compra?`<div style="font-size:10px;color:#1d4ed8;margin-top:2px">blue $${dolarBlue.compra.toLocaleString('es-AR')}</div>`:'';
-    return`<div class="row-item"><span class="row-cat">${c}${sub}</span><div class="row-right"><span style="font-size:13px;font-weight:700">${amap[c]?fmt(amap[c]):'—'}</span>${amap[c]&&amapP[c]?varBadge(amap[c],amapP[c],false):''}</div></div>`;
+    if(c==='Compra USD'){
+      // Mostrar valor ARS del saldo total en USD al precio blue
+      const arsValor=dolarBlue.compra?Math.round(saldoTotalUSD*dolarBlue.compra):null;
+      const displayVal=arsValor?fmt(arsValor):(amap[c]?fmt(amap[c]):'—');
+      const sub=dolarBlue.compra?`<div style="font-size:10px;color:#1d4ed8;margin-top:2px">${fmtUSD(saldoTotalUSD)} × blue $${dolarBlue.compra.toLocaleString('es-AR')}</div>`:'';
+      return`<div class="row-item"><span class="row-cat">${c}${sub}</span><div class="row-right"><span style="font-size:13px;font-weight:700">${displayVal}</span></div></div>`;
+    }
+    return`<div class="row-item"><span class="row-cat">${c}</span><div class="row-right"><span style="font-size:13px;font-weight:700">${amap[c]?fmt(amap[c]):'—'}</span>${amap[c]&&amapP[c]?varBadge(amap[c],amapP[c],false):''}</div></div>`;
   }).join('');
   return`<div class="card"><div class="card-title">${titulo}</div><div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:10px;border-bottom:0.5px solid #f3f3f0;margin-bottom:8px"><div><div style="font-size:13px;font-weight:700">Total ahorrado</div>${vsLabel}</div><div style="font-size:22px;font-weight:700;color:#16a34a">${fmt(ta)}</div></div><details class="ahorro-details"><summary>Ver detalle por categoría</summary><div style="padding-top:6px">${detalle}</div></details></div>`;
 }
@@ -1755,7 +1788,7 @@ window.abrirSubConfig=(id)=>{
   const el=document.getElementById('config-'+id);
   if(el)el.classList.add('active');
   const tt=document.getElementById('topbar-title');
-  const titles={perfil:'👤 Perfil',ingresos:'💵 Ingresos proyectados',inversor:'⚖️ Perfil inversor',categorias:'🗂 Categorías',inflacion:'📉 Inflación',exportar:'📤 Exportar'};
+  const titles={perfil:'👤 Perfil',ingresos:'💵 Ingresos proyectados',inversor:'⚖️ Perfil inversor',categorias:'🗂 Categorías',inflacion:'📉 Inflación',exportar:'📤 Exportar',integraciones:'🔗 Integraciones'};
   if(tt)tt.textContent=titles[id]||'⚙️ Configuración';
   if(id==='ingresos')renderIngresosSubpage();
   if(id==='categorias'){_catTabActual='fijo';renderCatListNew();}
@@ -1770,19 +1803,59 @@ window.volverConfigMain=()=>{
 };
 
 // ── PERFIL SUB ──
-function renderPerfilSubpage(){
+let _perfilData={};
+async function renderPerfilSubpage(){
   const u=window._authUser;
-  if(!u)return;
-  const ini=(u.displayName||'SP').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
-  const av=document.getElementById('perfil-avatar-big');
-  const nb=document.getElementById('perfil-nombre-big');
-  const eb=document.getElementById('perfil-email-big');
+  // Cargar datos guardados de Firestore
+  try{const s=await getDoc(doc(db,'config','perfil'));if(s.exists())_perfilData=s.data();}catch(e){}
+  // Iniciales / foto
+  const nombre=_perfilData.nombre||u?.displayName||'';
+  const email=u?.email||'';
+  const tel=_perfilData.telefono||'';
+  const fotoUrl=_perfilData.fotoUrl||u?.photoURL||'';
+  const ini=nombre?nombre.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase():(email.slice(0,2).toUpperCase());
+  // Foto
+  const img=document.getElementById('perfil-foto-img');
+  const initials=document.getElementById('perfil-foto-initials');
+  if(fotoUrl&&img){img.src=fotoUrl;img.style.display='block';if(initials)initials.style.display='none';}
+  else if(initials){initials.textContent=ini||'SP';if(img)img.style.display='none';}
+  // Inputs
+  const inpNombre=document.getElementById('perfil-inp-nombre');
+  const inpEmail=document.getElementById('perfil-inp-email');
+  const inpTel=document.getElementById('perfil-inp-tel');
+  if(inpNombre)inpNombre.value=nombre;
+  if(inpEmail)inpEmail.value=email;
+  if(inpTel)inpTel.value=tel;
+  // Movimientos
   const mc=document.getElementById('perfil-mov-count');
-  if(av)av.textContent=ini;
-  if(nb)nb.textContent=u.displayName||'—';
-  if(eb)eb.textContent=u.email||'—';
-  if(mc)mc.textContent=window.gastos?window.gastos.length+' movimientos':'—';
+  if(mc)mc.textContent=window.gastos?.length?window.gastos.length+' movimientos':'—';
 }
+window.guardarPerfil=async()=>{
+  const nombre=document.getElementById('perfil-inp-nombre')?.value.trim()||'';
+  const tel=document.getElementById('perfil-inp-tel')?.value.trim()||'';
+  const msgEl=document.getElementById('perfil-save-msg');
+  _perfilData={..._perfilData,nombre,telefono:tel};
+  try{
+    await setDoc(doc(db,'config','perfil'),_perfilData);
+    if(msgEl)msgEl.innerHTML='<div class="alert alert-ok">✓ Perfil guardado</div>';
+    setTimeout(()=>{if(msgEl)msgEl.innerHTML='';},2500);
+  }catch(e){if(msgEl)msgEl.innerHTML=`<div class="alert alert-err">Error: ${e.message}</div>`;}
+};
+window.cargarFotoPerfil=(input)=>{
+  const file=input.files?.[0];if(!file)return;
+  if(file.size>2*1024*1024){toast('Foto muy grande. Máximo 2 MB','warn',3000);return;}
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const url=e.target.result;
+    const img=document.getElementById('perfil-foto-img');
+    const initials=document.getElementById('perfil-foto-initials');
+    if(img){img.src=url;img.style.display='block';}
+    if(initials)initials.style.display='none';
+    _perfilData.fotoUrl=url;
+    toast('Foto cargada · guardá el perfil para confirmar','info',3000);
+  };
+  reader.readAsDataURL(file);
+};
 
 // ── INGRESOS PROYECTADOS SUB ──
 function renderIngresosSubpage(){
