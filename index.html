@@ -43,8 +43,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#1
 .year-tabs{display:flex;gap:6px;margin-bottom:8px}
 .year-tab{padding:4px 14px;border-radius:999px;font-size:12px;font-weight:700;border:1px solid #e5e5e0;background:#fff;color:#888;cursor:pointer;letter-spacing:.03em}
 .year-tab.active{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
-.mes-tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
-.mes-tabs::-webkit-scrollbar{display:none}
+.mes-tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;scrollbar-width:thin;scrollbar-color:#d1d5db transparent}
+.mes-tabs::-webkit-scrollbar{height:4px;display:block}
+.mes-tabs::-webkit-scrollbar-track{background:transparent}
+.mes-tabs::-webkit-scrollbar-thumb{background:#d1d5db;border-radius:2px}
 .mes-tab{padding:6px 14px;border-radius:999px;font-size:12px;font-weight:600;border:1px solid #e5e5e0;background:#fff;color:#888;white-space:nowrap;cursor:pointer;flex-shrink:0}
 .mes-tab.active{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
 .mes-tab.todo-tab{border-style:dashed}
@@ -379,8 +381,7 @@ select,input[type=text],input[type=number],input[type=date],input[type=month]{pa
         </div>
         <div class="config-main-card">
           <div class="config-card-title">INTEGRACIONES</div>
-          <div style="padding:14px 16px;text-align:center;color:#bbb;font-size:13px">No tenés bancos conectados todavía</div>
-          <div style="padding:0 16px 12px"><button onclick="toast('Integraciones disponibles próximamente 🔜','info',3000)" style="width:100%;padding:11px;border-radius:10px;border:0.5px dashed #d1d5db;background:none;font-size:13px;color:#888;cursor:pointer">+ Agregar integración</button></div>
+          <div class="config-row" onclick="abrirSubConfig('integraciones')"><span>Bancos y billeteras</span><span class="config-row-right">›</span></div>
         </div>
         <div class="config-main-card">
           <div class="config-card-title">DATOS</div>
@@ -461,11 +462,11 @@ select,input[type=text],input[type=number],input[type=date],input[type=month]{pa
           <button class="cat-tab" onclick="setCatTabNew('ingreso',this)">Ingresos</button>
           <button class="cat-tab" onclick="setCatTabNew('ahorro',this)">Ahorro</button>
         </div>
-        <div id="cat-list-new"></div>
-        <div style="display:flex;gap:8px;margin-top:10px">
+        <div style="display:flex;gap:8px;margin-bottom:12px">
           <input type="text" id="nueva-cat-new" placeholder="Nueva categoría..." style="flex:1;padding:10px 12px;font-size:13px;border:0.5px solid #d1d5db;border-radius:10px;background:#fff">
           <button onclick="agregarCatNew()" style="padding:10px 16px;background:#1a1a1a;color:#fff;border:none;border-radius:10px;font-size:13px;cursor:pointer;font-weight:700">+ Agregar</button>
         </div>
+        <div id="cat-list-new"></div>
       </div>
       <!-- Sub: Inflación -->
       <div id="config-inflacion" class="subpage">
@@ -512,6 +513,50 @@ select,input[type=text],input[type=number],input[type=date],input[type=month]{pa
             <span style="font-size:22px">📋</span>
             <div style="flex:1"><div style="font-size:13px;font-weight:600">CSV</div><div style="font-size:11px;color:#aaa;margin-top:1px">Compatible con cualquier sistema</div></div>
             <span style="font-size:11px;color:#16a34a;font-weight:600">Exportar →</span>
+          </div>
+        </div>
+      </div>
+      <!-- Sub: Integraciones -->
+      <div id="config-integraciones" class="subpage">
+        <div class="subpage-header"><button class="subpage-back" onclick="volverConfigMain()">‹</button><div class="subpage-title">Bancos y billeteras</div></div>
+        <div style="display:flex;align-items:center;gap:8px;padding:10px 12px;background:#f5f5f3;border-radius:10px;margin-bottom:16px;border:0.5px solid #e5e5e0">
+          <span style="font-size:14px;color:#aaa">🔍</span>
+          <input type="text" placeholder="Buscar banco o billetera..." style="flex:1;border:none;background:none;font-size:13px;color:#1a1a1a;outline:none" onclick="toast('Búsqueda próximamente','info',2000)">
+        </div>
+        <div style="font-size:10px;font-weight:700;color:#aaa;letter-spacing:.08em;margin-bottom:10px">DISPONIBLES AHORA</div>
+        <div class="card" style="margin-bottom:14px">
+          <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:0.5px solid #f3f3f0">
+            <div style="width:36px;height:36px;border-radius:10px;background:#e8f4fd;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">🏦</div>
+            <div style="flex:1"><div style="font-size:13px;font-weight:600">Galicia</div><div style="font-size:11px;color:#888;margin-top:1px">Banco Galicia</div></div>
+            <span style="font-size:10px;font-weight:700;padding:3px 8px;border-radius:999px;background:#dcfce7;color:#15803d">Activo</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:0.5px solid #f3f3f0">
+            <div style="width:36px;height:36px;border-radius:10px;background:#e8f4fd;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">💙</div>
+            <div style="flex:1"><div style="font-size:13px;font-weight:600">Mercado Pago</div><div style="font-size:11px;color:#888;margin-top:1px">Billetera digital</div></div>
+            <span style="font-size:10px;font-weight:700;padding:3px 8px;border-radius:999px;background:#dcfce7;color:#15803d">Activo</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;padding:10px 0">
+            <div style="width:36px;height:36px;border-radius:10px;background:#fef3c7;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">🟡</div>
+            <div style="flex:1"><div style="font-size:13px;font-weight:600">Uala</div><div style="font-size:11px;color:#888;margin-top:1px">Billetera digital</div></div>
+            <span style="font-size:10px;font-weight:700;padding:3px 8px;border-radius:999px;background:#dcfce7;color:#15803d">Activo</span>
+          </div>
+        </div>
+        <div style="font-size:10px;font-weight:700;color:#aaa;letter-spacing:.08em;margin-bottom:10px">PRÓXIMAMENTE</div>
+        <div class="card">
+          <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:0.5px solid #f3f3f0">
+            <div style="width:36px;height:36px;border-radius:10px;background:#f5f5f3;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">🔴</div>
+            <div style="flex:1"><div style="font-size:13px;font-weight:600;color:#888">Santander</div><div style="font-size:11px;color:#aaa;margin-top:1px">Banco Santander</div></div>
+            <span style="font-size:10px;font-weight:700;padding:3px 8px;border-radius:999px;background:#f3f4f6;color:#888">Pronto</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:0.5px solid #f3f3f0">
+            <div style="width:36px;height:36px;border-radius:10px;background:#f5f5f3;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">🔵</div>
+            <div style="flex:1"><div style="font-size:13px;font-weight:600;color:#888">BBVA</div><div style="font-size:11px;color:#aaa;margin-top:1px">Banco BBVA</div></div>
+            <span style="font-size:10px;font-weight:700;padding:3px 8px;border-radius:999px;background:#f3f4f6;color:#888">Pronto</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;padding:10px 0">
+            <div style="width:36px;height:36px;border-radius:10px;background:#f5f5f3;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">🟠</div>
+            <div style="flex:1"><div style="font-size:13px;font-weight:600;color:#888">Naranja X</div><div style="font-size:11px;color:#aaa;margin-top:1px">Billetera digital</div></div>
+            <span style="font-size:10px;font-weight:700;padding:3px 8px;border-radius:999px;background:#f3f4f6;color:#888">Pronto</span>
           </div>
         </div>
       </div>
@@ -916,7 +961,7 @@ function renderResumenAnual(anio){
   document.getElementById('ahorro-resumen').innerHTML=renderAhorroCard(null,null);
   const sUSD=calcSaldoUSD();
   const arsBlue=dolarBlue.compra?Math.round(sUSD*dolarBlue.compra):null;
-  document.getElementById('usd-resumen').innerHTML=`<div class="usd-card"><div><div style="font-size:13px;font-weight:700">Saldo USD acumulado</div><div class="usd-sub">${arsBlue?`≈ ${fmt(arsBlue)} · blue compra $${dolarBlue.compra?.toLocaleString('es-AR')}`:' histórico total · todas las operaciones'}</div></div><div><div class="usd-val">${fmtUSD(sUSD)}</div>${dolarBlue.fechaStr?`<div style="font-size:10px;color:#bbb;text-align:right;margin-top:2px">Actualizado: ${dolarBlue.fechaStr}</div>`:''}</div></div>`;
+  document.getElementById('usd-resumen').innerHTML=`<div class="usd-card"><div><div style="font-size:13px;font-weight:700">Saldo USD acumulado</div><div class="usd-sub">${arsBlue?`≈ ${fmt(arsBlue)} en pesos`:' histórico total · todas las operaciones'}</div></div><div><div class="usd-val">${fmtUSD(sUSD)}</div>${dolarBlue.fechaStr?`<div style="font-size:10px;color:#bbb;text-align:right;margin-top:2px">Actualizado: ${dolarBlue.fechaStr}</div>`:''}</div></div>`;
   renderPersonas(ga,null);
 }
 
@@ -932,7 +977,7 @@ function renderResumenMes(mes){
   const uM=gastos.filter(g=>g.mes===mes&&(g.categoria==='Compra USD'||g.tipoIngreso==='Sueldo USD')).reduce((s,g)=>s+(g.montoDolar||0),0)-gastos.filter(g=>g.mes===mes&&g.tipoIngreso==='Venta USD').reduce((s,g)=>s+(g.montoDolar||0),0);
   const uP=gastos.filter(g=>g.mes===prev&&(g.categoria==='Compra USD'||g.tipoIngreso==='Sueldo USD')).reduce((s,g)=>s+(g.montoDolar||0),0)-gastos.filter(g=>g.mes===prev&&g.tipoIngreso==='Venta USD').reduce((s,g)=>s+(g.montoDolar||0),0);
   const arsBlueM=dolarBlue.compra?Math.round(saldoUSD*dolarBlue.compra):null;
-  document.getElementById('usd-resumen').innerHTML=`<div class="usd-card"><div><div style="font-size:13px;font-weight:700">Saldo USD acumulado</div><div class="usd-sub" style="margin-top:3px">este mes: ${uM>=0?'+':''}${fmtUSD(uM)} ${varBadge(uM,uP,false)}</div>${arsBlueM?`<div style="font-size:11px;color:#888;margin-top:2px">≈ ${fmt(arsBlueM)} · blue $${dolarBlue.compra?.toLocaleString('es-AR')}</div>`:''}</div><div><div class="usd-val">${fmtUSD(saldoUSD)}</div>${dolarBlue.fechaStr?`<div style="font-size:10px;color:#bbb;text-align:right;margin-top:2px">${dolarBlue.fechaStr}</div>`:''}</div></div>`;
+  document.getElementById('usd-resumen').innerHTML=`<div class="usd-card"><div><div style="font-size:13px;font-weight:700">Saldo USD acumulado</div><div class="usd-sub" style="margin-top:3px">este mes: ${uM>=0?'+':''}${fmtUSD(uM)} ${varBadge(uM,uP,false)}</div>${arsBlueM?`<div style="font-size:11px;color:#888;margin-top:2px">≈ ${fmt(arsBlueM)} en pesos</div>`:''}</div><div><div class="usd-val">${fmtUSD(saldoUSD)}</div>${dolarBlue.fechaStr?`<div style="font-size:10px;color:#bbb;text-align:right;margin-top:2px">${dolarBlue.fechaStr}</div>`:''}</div></div>`;
   renderPersonas(gastos.filter(g=>g.mes===mes),gastos.filter(g=>g.mes===prev));
 }
 
@@ -1350,7 +1395,10 @@ function renderAhorroCard(mes,mesP){
   const CA=['Ahorro general','Compra USD','Fondo emergencia','Inversiones'];
   const titulo=esAnual?`Ahorro acumulado · ${anioSel}`:`Ahorro · ${nombreMes(mes)}`;
   const vsLabel=mesP?`<div style="font-size:11px;color:#888;margin-top:3px">vs ${mesCorto(mesP)}: ${varBadge(ta,taP,false)}</div>`:`<div style="font-size:11px;color:#888;margin-top:3px">acumulado ${anioSel}</div>`;
-  const detalle=CA.map(c=>`<div class="row-item"><span class="row-cat">${c}</span><div class="row-right"><span style="font-size:13px;font-weight:700">${amap[c]?fmt(amap[c]):'—'}</span>${amap[c]&&amapP[c]?varBadge(amap[c],amapP[c],false):''}</div></div>`).join('');
+  const detalle=CA.map(c=>{
+    const sub=c==='Compra USD'&&amap[c]&&dolarBlue.compra?`<div style="font-size:10px;color:#1d4ed8;margin-top:2px">blue $${dolarBlue.compra.toLocaleString('es-AR')}</div>`:'';
+    return`<div class="row-item"><span class="row-cat">${c}${sub}</span><div class="row-right"><span style="font-size:13px;font-weight:700">${amap[c]?fmt(amap[c]):'—'}</span>${amap[c]&&amapP[c]?varBadge(amap[c],amapP[c],false):''}</div></div>`;
+  }).join('');
   return`<div class="card"><div class="card-title">${titulo}</div><div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:10px;border-bottom:0.5px solid #f3f3f0;margin-bottom:8px"><div><div style="font-size:13px;font-weight:700">Total ahorrado</div>${vsLabel}</div><div style="font-size:22px;font-weight:700;color:#16a34a">${fmt(ta)}</div></div><details class="ahorro-details"><summary>Ver detalle por categoría</summary><div style="padding-top:6px">${detalle}</div></details></div>`;
 }
 
@@ -1432,11 +1480,48 @@ window.toggleNotif=()=>{
   if(d)d.style.left=notifOn?'20px':'2px';
   toast(notifOn?'Notificaciones activadas':'Notificaciones desactivadas','info',2000);
 };
+const TRADUCCIONES={
+  es:{
+    'bnav-resumen':'📊 Resumen','bnav-carga':'➕ Cargar','bnav-gastos':'📋 Movimientos',
+    'topbar-title':'💰 Gastos',
+    'lbl-fecha':'Fecha','lbl-tipo':'Tipo','lbl-cat':'Categoría','lbl-monto':'Monto ($)',
+    'lbl-fpago':'Forma de pago','lbl-quien':'¿Quién pagó?','btn-guardar':'Guardar movimiento',
+    'lbl-nuevo-mov':'Nuevo movimiento',
+    'fil-tipo-placeholder':'Todos los tipos','fil-quien-placeholder':'Todos',
+    'drawer-title':'Menú',
+  },
+  en:{
+    'bnav-resumen':'📊 Summary','bnav-carga':'➕ Add','bnav-gastos':'📋 Transactions',
+    'topbar-title':'💰 Expenses',
+    'lbl-fecha':'Date','lbl-tipo':'Type','lbl-cat':'Category','lbl-monto':'Amount ($)',
+    'lbl-fpago':'Payment method','lbl-quien':'Who paid?','btn-guardar':'Save transaction',
+    'lbl-nuevo-mov':'New transaction',
+    'fil-tipo-placeholder':'All types','fil-quien-placeholder':'All',
+    'drawer-title':'Menu',
+  }
+};
+let currentLang='es';
 window.setLang=(lang)=>{
+  currentLang=lang;
   document.getElementById('lang-es').style.background=lang==='es'?'#1a1a1a':'#fff';
   document.getElementById('lang-es').style.color=lang==='es'?'#fff':'#aaa';
   document.getElementById('lang-en').style.background=lang==='en'?'#1a1a1a':'#fff';
   document.getElementById('lang-en').style.color=lang==='en'?'#fff':'#aaa';
+  const T=TRADUCCIONES[lang]||TRADUCCIONES.es;
+  // Bottom nav
+  const bR=document.getElementById('bnav-resumen');if(bR)bR.innerHTML=T['bnav-resumen'];
+  const bC=document.getElementById('bnav-carga');if(bC)bC.innerHTML=T['bnav-carga'];
+  const bG=document.getElementById('bnav-gastos');if(bG)bG.innerHTML=T['bnav-gastos'];
+  // Topbar
+  const tt=document.querySelector('.topbar-title');if(tt)tt.textContent=T['topbar-title'];
+  // Carga form labels
+  const labels=document.querySelectorAll('.carga-sheet .form-group label, #sec-carga .form-group label');
+  const lblMap={Fecha:T['lbl-fecha'],Tipo:T['lbl-tipo'],'Categoría':T['lbl-cat'],'Monto ($)':T['lbl-monto'],'Forma de pago':T['lbl-fpago'],'¿Quién pagó?':T['lbl-quien'],Date:T['lbl-fecha'],Type:T['lbl-tipo'],Category:T['lbl-cat'],'Amount ($)':T['lbl-monto'],'Payment method':T['lbl-fpago'],'Who paid?':T['lbl-quien']};
+  labels.forEach(l=>{if(lblMap[l.textContent.trim()])l.textContent=lblMap[l.textContent.trim()];});
+  // Save button
+  const bg=document.getElementById('btn-guardar');if(bg)bg.textContent=T['btn-guardar'];
+  // Card title "Nuevo movimiento"
+  document.querySelectorAll('.card-title').forEach(el=>{if(el.textContent==='Nuevo movimiento'||el.textContent==='New transaction')el.textContent=T['lbl-nuevo-mov'];});
   toast(lang==='en'?'Language: English':'Idioma: Español','info',2000);
 };
 
