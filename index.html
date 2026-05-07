@@ -374,6 +374,13 @@ select,input[type=text],input[type=number],input[type=date],input[type=month]{pa
           <div class="config-card-title">APP</div>
           <div class="config-row" onclick="abrirSubConfig('categorias')"><span>Categorías</span><span class="config-row-right">›</span></div>
           <div class="config-row" onclick="abrirSubConfig('inflacion')"><span>Tasa de inflación</span><span><span class="config-row-val">3.2%</span><span class="config-row-right">›</span></span></div>
+          <div class="config-row" style="cursor:default"><span>Notificaciones</span><div id="toggle-notif" onclick="toggleNotif()" style="width:40px;height:22px;border-radius:99px;background:#e5e5e0;position:relative;cursor:pointer;flex-shrink:0;transition:background .2s"><div id="toggle-notif-dot" style="position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)"></div></div></div>
+          <div class="config-row" style="cursor:default"><span>Idioma</span><div style="display:flex;border-radius:99px;border:0.5px solid #e0e0dc;overflow:hidden;flex-shrink:0"><div id="lang-es" style="font-size:12px;padding:3px 10px;background:#1a1a1a;color:#fff;cursor:pointer" onclick="setLang('es')">ES</div><div id="lang-en" style="font-size:12px;padding:3px 10px;background:#fff;color:#aaa;cursor:pointer" onclick="setLang('en')">EN</div></div></div>
+        </div>
+        <div class="config-main-card">
+          <div class="config-card-title">INTEGRACIONES</div>
+          <div style="padding:14px 16px;text-align:center;color:#bbb;font-size:13px">No tenés bancos conectados todavía</div>
+          <div style="padding:0 16px 12px"><button onclick="toast('Integraciones disponibles próximamente 🔜','info',3000)" style="width:100%;padding:11px;border-radius:10px;border:0.5px dashed #d1d5db;background:none;font-size:13px;color:#888;cursor:pointer">+ Agregar integración</button></div>
         </div>
         <div class="config-main-card">
           <div class="config-card-title">DATOS</div>
@@ -489,16 +496,17 @@ select,input[type=text],input[type=number],input[type=date],input[type=month]{pa
       <!-- Sub: Exportar -->
       <div id="config-exportar" class="subpage">
         <div class="subpage-header"><button class="subpage-back" onclick="volverConfigMain()">‹</button><div class="subpage-title">Exportar datos</div></div>
+        <div style="background:#f0f4ff;border:0.5px solid #bfdbfe;border-radius:10px;padding:10px 12px;margin-bottom:12px;font-size:12px;color:#1d4ed8;line-height:1.6">📱 En el celular se abre el menú Compartir del sistema. En la compu descarga directo.</div>
         <div style="display:flex;flex-direction:column;gap:8px">
-          <div style="display:flex;align-items:center;gap:12px;padding:14px;border-radius:12px;border:0.5px solid #e5e5e0;background:#fff">
+          <div style="display:flex;align-items:center;gap:12px;padding:14px;border-radius:12px;border:0.5px solid #e5e5e0;background:#fff;cursor:pointer" onclick="exportarPDF()">
             <span style="font-size:22px">📄</span>
-            <div style="flex:1"><div style="font-size:13px;font-weight:600">PDF</div><div style="font-size:11px;color:#aaa;margin-top:1px">Próximamente</div></div>
-            <span style="font-size:11px;padding:2px 8px;border-radius:99px;background:#f0f0ee;color:#bbb;font-weight:600">pronto</span>
+            <div style="flex:1"><div style="font-size:13px;font-weight:600">PDF</div><div style="font-size:11px;color:#aaa;margin-top:1px">Listo para imprimir o compartir</div></div>
+            <span style="font-size:11px;color:#16a34a;font-weight:600">Exportar →</span>
           </div>
-          <div style="display:flex;align-items:center;gap:12px;padding:14px;border-radius:12px;border:0.5px solid #e5e5e0;background:#fff">
+          <div style="display:flex;align-items:center;gap:12px;padding:14px;border-radius:12px;border:0.5px solid #e5e5e0;background:#fff;cursor:pointer" onclick="exportarExcel()">
             <span style="font-size:22px">📊</span>
-            <div style="flex:1"><div style="font-size:13px;font-weight:600">Excel (.xlsx)</div><div style="font-size:11px;color:#aaa;margin-top:1px">Próximamente</div></div>
-            <span style="font-size:11px;padding:2px 8px;border-radius:99px;background:#f0f0ee;color:#bbb;font-weight:600">pronto</span>
+            <div style="flex:1"><div style="font-size:13px;font-weight:600">Excel (.xlsx)</div><div style="font-size:11px;color:#aaa;margin-top:1px">Para analizar en planilla</div></div>
+            <span style="font-size:11px;color:#16a34a;font-weight:600">Exportar →</span>
           </div>
           <div style="display:flex;align-items:center;gap:12px;padding:14px;border-radius:12px;border:0.5px solid #e5e5e0;background:#fff;cursor:pointer" onclick="exportarCSV()">
             <span style="font-size:22px">📋</span>
@@ -1379,6 +1387,57 @@ window.exportarCSV=()=>{
   if(navigator.share&&navigator.canShare?.({files:[new File([blob],fname,{type:'text/csv'})]})){navigator.share({files:[new File([blob],fname,{type:'text/csv'})],title:'Gastos export'}).catch(()=>{});return;}
   const a=document.createElement('a');a.href=url;a.download=fname;a.click();URL.revokeObjectURL(url);
   toast('CSV exportado','ok',2500);
+};
+
+// ── EXPORTAR PDF ──
+window.exportarPDF=()=>{
+  const mF=mesSel==='todo'?null:mesSel;
+  const titulo=mF?`Gastos ${nombreMes(mF)} ${mF.slice(0,4)}`:`Gastos ${anioSel}`;
+  const d=mF?gastos.filter(g=>g.mes===mF):gastos.filter(g=>g.mes?.startsWith(anioSel));
+  const ing=d.filter(g=>g.tipo==='Ingreso').reduce((s,g)=>s+(g.monto||0),0);
+  const fij=d.filter(g=>g.tipo==='Gasto fijo').reduce((s,g)=>s+(g.monto||0),0);
+  const vrs=d.filter(g=>g.tipo==='Gasto variable').reduce((s,g)=>s+(g.monto||0),0);
+  const sal=ing-fij-vrs;
+  const rows=d.sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||'')).map(g=>`<tr><td>${g.fecha||''}</td><td>${g.tipo||''}</td><td>${g.categoria||g.tipoIngreso||''}</td><td style="text-align:right">${fmt(g.monto)}</td><td>${g.formaPago||''}</td><td>${g.pago||''}</td><td>${g.comentario||''}</td></tr>`).join('');
+  const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${titulo}</title><style>body{font-family:-apple-system,sans-serif;font-size:12px;color:#1a1a1a;padding:20px}h1{font-size:18px;margin-bottom:4px}h2{font-size:12px;color:#888;font-weight:400;margin-bottom:16px}.resumen{display:flex;gap:16px;margin-bottom:20px}.rc{background:#f5f5f3;border-radius:8px;padding:10px 14px}.rc-label{font-size:10px;color:#888;text-transform:uppercase}.rc-val{font-size:16px;font-weight:700;margin-top:2px}table{width:100%;border-collapse:collapse}th{text-align:left;padding:6px 8px;font-size:10px;color:#888;border-bottom:1px solid #e5e5e0;text-transform:uppercase}td{padding:6px 8px;border-bottom:0.5px solid #f3f3f0}@media print{.no-print{display:none}}</style></head><body><h1>${titulo}</h1><h2>Generado el ${new Date().toLocaleDateString('es-AR',{day:'numeric',month:'long',year:'numeric'})}</h2><div class="resumen"><div class="rc"><div class="rc-label">Ingresos</div><div class="rc-val" style="color:#16a34a">${fmt(ing)}</div></div><div class="rc"><div class="rc-label">Fijos</div><div class="rc-val">${fmt(fij)}</div></div><div class="rc"><div class="rc-label">Variables</div><div class="rc-val">${fmt(vrs)}</div></div><div class="rc"><div class="rc-label">Saldo neto</div><div class="rc-val" style="color:${sal>=0?'#16a34a':'#dc2626'}">${fmt(sal)}</div></div></div><table><thead><tr><th>Fecha</th><th>Tipo</th><th>Categoría</th><th>Monto</th><th>Forma de pago</th><th>Quién</th><th>Comentario</th></tr></thead><tbody>${rows}</tbody></table></body></html>`;
+  const w=window.open('','_blank');
+  w.document.write(html);
+  w.document.close();
+  w.onload=()=>{w.print();};
+  toast('PDF listo para imprimir','ok',2500);
+};
+
+// ── EXPORTAR EXCEL (CSV compatible con Excel) ──
+window.exportarExcel=()=>{
+  const mF=mesSel==='todo'?null:mesSel;
+  let d=mF?gastos.filter(g=>g.mes===mF):gastos.filter(g=>g.mes?.startsWith(anioSel));
+  d=[...d].sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||''));
+  const cols=['Fecha','Tipo','Categoría','Monto','Forma de pago','Quién pagó','Comentario','Mes'];
+  const rows=d.map(g=>[g.fecha||'',g.tipo||'',g.categoria||g.tipoIngreso||'',g.monto||0,g.formaPago||'',g.pago||'',g.comentario||'',g.mes||''].map(v=>`"${String(v).replace(/"/g,'""')}"`).join('\t'));
+  const tsv='\uFEFF'+cols.join('\t')+'\n'+rows.join('\n');
+  const blob=new Blob([tsv],{type:'application/vnd.ms-excel;charset=utf-8'});
+  const fname=`gastos_${mF||anioSel}_${new Date().toISOString().slice(0,10)}.xls`;
+  if(navigator.share&&navigator.canShare?.({files:[new File([blob],fname,{type:'application/vnd.ms-excel'})]})){navigator.share({files:[new File([blob],fname,{type:'application/vnd.ms-excel'})],title:'Gastos export'}).catch(()=>{});return;}
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=fname;a.click();
+  toast('Excel exportado','ok',2500);
+};
+
+// ── NOTIFICACIONES E IDIOMA ──
+let notifOn=false;
+window.toggleNotif=()=>{
+  notifOn=!notifOn;
+  const t=document.getElementById('toggle-notif');
+  const d=document.getElementById('toggle-notif-dot');
+  if(t)t.style.background=notifOn?'#1a1a1a':'#e5e5e0';
+  if(d)d.style.left=notifOn?'20px':'2px';
+  toast(notifOn?'Notificaciones activadas':'Notificaciones desactivadas','info',2000);
+};
+window.setLang=(lang)=>{
+  document.getElementById('lang-es').style.background=lang==='es'?'#1a1a1a':'#fff';
+  document.getElementById('lang-es').style.color=lang==='es'?'#fff':'#aaa';
+  document.getElementById('lang-en').style.background=lang==='en'?'#1a1a1a':'#fff';
+  document.getElementById('lang-en').style.color=lang==='en'?'#fff':'#aaa';
+  toast(lang==='en'?'Language: English':'Idioma: Español','info',2000);
 };
 
 // ── FEATURE 5: CONFIGURACIÓN ──
