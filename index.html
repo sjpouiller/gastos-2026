@@ -341,7 +341,11 @@ select,input[type=text],input[type=number],input[type=date],input[type=month]{pa
           <option value="">Monto: sin ordenar</option><option value="desc">Monto: mayor → menor</option><option value="asc">Monto: menor → mayor</option>
         </select>
       </div>
-      <div style="display:flex;justify-content:flex-end;margin-bottom:10px"><button class="btn-sm" onclick="exportarCSV()">⬇️ Exportar CSV</button></div>
+      <div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:10px">
+        <button class="btn-sm" onclick="exportarPDF()">📄 PDF</button>
+        <button class="btn-sm" onclick="exportarExcel()">📊 Excel</button>
+        <button class="btn-sm" onclick="exportarCSV()">📋 CSV</button>
+      </div>
       <div id="gastos-list"></div>
     </div>
     <!-- CARGAR (sección legacy vacía, el form está en el sheet) -->
@@ -1359,7 +1363,13 @@ window.cambiarAnio=a=>{anioSel=a;mesSel=null;renderResumen();renderGastos();rend
 const CATEGORIAS={'Ingreso':['Aguinaldo','Freelance','Lanusses','Otros ingresos','Sueldo','Sueldo USD','Venta USD','Venta activos'],'Gasto fijo':['ABL / ARBA','Agua envasada','Colegio','CUBA','Cuotas préstamos','Cuotas tarjetas de crédito','Empleada doméstica','Expensas','Impuestos','Impuestos Municipales','Internet','Jardinero/Piletero','Obra social / Prepaga','Otros fijos','Psicólogo','Seguro auto','Seguro hogar','Servicios - Agua','Servicios - Gas','Servicios - Luz','Servicios - Movistar','Servicios - Streaming (Netflix, Disney, Spotify, etc)'],'Gasto variable':['Almuerzos','Bienestar','Cafe','Carniceria','Colegios / útiles','Comida con amigos','Cosas casa','Delivery','Estacionamiento','Farmacia','Gimnasio','Kiosco','Librería','Limpieza','Mantenimiento auto','Nafta','Otros','Peajes','Regalos','Ropa','Salidas a comer','Salidas con los chicos','Supermercado','Suscripciones','Uber / Taxi','Vacaciones','Verduleria','Viajes'],'Ahorro':['Ahorro general','Compra USD','Fondo emergencia','Inversiones']};
 window.CATEGORIAS=CATEGORIAS;
 const CATS_USD=['Compra USD','Sueldo USD','Venta USD'];
-function actualizarCategorias(){const t=document.getElementById('inp-tipo').value;const s=document.getElementById('inp-cat');if(!s)return;s.innerHTML=(CATEGORIAS[t]||CATEGORIAS['Gasto variable']).map(c=>`<option value="${c}">${c}</option>`).join('');toggleDolarField();}
+function getCatsConCustom(tipo){
+  const base=CATEGORIAS[tipo]||CATEGORIAS['Gasto variable'];
+  const key=tipo==='Gasto fijo'?'fijo':tipo==='Gasto variable'?'variable':tipo==='Ingreso'?'ingreso':'ahorro';
+  const custom=(window.catCustom||{})[key]||[];
+  return [...new Set([...base,...custom])].sort();
+}
+function actualizarCategorias(){const t=document.getElementById('inp-tipo').value;const s=document.getElementById('inp-cat');if(!s)return;s.innerHTML=getCatsConCustom(t).map(c=>`<option value="${c}">${c}</option>`).join('');toggleDolarField();}
 window.toggleDolarField=()=>{const c=document.getElementById('inp-cat')?.value||'';const g=document.getElementById('grp-dolar');if(!g)return;if(CATS_USD.includes(c))g.style.display='block';else{g.style.display='none';const di=document.getElementById('inp-dolar');if(di)di.value='';}};
 window.toggleTipo=()=>{const gc=document.getElementById('grp-cat');if(gc)gc.style.display='block';const ac=document.getElementById('alertas-carga-card');if(ac)ac.style.display='none';actualizarCategorias();};
 actualizarCategorias();
@@ -1371,7 +1381,7 @@ window.eliminarGasto=async(id)=>{try{await deleteDoc(doc(db,'gastos',id));toast(
 
 // ── EDITAR ──
 let editandoId=null;
-window.actualizarCategoriasEdit=()=>{const t=document.getElementById('edit-tipo').value;const s=document.getElementById('edit-cat');if(!s)return;s.innerHTML=(CATEGORIAS[t]||CATEGORIAS['Gasto variable']).map(c=>`<option value="${c}">${c}</option>`).join('');toggleDolarFieldEdit();};
+window.actualizarCategoriasEdit=()=>{const t=document.getElementById('edit-tipo').value;const s=document.getElementById('edit-cat');if(!s)return;s.innerHTML=getCatsConCustom(t).map(c=>`<option value="${c}">${c}</option>`).join('');toggleDolarFieldEdit();};
 window.toggleDolarFieldEdit=()=>{const c=document.getElementById('edit-cat')?.value||'';const g=document.getElementById('grp-dolar-edit');if(g)g.style.display=CATS_USD.includes(c)?'block':'none';};
 window.abrirEdicion=(id)=>{const g=gastos.find(x=>x.id===id);if(!g)return;editandoId=id;document.getElementById('edit-fecha').value=g.fecha||'';document.getElementById('edit-tipo').value=g.tipo||'Gasto variable';window.actualizarCategoriasEdit();const cat=g.categoria||g.tipoIngreso||'';const s=document.getElementById('edit-cat');for(let o of s.options){if(o.value===cat){o.selected=true;break;}}document.getElementById('edit-monto').value=g.monto||'';document.getElementById('edit-dolar').value=g.montoDolar||'';document.getElementById('edit-pago').value=g.formaPago||'Transferencia';document.getElementById('edit-quien').value=g.pago||'Sebas';document.getElementById('edit-comentario').value=g.comentario||'';document.getElementById('edit-msg').innerHTML='';toggleDolarFieldEdit();document.getElementById('modal-editar').style.display='block';};
 window.cerrarModal=()=>{document.getElementById('modal-editar').style.display='none';editandoId=null;};
@@ -1420,8 +1430,13 @@ function renderAhorroCard(mes,mesP){
   if(esAnual){const vUSD=gastos.filter(g=>g.mes?.startsWith(anioSel)&&g.tipoIngreso==='Venta USD').reduce((s,g)=>s+(g.monto||0),0);if(vUSD>0&&amap['Compra USD'])amap['Compra USD']=Math.max(0,amap['Compra USD']-vUSD);}
   const CA=['Ahorro general','Compra USD','Fondo emergencia','Inversiones'];
   const titulo=esAnual?`Ahorro acumulado · ${anioSel}`:`Ahorro · ${nombreMes(mes)}`;
-  const vsLabel=mesP?`<div style="font-size:11px;color:#888;margin-top:3px">vs ${mesCorto(mesP)}: ${varBadge(ta,taP,false)}</div>`:`<div style="font-size:11px;color:#888;margin-top:3px">acumulado ${anioSel}</div>`;
   const saldoTotalUSD=calcSaldoUSD();
+  // Total en pesos = sum de items mostrados (Compra USD usa valor de mercado)
+  const arsValorUSD=dolarBlue.compra?Math.round(saldoTotalUSD*dolarBlue.compra):(amap['Compra USD']||0);
+  const totalMostrado=(amap['Ahorro general']||0)+(amap['Fondo emergencia']||0)+(amap['Inversiones']||0)+arsValorUSD;
+  const arsValorP=dolarBlue.compra?Math.round(saldoTotalUSD*dolarBlue.compra):(amapP['Compra USD']||0);
+  const totalMostradoP=(amapP['Ahorro general']||0)+(amapP['Fondo emergencia']||0)+(amapP['Inversiones']||0)+arsValorP;
+  const vsLabel=mesP?`<div style="font-size:11px;color:#888;margin-top:3px">vs ${mesCorto(mesP)}: ${varBadge(totalMostrado,totalMostradoP,false)}</div>`:`<div style="font-size:11px;color:#888;margin-top:3px">acumulado ${anioSel}</div>`;
   const detalle=CA.map(c=>{
     if(c==='Compra USD'){
       // Mostrar valor ARS del saldo total en USD al precio blue
@@ -1432,7 +1447,7 @@ function renderAhorroCard(mes,mesP){
     }
     return`<div class="row-item"><span class="row-cat">${c}</span><div class="row-right"><span style="font-size:13px;font-weight:700">${amap[c]?fmt(amap[c]):'—'}</span>${amap[c]&&amapP[c]?varBadge(amap[c],amapP[c],false):''}</div></div>`;
   }).join('');
-  return`<div class="card"><div class="card-title">${titulo}</div><div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:10px;border-bottom:0.5px solid #f3f3f0;margin-bottom:8px"><div><div style="font-size:13px;font-weight:700">Total ahorrado</div>${vsLabel}</div><div style="font-size:22px;font-weight:700;color:#16a34a">${fmt(ta)}</div></div><details class="ahorro-details"><summary>Ver detalle por categoría</summary><div style="padding-top:6px">${detalle}</div></details></div>`;
+  return`<div class="card"><div class="card-title">${titulo}</div><div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:10px;border-bottom:0.5px solid #f3f3f0;margin-bottom:8px"><div><div style="font-size:13px;font-weight:700">Total ahorrado</div>${vsLabel}</div><div style="font-size:22px;font-weight:700;color:#16a34a">${fmt(totalMostrado)}</div></div><details class="ahorro-details"><summary>Ver detalle por categoría</summary><div style="padding-top:6px">${detalle}</div></details></div>`;
 }
 
 // ── FEATURE 3: CARGA EN CUOTAS ──
@@ -1465,8 +1480,8 @@ window.exportarCSV=()=>{
   const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
   const url=URL.createObjectURL(blob);
   const fname=`gastos_${mF||anioSel}_${new Date().toISOString().slice(0,10)}.csv`;
-  if(navigator.share&&navigator.canShare?.({files:[new File([blob],fname,{type:'text/csv'})]})){navigator.share({files:[new File([blob],fname,{type:'text/csv'})],title:'Gastos export'}).catch(()=>{});return;}
-  const a=document.createElement('a');a.href=url;a.download=fname;a.click();URL.revokeObjectURL(url);
+  try{if(navigator.share&&navigator.canShare){const f=new File([blob],fname,{type:'text/csv'});if(navigator.canShare({files:[f]})){navigator.share({files:[f],title:'Gastos export'}).catch(()=>{});return;}}}catch(e){}
+  const a=document.createElement('a');a.href=url;a.download=fname;document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
   toast('CSV exportado','ok',2500);
 };
 
@@ -1496,10 +1511,12 @@ window.exportarExcel=()=>{
   const cols=['Fecha','Tipo','Categoría','Monto','Forma de pago','Quién pagó','Comentario','Mes'];
   const rows=d.map(g=>[g.fecha||'',g.tipo||'',g.categoria||g.tipoIngreso||'',g.monto||0,g.formaPago||'',g.pago||'',g.comentario||'',g.mes||''].map(v=>`"${String(v).replace(/"/g,'""')}"`).join('\t'));
   const tsv='\uFEFF'+cols.join('\t')+'\n'+rows.join('\n');
-  const blob=new Blob([tsv],{type:'application/vnd.ms-excel;charset=utf-8'});
+  const blob=new Blob([tsv],{type:'text/plain;charset=utf-8'});
   const fname=`gastos_${mF||anioSel}_${new Date().toISOString().slice(0,10)}.xls`;
-  if(navigator.share&&navigator.canShare?.({files:[new File([blob],fname,{type:'application/vnd.ms-excel'})]})){navigator.share({files:[new File([blob],fname,{type:'application/vnd.ms-excel'})],title:'Gastos export'}).catch(()=>{});return;}
-  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=fname;a.click();
+  try{
+    if(navigator.share&&navigator.canShare){const f=new File([blob],fname,{type:'text/plain'});if(navigator.canShare({files:[f]})){navigator.share({files:[f],title:'Gastos export'}).catch(()=>{});return;}}
+  }catch(e){}
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=fname;document.body.appendChild(a);a.click();document.body.removeChild(a);
   toast('Excel exportado','ok',2500);
 };
 
@@ -1559,10 +1576,11 @@ window.setLang=(lang)=>{
 };
 
 // ── FEATURE 5: CONFIGURACIÓN ──
-let catCustom={fijo:[],variable:[]};
+window.catCustom={fijo:[],variable:[],ingreso:[],ahorro:[]};
+let catCustom=window.catCustom;
 let ingresosProyectados={};
-async function cargarCatCustom(){try{const s=await getDoc(doc(db,'config','categorias'));if(s.exists()){catCustom=s.data();window.catCustom=catCustom;}}catch(e){console.error(e);}}
-async function guardarCatCustom(){try{await setDoc(doc(db,'config','categorias'),catCustom);}catch(e){console.error(e);}}
+async function cargarCatCustom(){try{const s=await getDoc(doc(db,'config','categorias'));if(s.exists()){const d=s.data();Object.assign(window.catCustom,d);catCustom=window.catCustom;actualizarCategorias();}}catch(e){console.error(e);}}
+async function guardarCatCustom(){try{await setDoc(doc(db,'config','categorias'),window.catCustom);}catch(e){console.error(e);}}
 window.guardarCatCustom=guardarCatCustom;
 async function cargarIngresosProyectados(){try{const s=await getDoc(doc(db,'config','ingresos_proyectados'));if(s.exists()){ingresosProyectados=s.data();window.ingresosProyectados=ingresosProyectados;}}catch(e){console.error(e);}}
 async function guardarIngresosProyectados(){try{await setDoc(doc(db,'config','ingresos_proyectados'),ingresosProyectados);}catch(e){console.error(e);}}
