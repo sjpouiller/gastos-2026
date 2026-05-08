@@ -113,7 +113,7 @@ async function enviarEmail(asunto, cuerpo) {
     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${process.env.RESEND_API_KEY}` },
     body: JSON.stringify({
       from: 'Gastos 2026 <onboarding@resend.dev>',
-      to: ['sjpouiller@gmail.com', 'malelanusse@odiseaswimwear.com.ar'],
+      to: ['sjpouiller@gmail.com'],
       subject: asunto,
       html
     })
