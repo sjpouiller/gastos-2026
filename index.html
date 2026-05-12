@@ -548,43 +548,55 @@ select,input[type=text],input[type=number],input[type=date],input[type=month]{pa
       <!-- Sub: Integraciones -->
       <div id="config-integraciones" class="subpage">
         <div class="subpage-header"><button class="subpage-back" onclick="volverConfigMain()">‹</button><div class="subpage-title">Bancos y billeteras</div></div>
-        <div style="display:flex;align-items:center;gap:8px;padding:10px 12px;background:#f5f5f3;border-radius:10px;margin-bottom:16px;border:0.5px solid #e5e5e0">
-          <span style="font-size:14px;color:#aaa">🔍</span>
-          <input type="text" placeholder="Buscar banco o billetera..." style="flex:1;border:none;background:none;font-size:13px;color:#1a1a1a;outline:none" onclick="toast('Búsqueda próximamente','info',2000)">
-        </div>
+
         <div style="font-size:10px;font-weight:700;color:#aaa;letter-spacing:.08em;margin-bottom:10px">DISPONIBLES AHORA</div>
+
+        <!-- Mercado Pago -->
         <div class="card" style="margin-bottom:14px">
           <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:0.5px solid #f3f3f0">
-            <div style="width:36px;height:36px;border-radius:10px;background:#e8f4fd;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">🏦</div>
-            <div style="flex:1"><div style="font-size:13px;font-weight:600">Galicia</div><div style="font-size:11px;color:#888;margin-top:1px">Banco Galicia</div></div>
-            <span style="font-size:10px;font-weight:700;padding:3px 8px;border-radius:999px;background:#dcfce7;color:#15803d">Activo</span>
+            <div style="width:36px;height:36px;border-radius:10px;background:#009ee3;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden"><svg viewBox="0 0 48 48" width="28" height="28" fill="none"><path d="M24 4C12.95 4 4 12.95 4 24s8.95 20 20 20 20-8.95 20-20S35.05 4 24 4z" fill="#fff"/><path d="M33.5 20.5c0 5.25-4.25 9.5-9.5 9.5-2.62 0-5-1.06-6.72-2.78L28.72 16.78C30.44 18.5 33.5 19.88 33.5 20.5z" fill="#009ee3"/><path d="M14.5 20.5c0-5.25 4.25-9.5 9.5-9.5 2.62 0 5 1.06 6.72 2.78L19.28 24.22C17.56 22.5 14.5 21.12 14.5 20.5z" fill="#009ee3"/></svg></div>
+            <div style="flex:1">
+              <div style="font-size:13px;font-weight:600">Mercado Pago</div>
+              <div style="font-size:11px;color:#888;margin-top:1px" id="mp-status-text">Importa movimientos automáticamente</div>
+            </div>
+            <div id="mp-btn-area">
+              <button id="mp-connect-btn" onclick="conectarMP()" style="font-size:11px;font-weight:700;padding:5px 12px;border-radius:999px;background:#009ee3;color:#fff;border:none;cursor:pointer">Conectar</button>
+            </div>
           </div>
-          <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:0.5px solid #f3f3f0">
-            <div style="width:36px;height:36px;border-radius:10px;background:#e8f4fd;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">💙</div>
-            <div style="flex:1"><div style="font-size:13px;font-weight:600">Mercado Pago</div><div style="font-size:11px;color:#888;margin-top:1px">Billetera digital</div></div>
-            <span style="font-size:10px;font-weight:700;padding:3px 8px;border-radius:999px;background:#dcfce7;color:#15803d">Activo</span>
-          </div>
-          <div style="display:flex;align-items:center;gap:12px;padding:10px 0">
-            <div style="width:36px;height:36px;border-radius:10px;background:#fef3c7;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">🟡</div>
-            <div style="flex:1"><div style="font-size:13px;font-weight:600">Uala</div><div style="font-size:11px;color:#888;margin-top:1px">Billetera digital</div></div>
-            <span style="font-size:10px;font-weight:700;padding:3px 8px;border-radius:999px;background:#dcfce7;color:#15803d">Activo</span>
+          <div id="mp-connected-info" style="display:none;padding:10px 0">
+            <div style="font-size:11px;color:#888;margin-bottom:8px" id="mp-last-sync">Última sync: —</div>
+            <button onclick="sincronizarMP()" style="font-size:11px;font-weight:600;padding:5px 12px;border-radius:8px;background:#e8f4fd;color:#0369a1;border:0.5px solid #bae6fd;cursor:pointer">🔄 Sincronizar ahora</button>
+            <button onclick="desconectarMP()" style="font-size:11px;font-weight:600;padding:5px 12px;border-radius:8px;background:none;color:#f87171;border:0.5px solid #fca5a5;cursor:pointer;margin-left:8px">Desconectar</button>
           </div>
         </div>
+
+        <!-- Galicia -->
+        <div class="card" style="margin-bottom:14px">
+          <div style="display:flex;align-items:center;gap:12px;padding:10px 0">
+            <div style="width:36px;height:36px;border-radius:10px;background:#e30613;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden"><svg viewBox="0 0 48 48" width="28" height="28"><text x="4" y="34" font-size="28" font-weight="900" fill="#fff" font-family="Arial">G</text></svg></div>
+            <div style="flex:1">
+              <div style="font-size:13px;font-weight:600">Galicia</div>
+              <div style="font-size:11px;color:#888;margin-top:1px">Vía alertas por email</div>
+            </div>
+            <span style="font-size:10px;font-weight:700;padding:3px 8px;border-radius:999px;background:#f3f4f6;color:#888">Pronto</span>
+          </div>
+        </div>
+
         <div style="font-size:10px;font-weight:700;color:#aaa;letter-spacing:.08em;margin-bottom:10px">PRÓXIMAMENTE</div>
         <div class="card">
           <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:0.5px solid #f3f3f0">
-            <div style="width:36px;height:36px;border-radius:10px;background:#f5f5f3;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">🔴</div>
-            <div style="flex:1"><div style="font-size:13px;font-weight:600;color:#888">Santander</div><div style="font-size:11px;color:#aaa;margin-top:1px">Banco Santander</div></div>
+            <div style="width:36px;height:36px;border-radius:10px;background:#f5c200;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden"><svg viewBox="0 0 48 48" width="28" height="28"><text x="4" y="34" font-size="26" font-weight="900" fill="#1a1a1a" font-family="Arial">U</text></svg></div>
+            <div style="flex:1"><div style="font-size:13px;font-weight:600;color:#888">Uala</div><div style="font-size:11px;color:#aaa;margin-top:1px">Billetera digital</div></div>
             <span style="font-size:10px;font-weight:700;padding:3px 8px;border-radius:999px;background:#f3f4f6;color:#888">Pronto</span>
           </div>
           <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:0.5px solid #f3f3f0">
-            <div style="width:36px;height:36px;border-radius:10px;background:#f5f5f3;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">🔵</div>
-            <div style="flex:1"><div style="font-size:13px;font-weight:600;color:#888">BBVA</div><div style="font-size:11px;color:#aaa;margin-top:1px">Banco BBVA</div></div>
+            <div style="width:36px;height:36px;border-radius:10px;background:#ec0000;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden"><svg viewBox="0 0 48 48" width="28" height="28"><text x="3" y="34" font-size="20" font-weight="900" fill="#fff" font-family="Arial">SAN</text></svg></div>
+            <div style="flex:1"><div style="font-size:13px;font-weight:600;color:#888">Santander</div><div style="font-size:11px;color:#aaa;margin-top:1px">Banco Santander</div></div>
             <span style="font-size:10px;font-weight:700;padding:3px 8px;border-radius:999px;background:#f3f4f6;color:#888">Pronto</span>
           </div>
           <div style="display:flex;align-items:center;gap:12px;padding:10px 0">
-            <div style="width:36px;height:36px;border-radius:10px;background:#f5f5f3;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">🟠</div>
-            <div style="flex:1"><div style="font-size:13px;font-weight:600;color:#888">Naranja X</div><div style="font-size:11px;color:#aaa;margin-top:1px">Billetera digital</div></div>
+            <div style="width:36px;height:36px;border-radius:10px;background:#004481;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden"><svg viewBox="0 0 48 48" width="28" height="28"><text x="2" y="34" font-size="22" font-weight="900" fill="#fff" font-family="Arial">BB</text></svg></div>
+            <div style="flex:1"><div style="font-size:13px;font-weight:600;color:#888">BBVA</div><div style="font-size:11px;color:#aaa;margin-top:1px">Banco BBVA</div></div>
             <span style="font-size:10px;font-weight:700;padding:3px 8px;border-radius:999px;background:#f3f4f6;color:#888">Pronto</span>
           </div>
         </div>
@@ -668,24 +680,24 @@ select,input[type=text],input[type=number],input[type=date],input[type=month]{pa
 <div class="carga-sheet" id="carga-sheet">
   <div class="sheet-handle"></div>
   <div class="sheet-header">
-    <div style="font-size:14px;font-weight:700">Nuevo movimiento</div>
+    <div style="font-size:14px;font-weight:700" data-t="lbl-nuevo-mov">Nuevo movimiento</div>
     <button onclick="toggleCarga()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#888;padding:2px 6px">✕</button>
   </div>
   <div class="carga-sheet-body">
     <div style="height:12px"></div>
-    <div class="form-group"><label>Fecha</label><input type="date" id="inp-fecha"></div>
-    <div class="form-group"><label>Tipo</label>
+    <div class="form-group"><label data-t="lbl-fecha">Fecha</label><input type="date" id="inp-fecha"></div>
+    <div class="form-group"><label data-t="lbl-tipo">Tipo</label>
       <select id="inp-tipo" onchange="toggleTipo()">
         <option>Gasto variable</option><option>Gasto fijo</option><option>Ingreso</option><option>Ahorro</option>
       </select>
     </div>
-    <div class="form-group" id="grp-cat"><label>Categoría</label><select id="inp-cat" onchange="toggleDolarField()"></select></div>
-    <div class="form-group"><label>Monto ($)</label><input type="number" id="inp-monto" placeholder="0" inputmode="numeric"></div>
+    <div class="form-group" id="grp-cat"><label data-t="lbl-cat">Categoría</label><select id="inp-cat" onchange="toggleDolarField()"></select></div>
+    <div class="form-group"><label data-t="lbl-monto">Monto ($)</label><input type="number" id="inp-monto" placeholder="0" inputmode="numeric"></div>
     <div class="dolar-field" id="grp-dolar">
       <label>Cantidad en dólares (USD)</label>
       <input type="number" id="inp-dolar" placeholder="0" inputmode="numeric">
     </div>
-    <div class="form-group"><label>Forma de pago</label>
+    <div class="form-group"><label data-t="lbl-fpago">Forma de pago</label>
       <select id="inp-pago" onchange="toggleCuotasPanel()">
         <option>Transferencia</option><option>Efectivo</option>
         <option>Tarjeta Credito - VISA Sebas</option><option>Tarjeta Credito - MASTER Sebas</option>
@@ -708,11 +720,11 @@ select,input[type=text],input[type=number],input[type=date],input[type=month]{pa
         <div class="cuota-preview" id="cuota-preview-carga">Ingresá monto para ver preview</div>
       </div>
     </div>
-    <div class="form-group"><label>¿Quién pagó?</label>
+    <div class="form-group"><label data-t="lbl-quien">¿Quién pagó?</label>
       <select id="inp-quien-carga"><option>Sebas</option><option>Male</option><option>Otro</option></select>
     </div>
-    <div class="form-group"><label>Comentario <span style="color:#bbb;font-weight:400">(opcional)</span></label><input type="text" id="inp-comentario" placeholder="Ej: cuota 3/6, mercado semanal..."></div>
-    <button class="btn-primary" id="btn-guardar" onclick="guardar()">Guardar movimiento</button>
+    <div class="form-group"><label><span data-t="lbl-comentario">Comentario</span> <span style="color:#bbb;font-weight:400" data-t="lbl-comentario-hint">(opcional)</span></label><input type="text" id="inp-comentario" placeholder="Ej: cuota 3/6, mercado semanal..."></div>
+    <button class="btn-primary" id="btn-guardar" onclick="guardar()" data-t="btn-guardar">Guardar movimiento</button>
     <div id="carga-msg" style="margin-top:10px"></div>
     <div id="alertas-carga-card" class="card" style="display:none;margin-top:10px">
       <div class="card-title">⚠️ Alertas del mes</div>
@@ -737,36 +749,36 @@ select,input[type=text],input[type=number],input[type=date],input[type=month]{pa
     <div class="nav-sec">Principal</div>
     <div class="nav-item active" id="drnav-resumen" onclick="drawerNav('resumen')">
       <div class="nav-icon-box" style="background:#E1F5EE">📊</div>
-      <span class="nav-label">Resumen</span>
+      <span class="nav-label" data-t="drnav-resumen">Resumen</span>
     </div>
     <div class="nav-item" id="drnav-gastos" onclick="drawerNav('gastos')">
       <div class="nav-icon-box" style="background:#EAF3DE">📋</div>
-      <span class="nav-label">Movimientos</span>
+      <span class="nav-label" data-t="drnav-movimientos">Movimientos</span>
     </div>
     <div class="nav-item" id="drnav-presupuesto" onclick="drawerNav('presupuesto')">
       <div class="nav-icon-box" style="background:#EEEDFE">🧐</div>
-      <span class="nav-label">Presupuesto</span>
+      <span class="nav-label" data-t="drnav-presupuesto">Presupuesto</span>
     </div>
     <div class="nav-sec">Análisis</div>
     <div class="nav-item" id="drnav-cashflow" onclick="drawerNav('cashflow')">
       <div class="nav-icon-box" style="background:#E6F1FB">📈</div>
-      <span class="nav-label">Cashflow</span>
+      <span class="nav-label" data-t="drnav-cashflow">Cashflow</span>
       <span class="nav-badge-muted">drawer</span>
     </div>
     <div class="nav-item" id="drnav-objetivos" onclick="drawerNav('objetivos')">
       <div class="nav-icon-box" style="background:#dcfce7">🎯</div>
-      <span class="nav-label">Objetivos de ahorro</span>
+      <span class="nav-label" data-t="drnav-objetivos">Objetivos de ahorro</span>
     </div>
     <div class="nav-sec">Próximamente</div>
     <div class="nav-item" style="opacity:.5;cursor:default">
       <div class="nav-icon-box" style="background:#FCEBEB">💹</div>
-      <span class="nav-label">Inversiones</span>
+      <span class="nav-label" data-t="drnav-inversiones">Inversiones</span>
       <span class="nav-badge">pronto</span>
     </div>
     <div class="nav-sec">Sistema</div>
     <div class="nav-item" id="drnav-config" onclick="drawerNav('config')">
       <div class="nav-icon-box" style="background:#F1EFE8">⚙️</div>
-      <span class="nav-label">Configuración</span>
+      <span class="nav-label" data-t="drnav-config">Configuración</span>
       <span class="nav-badge-muted">drawer</span>
     </div>
   </div>
@@ -810,19 +822,19 @@ select,input[type=text],input[type=number],input[type=date],input[type=month]{pa
       <div style="font-size:15px;font-weight:700">Editar movimiento</div>
       <button onclick="cerrarModal()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#888">✕</button>
     </div>
-    <div class="form-group"><label>Fecha</label><input type="date" id="edit-fecha"></div>
-    <div class="form-group"><label>Tipo</label>
+    <div class="form-group"><label data-t="lbl-fecha">Fecha</label><input type="date" id="edit-fecha"></div>
+    <div class="form-group"><label data-t="lbl-tipo">Tipo</label>
       <select id="edit-tipo" onchange="actualizarCategoriasEdit()">
         <option>Gasto variable</option><option>Gasto fijo</option><option>Ingreso</option><option>Ahorro</option>
       </select>
     </div>
-    <div class="form-group"><label>Categoría</label><select id="edit-cat" onchange="toggleDolarFieldEdit()"></select></div>
-    <div class="form-group"><label>Monto ($)</label><input type="number" id="edit-monto" inputmode="numeric"></div>
+    <div class="form-group"><label data-t="lbl-cat">Categoría</label><select id="edit-cat" onchange="toggleDolarFieldEdit()"></select></div>
+    <div class="form-group"><label data-t="lbl-monto">Monto ($)</label><input type="number" id="edit-monto" inputmode="numeric"></div>
     <div class="dolar-field" id="grp-dolar-edit">
-      <label>Cantidad en dólares (USD)</label>
+      <label data-t="lbl-dolar">Cantidad en dólares (USD)</label>
       <input type="number" id="edit-dolar" inputmode="numeric">
     </div>
-    <div class="form-group"><label>Forma de pago</label>
+    <div class="form-group"><label data-t="lbl-fpago">Forma de pago</label>
       <select id="edit-pago">
         <option>Transferencia</option><option>Efectivo</option>
         <option>Tarjeta Credito - VISA Sebas</option><option>Tarjeta Credito - MASTER Sebas</option>
@@ -830,13 +842,13 @@ select,input[type=text],input[type=number],input[type=date],input[type=month]{pa
         <option>Tarjeta Debito</option><option>Tatjeta Credito CUOTAS</option>
       </select>
     </div>
-    <div class="form-group"><label>¿Quién pagó?</label>
+    <div class="form-group"><label data-t="lbl-quien">¿Quién pagó?</label>
       <select id="edit-quien"><option>Sebas</option><option>Male</option><option>Otro</option></select>
     </div>
-    <div class="form-group"><label>Comentario <span style="color:#bbb;font-weight:400">(opcional)</span></label><input type="text" id="edit-comentario" placeholder="Ej: cuota 3/6, mercado semanal..."></div>
+    <div class="form-group"><label><span data-t="lbl-comentario">Comentario</span> <span style="color:#bbb;font-weight:400" data-t="lbl-comentario-hint">(opcional)</span></label><input type="text" id="edit-comentario" placeholder="Ej: cuota 3/6, mercado semanal..."></div>
     <div id="edit-msg" style="margin-bottom:10px"></div>
-    <button class="btn-primary" onclick="guardarEdicion()">Guardar cambios</button>
-    <button onclick="cerrarModal()" style="width:100%;padding:12px;background:none;border:0.5px solid #e5e5e0;border-radius:12px;font-size:14px;cursor:pointer;margin-top:8px;color:#888">Cancelar</button>
+    <button class="btn-primary" onclick="guardarEdicion()" data-t="btn-guardar-cambios">Guardar cambios</button>
+    <button onclick="cerrarModal()" style="width:100%;padding:12px;background:none;border:0.5px solid #e5e5e0;border-radius:12px;font-size:14px;cursor:pointer;margin-top:8px;color:#888" data-t="btn-cancelar">Cancelar</button>
   </div>
 </div>
 <script type="module">
@@ -917,6 +929,7 @@ onAuthStateChanged(auth,async user=>{
     await cargarIngresosProyectados();
     fetchDolarBlue();
     sembrarCuotasResumen();
+    await cargarInflacion();
     unsub=onSnapshot(query(collection(db,'gastos'),orderBy('fecha','desc')),snap=>{
       gastos=snap.docs.map(d=>({id:d.id,...d.data()}));
       window.gastos=gastos;
@@ -1111,12 +1124,22 @@ window.renderCashflow=()=>{
   const aS=aI-aF-aV;const aAP=aI>0?Math.round(aS/aI*100):0;
   const ul=mR[mR.length-1];const mP=[];
   for(let i=1;i<=3;i++){const[y,mo]=ul.split('-').map(Number);const d=new Date(y,mo-1+i,1);mP.push(`${d.getFullYear()}-${pad(d.getMonth()+1)}`);}
-  const filas=[{l:'Ingresos',fn:m=>sumarMes(m,'Ingreso'),p:aI,pos:true},{l:'Fijos',fn:m=>sumarMes(m,'Gasto fijo'),p:aF},{l:'Variables',fn:m=>sumarMes(m,'Gasto variable'),p:aV},{l:'Ahorro',fn:m=>sumarMes(m,'Ahorro'),p:aA,pos:true},{l:'Resultado',fn:m=>sumarMes(m,'Ingreso')-sumarMes(m,'Gasto fijo')-sumarMes(m,'Gasto variable'),p:aS,tot:true}];
+  // Proyección con inflación
+  const tasa=(window._tasaInflacion||2.8)/100;
+  const proyF=(base,i)=>Math.round(base*Math.pow(1+tasa,i));
+  const filas=[
+    {l:currentLang==='en'?'Income':'Ingresos',fn:m=>sumarMes(m,'Ingreso'),pFn:i=>proyF(aI,i),pos:true},
+    {l:currentLang==='en'?'Fixed':'Fijos',fn:m=>sumarMes(m,'Gasto fijo'),pFn:i=>proyF(aF,i)},
+    {l:currentLang==='en'?'Variable':'Variables',fn:m=>sumarMes(m,'Gasto variable'),pFn:i=>proyF(aV,i)},
+    {l:currentLang==='en'?'Savings':'Ahorro',fn:m=>sumarMes(m,'Ahorro'),pFn:i=>proyF(aA,i),pos:true},
+    {l:currentLang==='en'?'Result':'Resultado',fn:m=>sumarMes(m,'Ingreso')-sumarMes(m,'Gasto fijo')-sumarMes(m,'Gasto variable'),pFn:i=>proyF(aI,i)-proyF(aF,i)-proyF(aV,i),tot:true}
+  ];
   const th=`<thead><tr><th style="min-width:70px"></th>${mR.map(m=>`<th>${mesCorto(m)}</th>`).join('')}${mP.map(m=>`<th class="proj-head">${mesCorto(m)}*</th>`).join('')}</tr></thead>`;
-  const tb=filas.map(f=>`<tr class="${f.tot?'cf-total':''}"><td>${f.l}</td>${mR.map(m=>{const v=f.fn(m);return`<td class="real-val ${f.tot?(v>=0?'pos':'neg'):f.pos?'pos':''}">${fmtK(v)}</td>`;}).join('')}${mP.map(()=>`<td class="proj ${f.tot?(f.p>=0?'pos':'neg'):'}'}">${fmtK(f.p)}</td>`).join('')}</tr>`).join('');
+  const tb=filas.map(f=>`<tr class="${f.tot?'cf-total':''}"><td>${f.l}</td>${mR.map(m=>{const v=f.fn(m);return`<td class="real-val ${f.tot?(v>=0?'pos':'neg'):f.pos?'pos':''}">${fmtK(v)}</td>`;}).join('')}${mP.map((_,i)=>{const v=f.pFn(i+1);return`<td class="proj ${f.tot?(v>=0?'pos':'neg'):''}">${fmtK(v)}</td>`;}).join('')}</tr>`).join('');
   document.getElementById('cf-table').innerHTML=th+`<tbody>${tb}</tbody>`;
+  const tasaLabel=tasa>0?` · inflación +${(tasa*100).toFixed(1)}%/mes`:'';
   const als=mR.map(m=>{const s=sumarMes(m,'Ingreso')-sumarMes(m,'Gasto fijo')-sumarMes(m,'Gasto variable');const i=sumarMes(m,'Ingreso');const p=i>0?Math.round(s/i*100):0;return`<div class="alert ${s<0?'alert-err':p>=30?'alert-ok':'alert-warn'}">${s>=0?'✓':'⚠'} <strong>${nombreMes(m)}:</strong> ${fmtK(s)} · ahorro ${p}%</div>`;});
-  als.push(`<div class="alert alert-info">📊 Proyección* = promedio de ${u3.map(m=>mesCorto(m)).join(' + ')}: Ing ${fmtK(aI)} · Fijos ${fmtK(aF)} · Vars ${fmtK(aV)} · Resultado ${fmtK(aS)} (ahorro ~${aAP}%)</div>`);
+  als.push(`<div class="alert alert-info">📊 Proyección* = promedio ${u3.map(m=>mesCorto(m)).join('+')}${tasaLabel}: Ing ${fmtK(aI)} · Fijos ${fmtK(aF)} · Vars ${fmtK(aV)} · Resultado ${fmtK(aS)} (~${aAP}%)</div>`);
   document.getElementById('alertas-cf').innerHTML=als.join('');
 };
 // ── CUOTAS PANEL TOGGLE ──
@@ -1573,48 +1596,165 @@ window.toggleNotif=()=>{
   if(d)d.style.left=notifOn?'20px':'2px';
   toast(notifOn?'Notificaciones activadas':'Notificaciones desactivadas','info',2000);
 };
-const TRADUCCIONES={
-  es:{
-    'bnav-resumen':'📊 Resumen','bnav-carga':'➕ Cargar','bnav-gastos':'📋 Movimientos',
-    'topbar-title':'💰 Gastos',
-    'lbl-fecha':'Fecha','lbl-tipo':'Tipo','lbl-cat':'Categoría','lbl-monto':'Monto ($)',
-    'lbl-fpago':'Forma de pago','lbl-quien':'¿Quién pagó?','btn-guardar':'Guardar movimiento',
-    'lbl-nuevo-mov':'Nuevo movimiento',
-    'fil-tipo-placeholder':'Todos los tipos','fil-quien-placeholder':'Todos',
-    'drawer-title':'Menú',
-  },
-  en:{
-    'bnav-resumen':'📊 Summary','bnav-carga':'➕ Add','bnav-gastos':'📋 Transactions',
-    'topbar-title':'💰 Expenses',
-    'lbl-fecha':'Date','lbl-tipo':'Type','lbl-cat':'Category','lbl-monto':'Amount ($)',
-    'lbl-fpago':'Payment method','lbl-quien':'Who paid?','btn-guardar':'Save transaction',
-    'lbl-nuevo-mov':'New transaction',
-    'fil-tipo-placeholder':'All types','fil-quien-placeholder':'All',
-    'drawer-title':'Menu',
-  }
+const T_ES={
+  // Nav
+  'bnav-resumen':'📊 Resumen','bnav-carga':'➕ Cargar','bnav-gastos':'📋 Movimientos',
+  'topbar-title':'💰 Gastos',
+  // Carga form
+  'lbl-fecha':'Fecha','lbl-tipo':'Tipo','lbl-cat':'Categoría','lbl-monto':'Monto ($)',
+  'lbl-fpago':'Forma de pago','lbl-quien':'¿Quién pagó?','btn-guardar':'Guardar movimiento',
+  'lbl-nuevo-mov':'Nuevo movimiento','lbl-comentario':'Comentario','lbl-comentario-hint':'(opcional)',
+  'lbl-dolar':'Monto en USD',
+  // Tipos
+  'tipo-gasto-fijo':'Gasto fijo','tipo-gasto-variable':'Gasto variable','tipo-ingreso':'Ingreso','tipo-ahorro':'Ahorro',
+  // Formas de pago
+  'fpago-transferencia':'Transferencia','fpago-efectivo':'Efectivo','fpago-debito':'Tarjeta Débito','fpago-cuotas':'Tatjeta Credito CUOTAS',
+  // Resumen
+  'sec-resumen-title':'📊 Resumen','card-ingresos':'Ingresos','card-gastos-fijos':'Gastos fijos',
+  'card-gastos-var':'Gastos variables','card-ahorro':'Ahorro','card-resultado':'Resultado neto',
+  'lbl-vs-mes-ant':'vs mes ant.','lbl-total-ahorrado':'Total ahorrado',
+  // Movimientos
+  'sec-gastos-title':'📋 Movimientos','fil-tipo-placeholder':'Todos los tipos','fil-quien-placeholder':'Todos',
+  'lbl-sin-movimientos':'Sin movimientos en este período',
+  'btn-editar':'Editar','btn-eliminar':'Eliminar',
+  // Cashflow
+  'sec-cashflow-title':'📈 Cashflow',
+  'cf-ingresos':'Ingresos','cf-fijos':'Fijos','cf-variables':'Variables','cf-ahorro':'Ahorro','cf-resultado':'Resultado',
+  // Presupuesto
+  'sec-presupuesto-title':'🧐 Presupuesto','tab-seguimiento':'Seguimiento','tab-editar':'Editar',
+  // Config
+  'sec-config-title':'⚙️ Configuración',
+  'cfg-cuenta':'CUENTA','cfg-perfil':'Perfil','cfg-ingresos-proy':'Ingresos proyectados',
+  'cfg-finanzas':'FINANZAS','cfg-cats':'Categorías','cfg-inflacion':'Tasa de inflación',
+  'cfg-idioma':'Idioma','cfg-integraciones':'INTEGRACIONES','cfg-bancos':'Bancos y billeteras',
+  'cfg-datos':'DATOS','cfg-exportar':'Exportar (PDF / CSV / Excel)',
+  // Drawer
+  'drawer-title':'Menú','drnav-resumen':'Resumen','drnav-movimientos':'Movimientos',
+  'drnav-presupuesto':'Presupuesto','drnav-cashflow':'Cashflow','drnav-objetivos':'Objetivos de ahorro',
+  'drnav-inversiones':'Inversiones','drnav-config':'Configuración',
+  // Objetivos
+  'sec-objetivos-title':'🎯 Objetivos',
+  'lbl-margen-disponible':'Margen disponible','lbl-ingresos-proy':'Ingresos proyectados (prom.)',
+  'lbl-gastos-fijos-prom':'− Gastos fijos prom.','lbl-variables-prom':'− Variables prom.',
+  'lbl-ahorro-reservado':'− Ahorro reservado (20%)','lbl-margen-planificar':'= Margen para planificar',
+  'lbl-cuotas-vencer':'Cuotas a vencer · todas las tarjetas',
+  // Misc
+  'lbl-quien-sebas':'Sebas','lbl-quien-male':'Male','lbl-quien-ambos':'Ambos',
+  'btn-cancelar':'Cancelar','btn-guardar-cambios':'Guardar cambios',
+  'lbl-mes-actual':'Mes actual','lbl-acumulado':'Acumulado anual',
 };
+
+const T_EN={
+  'bnav-resumen':'📊 Summary','bnav-carga':'➕ Add','bnav-gastos':'📋 Transactions',
+  'topbar-title':'💰 Expenses',
+  'lbl-fecha':'Date','lbl-tipo':'Type','lbl-cat':'Category','lbl-monto':'Amount ($)',
+  'lbl-fpago':'Payment method','lbl-quien':'Who paid?','btn-guardar':'Save transaction',
+  'lbl-nuevo-mov':'New transaction','lbl-comentario':'Note','lbl-comentario-hint':'(optional)',
+  'lbl-dolar':'Amount in USD',
+  'tipo-gasto-fijo':'Fixed expense','tipo-gasto-variable':'Variable expense','tipo-ingreso':'Income','tipo-ahorro':'Savings',
+  'fpago-transferencia':'Bank transfer','fpago-efectivo':'Cash','fpago-debito':'Debit card','fpago-cuotas':'Credit card installments',
+  'sec-resumen-title':'📊 Summary','card-ingresos':'Income','card-gastos-fijos':'Fixed expenses',
+  'card-gastos-var':'Variable expenses','card-ahorro':'Savings','card-resultado':'Net result',
+  'lbl-vs-mes-ant':'vs prev. month','lbl-total-ahorrado':'Total saved',
+  'sec-gastos-title':'📋 Transactions','fil-tipo-placeholder':'All types','fil-quien-placeholder':'All',
+  'lbl-sin-movimientos':'No transactions in this period',
+  'btn-editar':'Edit','btn-eliminar':'Delete',
+  'sec-cashflow-title':'📈 Cash Flow',
+  'cf-ingresos':'Income','cf-fijos':'Fixed','cf-variables':'Variable','cf-ahorro':'Savings','cf-resultado':'Result',
+  'sec-presupuesto-title':'🧐 Budget','tab-seguimiento':'Tracking','tab-editar':'Edit',
+  'sec-config-title':'⚙️ Settings',
+  'cfg-cuenta':'ACCOUNT','cfg-perfil':'Profile','cfg-ingresos-proy':'Projected income',
+  'cfg-finanzas':'FINANCES','cfg-cats':'Categories','cfg-inflacion':'Inflation rate',
+  'cfg-idioma':'Language','cfg-integraciones':'INTEGRATIONS','cfg-bancos':'Banks & wallets',
+  'cfg-datos':'DATA','cfg-exportar':'Export (PDF / CSV / Excel)',
+  'drawer-title':'Menu','drnav-resumen':'Summary','drnav-movimientos':'Transactions',
+  'drnav-presupuesto':'Budget','drnav-cashflow':'Cash Flow','drnav-objetivos':'Savings goals',
+  'drnav-inversiones':'Investments','drnav-config':'Settings',
+  'sec-objetivos-title':'🎯 Goals',
+  'lbl-margen-disponible':'Available margin','lbl-ingresos-proy':'Projected income (avg.)',
+  'lbl-gastos-fijos-prom':'− Fixed expenses avg.','lbl-variables-prom':'− Variable avg.',
+  'lbl-ahorro-reservado':'− Reserved savings (20%)','lbl-margen-planificar':'= Planning margin',
+  'lbl-cuotas-vencer':'Upcoming installments · all cards',
+  'lbl-quien-sebas':'Sebas','lbl-quien-male':'Male','lbl-quien-ambos':'Both',
+  'btn-cancelar':'Cancel','btn-guardar-cambios':'Save changes',
+  'lbl-mes-actual':'Current month','lbl-acumulado':'Annual total',
+};
+
+const TRADUCCIONES={es:T_ES,en:T_EN};
 let currentLang='es';
+window.t=(key)=>(TRADUCCIONES[currentLang]||T_ES)[key]||(T_ES[key]||key);
+
 window.setLang=(lang)=>{
   currentLang=lang;
   document.getElementById('lang-es').style.background=lang==='es'?'#1a1a1a':'#fff';
   document.getElementById('lang-es').style.color=lang==='es'?'#fff':'#aaa';
   document.getElementById('lang-en').style.background=lang==='en'?'#1a1a1a':'#fff';
   document.getElementById('lang-en').style.color=lang==='en'?'#fff':'#aaa';
-  const T=TRADUCCIONES[lang]||TRADUCCIONES.es;
+  const T=TRADUCCIONES[lang]||T_ES;
+
   // Bottom nav
   const bR=document.getElementById('bnav-resumen');if(bR)bR.innerHTML=T['bnav-resumen'];
   const bC=document.getElementById('bnav-carga');if(bC)bC.innerHTML=T['bnav-carga'];
   const bG=document.getElementById('bnav-gastos');if(bG)bG.innerHTML=T['bnav-gastos'];
+
   // Topbar
-  const tt=document.querySelector('.topbar-title');if(tt)tt.textContent=T['topbar-title'];
-  // Carga form labels
-  const labels=document.querySelectorAll('.carga-sheet .form-group label, #sec-carga .form-group label');
-  const lblMap={Fecha:T['lbl-fecha'],Tipo:T['lbl-tipo'],'Categoría':T['lbl-cat'],'Monto ($)':T['lbl-monto'],'Forma de pago':T['lbl-fpago'],'¿Quién pagó?':T['lbl-quien'],Date:T['lbl-fecha'],Type:T['lbl-tipo'],Category:T['lbl-cat'],'Amount ($)':T['lbl-monto'],'Payment method':T['lbl-fpago'],'Who paid?':T['lbl-quien']};
-  labels.forEach(l=>{if(lblMap[l.textContent.trim()])l.textContent=lblMap[l.textContent.trim()];});
-  // Save button
-  const bg=document.getElementById('btn-guardar');if(bg)bg.textContent=T['btn-guardar'];
-  // Card title "Nuevo movimiento"
-  document.querySelectorAll('.card-title').forEach(el=>{if(el.textContent==='Nuevo movimiento'||el.textContent==='New transaction')el.textContent=T['lbl-nuevo-mov'];});
+  const tt=document.querySelector('.topbar-title');if(tt&&(tt.textContent.includes('Gastos')||tt.textContent.includes('Expenses')))tt.textContent=T['topbar-title'];
+
+  // Carga form — labels
+  document.querySelectorAll('[data-t]').forEach(el=>{const k=el.getAttribute('data-t');if(T[k])el.textContent=T[k];});
+
+  // Tipo select options
+  const tsel=document.getElementById('inp-tipo');
+  if(tsel){[...tsel.options].forEach(o=>{
+    if(o.value==='Gasto fijo')o.text=T['tipo-gasto-fijo'];
+    else if(o.value==='Gasto variable')o.text=T['tipo-gasto-variable'];
+    else if(o.value==='Ingreso')o.text=T['tipo-ingreso'];
+    else if(o.value==='Ahorro')o.text=T['tipo-ahorro'];
+  });}
+  // Edit tipo select
+  const tsel2=document.getElementById('edit-tipo');
+  if(tsel2){[...tsel2.options].forEach(o=>{
+    if(o.value==='Gasto fijo')o.text=T['tipo-gasto-fijo'];
+    else if(o.value==='Gasto variable')o.text=T['tipo-gasto-variable'];
+    else if(o.value==='Ingreso')o.text=T['tipo-ingreso'];
+    else if(o.value==='Ahorro')o.text=T['tipo-ahorro'];
+  });}
+
+  // Quién pagó placeholders y opciones
+  ['inp-quien-carga','edit-quien'].forEach(id=>{
+    const s=document.getElementById(id);
+    if(s){[...s.options].forEach(o=>{
+      if(o.value==='Sebas')o.text=T['lbl-quien-sebas'];
+      else if(o.value==='Male')o.text=T['lbl-quien-male'];
+      else if(o.value==='Ambos')o.text=T['lbl-quien-ambos'];
+    });}
+  });
+
+  // Filtros en movimientos
+  const fTipo=document.getElementById('fil-tipo');if(fTipo&&fTipo.options[0])fTipo.options[0].text=T['fil-tipo-placeholder'];
+  const fQuien=document.getElementById('fil-quien');if(fQuien&&fQuien.options[0])fQuien.options[0].text=T['fil-quien-placeholder'];
+
+  // Drawer nav
+  const dItems={
+    'drnav-resumen':T['drnav-resumen'],'drnav-movimientos':T['drnav-movimientos'],
+    'drnav-presupuesto':T['drnav-presupuesto'],'drnav-cashflow':T['drnav-cashflow'],
+    'drnav-objetivos':T['drnav-objetivos'],'drnav-inversiones':T['drnav-inversiones'],
+    'drnav-config':T['drnav-config'],
+  };
+  Object.entries(dItems).forEach(([id,txt])=>{const el=document.getElementById(id);if(el)el.textContent=txt;});
+
+  // Section titles en topbar al navegar — actualizar SECTION_TITLES
+  window.SECTION_TITLES={
+    resumen:T['sec-resumen-title'],gastos:T['sec-gastos-title'],
+    cashflow:T['sec-cashflow-title'],presupuesto:T['sec-presupuesto-title'],
+    config:T['sec-config-title'],objetivos:T['sec-objetivos-title']
+  };
+
+  // Re-render secciones visibles para aplicar traducciones dinámicas
+  renderResumen();
+  renderGastos();
+  renderCashflow();
+
   toast(lang==='en'?'Language: English':'Idioma: Español','info',2000);
 };
 
@@ -1854,6 +1994,7 @@ window.abrirSubConfig=(id)=>{
   if(id==='ingresos')renderIngresosSubpage();
   if(id==='categorias'){_catTabActual='fijo';renderCatListNew();}
   if(id==='perfil')renderPerfilSubpage();
+  if(id==='integraciones')renderIntegracionesSubpage();
 };
 
 window.volverConfigMain=()=>{
@@ -1862,6 +2003,73 @@ window.volverConfigMain=()=>{
   const tt=document.getElementById('topbar-title');
   if(tt)tt.textContent='⚙️ Configuración';
 };
+
+// ── INTEGRACIONES — MERCADO PAGO ──
+const MP_CLIENT_ID_APP='3326257618209576';
+const MP_REDIRECT_URI='https://exquisite-starship-4e153a.netlify.app/.netlify/functions/mp-oauth-callback';
+
+async function renderIntegracionesSubpage(){
+  try{
+    const userId=auth.currentUser?.uid;
+    if(!userId)return;
+    const s=await getDoc(doc(db,'integraciones',userId));
+    const mpData=s.exists()?s.data()?.mp:null;
+    const btnArea=document.getElementById('mp-btn-area');
+    const connectedInfo=document.getElementById('mp-connected-info');
+    const statusText=document.getElementById('mp-status-text');
+    const lastSync=document.getElementById('mp-last-sync');
+    if(mpData?.activo){
+      if(btnArea)btnArea.style.display='none';
+      if(connectedInfo)connectedInfo.style.display='block';
+      if(statusText)statusText.textContent='Conectado ✓';
+      if(lastSync&&mpData.ultimaSync){
+        const d=new Date(mpData.ultimaSync);
+        lastSync.textContent=`Última sync: ${d.toLocaleDateString('es-AR')} ${d.toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'})} · ${mpData.ultimosImportados||0} mov. importados`;
+      }
+    }else{
+      if(btnArea)btnArea.style.display='block';
+      if(connectedInfo)connectedInfo.style.display='none';
+      if(statusText)statusText.textContent='Importa movimientos automáticamente';
+    }
+  }catch(e){console.error('renderIntegracionesSubpage:',e);}
+}
+
+window.conectarMP=()=>{
+  const userId=auth.currentUser?.uid;
+  if(!userId){toast('Tenés que estar logueado','err',2000);return;}
+  const url=`https://auth.mercadopago.com/authorization?client_id=${MP_CLIENT_ID_APP}&response_type=code&platform_id=mp&state=${userId}&redirect_uri=${encodeURIComponent(MP_REDIRECT_URI)}`;
+  window.location.href=url;
+};
+
+window.sincronizarMP=async()=>{
+  toast('Sincronizando...','info',2000);
+  try{
+    const res=await fetch('/.netlify/functions/mp-sync');
+    const data=await res.json();
+    if(data.ok){
+      const imp=data.resultados?.[0]?.importados||0;
+      toast(`✓ ${imp} movimientos importados`,'ok',3000);
+      renderIntegracionesSubpage();
+    }else{toast('Error al sincronizar','err',2500);}
+  }catch(e){toast('Error al sincronizar','err',2500);}
+};
+
+window.desconectarMP=async()=>{
+  const userId=auth.currentUser?.uid;
+  if(!userId)return;
+  try{
+    await setDoc(doc(db,'integraciones',userId),{mp:{activo:false}},{merge:true});
+    renderIntegracionesSubpage();
+    toast('Mercado Pago desconectado','ok',2500);
+  }catch(e){console.error(e);}
+};
+
+// Detectar redirect de MP al abrir la app
+(()=>{
+  const p=new URLSearchParams(window.location.search);
+  if(p.get('mp_ok')==='1'){toast('✓ Mercado Pago conectado correctamente','ok',3500);window.history.replaceState({},'',window.location.pathname);}
+  if(p.get('mp_error')==='1'){toast('Error al conectar Mercado Pago','err',3500);window.history.replaceState({},'',window.location.pathname);}
+})();
 
 // ── PERFIL SUB ──
 let _perfilData={};
@@ -2027,7 +2235,38 @@ window.toggleInflacion=()=>{
   if(box)box.classList.toggle('on',_infToggleOn);
   if(row)row.style.display=_infToggleOn?'flex':'none';
 };
-window.guardarInflacion=()=>{window.toast?.('Configuración guardada','ok',2000);};
+window.guardarInflacion=async()=>{
+  const tasa=_infToggleOn?(parseFloat(document.getElementById('inf-custom-val')?.value)||2.8):2.8;
+  const usaCustom=_infToggleOn;
+  try{
+    await setDoc(doc(db,'config','inflacion'),{tasa,usaCustom});
+    window._tasaInflacion=tasa;
+    window._infToggleOn=usaCustom;
+    // actualizar label en config main
+    const lbl=document.querySelector('.config-row-val');
+    if(lbl)lbl.textContent=tasa.toFixed(1)+'%';
+    renderCashflow();
+    window.toast?.('Configuración guardada','ok',2000);
+  }catch(e){console.error(e);window.toast?.('Error al guardar','err',2000);}
+};
+
+async function cargarInflacion(){
+  try{
+    const s=await getDoc(doc(db,'config','inflacion'));
+    if(s.exists()){
+      const d=s.data();
+      window._tasaInflacion=d.tasa||2.8;
+      _infToggleOn=d.usaCustom||false;
+      // reflejar en UI si ya está abierta
+      const box=document.getElementById('inf-toggle');
+      const row=document.getElementById('inf-custom-row');
+      const inp=document.getElementById('inf-custom-val');
+      if(box)box.classList.toggle('on',_infToggleOn);
+      if(row)row.style.display=_infToggleOn?'flex':'none';
+      if(inp)inp.value=d.tasa||2.8;
+    }else{window._tasaInflacion=2.8;}
+  }catch(e){window._tasaInflacion=2.8;}
+}
 
 // ── OBJETIVOS ──
 let _objetivos=[];
