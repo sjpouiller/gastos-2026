@@ -9,3 +9,6 @@
 
 [functions."email-mensual"]
   schedule = "0 12 1 * *"
+
+[functions."bank-import"]
+  timeout = 26

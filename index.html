@@ -2105,7 +2105,9 @@ window.analizarImport=async()=>{
       body.pdf_base64=base64;body.filename=file.name;
     }
     const res=await fetch('/.netlify/functions/bank-import',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
-    const data=await res.json();
+    const raw=await res.text();
+    if(!raw){status.textContent=`Error del servidor (${res.status}) — sin respuesta. Intentá de nuevo.`;btn.disabled=false;btn.textContent='🤖 Analizar con IA';return;}
+    const data=JSON.parse(raw);
     if(!data.movimientos?.length){status.textContent=data.advertencias?.[0]||'No se encontraron movimientos';btn.disabled=false;btn.textContent='🤖 Analizar con IA';return;}
     _importMovimientos=data.movimientos;
     renderImportPreview(data.movimientos);
