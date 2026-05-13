@@ -9,7 +9,7 @@ const { getFirestore } = require('firebase-admin/firestore');
 let dbInstance = null;
 function getDB() {
   if (!dbInstance) {
-    const credentials = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT);
+    const credentials = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT.replace(/\t/g, ' '));
     const appName = 'email-mensual-app';
     const existing = getApps().find(a => a.name === appName);
     const app = existing || initializeApp({ credential: cert(credentials) }, appName);
