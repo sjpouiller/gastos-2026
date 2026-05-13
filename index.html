@@ -371,25 +371,25 @@ select,input[type=text],input[type=number],input[type=date],input[type=month]{pa
       <!-- Página principal -->
       <div id="config-main" class="subpage active">
         <div class="config-main-card">
-          <div class="config-card-title">CUENTA</div>
-          <div class="config-row" onclick="abrirSubConfig('perfil')"><span>Perfil</span><span class="config-row-right">›</span></div>
-          <div class="config-row" onclick="abrirSubConfig('ingresos')"><span>Ingresos proyectados</span><span class="config-row-right">›</span></div>
-          <div class="config-row" onclick="abrirSubConfig('inversor')"><span>Perfil de inversor</span><span class="config-row-right">›</span></div>
+          <div class="config-card-title" data-t="cfg-cuenta">CUENTA</div>
+          <div class="config-row" onclick="abrirSubConfig('perfil')"><span data-t="cfg-perfil">Perfil</span><span class="config-row-right">›</span></div>
+          <div class="config-row" onclick="abrirSubConfig('ingresos')"><span data-t="cfg-ingresos-proy">Ingresos proyectados</span><span class="config-row-right">›</span></div>
+          <div class="config-row" onclick="abrirSubConfig('inversor')"><span data-t="cfg-inversor">Perfil de inversor</span><span class="config-row-right">›</span></div>
         </div>
         <div class="config-main-card">
-          <div class="config-card-title">APP</div>
-          <div class="config-row" onclick="abrirSubConfig('categorias')"><span>Categorías</span><span class="config-row-right">›</span></div>
-          <div class="config-row" onclick="abrirSubConfig('inflacion')"><span>Tasa de inflación</span><span><span class="config-row-val">3.2%</span><span class="config-row-right">›</span></span></div>
-          <div class="config-row" style="cursor:default"><span>Notificaciones</span><div id="toggle-notif" onclick="toggleNotif()" style="width:40px;height:22px;border-radius:99px;background:#e5e5e0;position:relative;cursor:pointer;flex-shrink:0;transition:background .2s"><div id="toggle-notif-dot" style="position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)"></div></div></div>
-          <div class="config-row" style="cursor:default"><span>Idioma</span><div style="display:flex;border-radius:99px;border:0.5px solid #e0e0dc;overflow:hidden;flex-shrink:0"><div id="lang-es" style="font-size:12px;padding:3px 10px;background:#1a1a1a;color:#fff;cursor:pointer" onclick="setLang('es')">ES</div><div id="lang-en" style="font-size:12px;padding:3px 10px;background:#fff;color:#aaa;cursor:pointer" onclick="setLang('en')">EN</div></div></div>
+          <div class="config-card-title" data-t="cfg-finanzas">APP</div>
+          <div class="config-row" onclick="abrirSubConfig('categorias')"><span data-t="cfg-cats">Categorías</span><span class="config-row-right">›</span></div>
+          <div class="config-row" onclick="abrirSubConfig('inflacion')"><span data-t="cfg-inflacion">Tasa de inflación</span><span><span class="config-row-val">3.2%</span><span class="config-row-right">›</span></span></div>
+          <div class="config-row" style="cursor:default"><span data-t="cfg-notificaciones">Notificaciones</span><div id="toggle-notif" onclick="toggleNotif()" style="width:40px;height:22px;border-radius:99px;background:#e5e5e0;position:relative;cursor:pointer;flex-shrink:0;transition:background .2s"><div id="toggle-notif-dot" style="position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)"></div></div></div>
+          <div class="config-row" style="cursor:default"><span data-t="cfg-idioma">Idioma</span><div style="display:flex;border-radius:99px;border:0.5px solid #e0e0dc;overflow:hidden;flex-shrink:0"><div id="lang-es" style="font-size:12px;padding:3px 10px;background:#1a1a1a;color:#fff;cursor:pointer" onclick="setLang('es')">ES</div><div id="lang-en" style="font-size:12px;padding:3px 10px;background:#fff;color:#aaa;cursor:pointer" onclick="setLang('en')">EN</div></div></div>
         </div>
         <div class="config-main-card">
-          <div class="config-card-title">INTEGRACIONES</div>
-          <div class="config-row" onclick="abrirSubConfig('integraciones')"><span>Bancos y billeteras</span><span class="config-row-right">›</span></div>
+          <div class="config-card-title" data-t="cfg-integraciones">INTEGRACIONES</div>
+          <div class="config-row" onclick="abrirSubConfig('integraciones')"><span data-t="cfg-bancos">Bancos y billeteras</span><span class="config-row-right">›</span></div>
         </div>
         <div class="config-main-card">
-          <div class="config-card-title">DATOS</div>
-          <div class="config-row" onclick="abrirSubConfig('exportar')"><span>Exportar (PDF / CSV / Excel)</span><span class="config-row-right">›</span></div>
+          <div class="config-card-title" data-t="cfg-datos">DATOS</div>
+          <div class="config-row" onclick="abrirSubConfig('exportar')"><span data-t="cfg-exportar">Exportar (PDF / CSV / Excel)</span><span class="config-row-right">›</span></div>
         </div>
       </div>
       <!-- Sub: Perfil -->
@@ -553,49 +553,68 @@ select,input[type=text],input[type=number],input[type=date],input[type=month]{pa
 
         <!-- Mercado Pago -->
         <div class="card" style="margin-bottom:14px">
-          <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:0.5px solid #f3f3f0">
-            <div style="width:36px;height:36px;border-radius:10px;background:#009ee3;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden"><svg viewBox="0 0 48 48" width="28" height="28" fill="none"><path d="M24 4C12.95 4 4 12.95 4 24s8.95 20 20 20 20-8.95 20-20S35.05 4 24 4z" fill="#fff"/><path d="M33.5 20.5c0 5.25-4.25 9.5-9.5 9.5-2.62 0-5-1.06-6.72-2.78L28.72 16.78C30.44 18.5 33.5 19.88 33.5 20.5z" fill="#009ee3"/><path d="M14.5 20.5c0-5.25 4.25-9.5 9.5-9.5 2.62 0 5 1.06 6.72 2.78L19.28 24.22C17.56 22.5 14.5 21.12 14.5 20.5z" fill="#009ee3"/></svg></div>
+          <div style="display:flex;align-items:center;gap:12px;padding:10px 0">
+            <div style="width:36px;height:36px;border-radius:10px;background:#009ee3;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden"><img src="https://http2.mlstatic.com/frontend-assets/ui-navigation/5.19.5/mercadopago/logo__small@2x.png" style="width:28px;height:28px;object-fit:contain" onerror="this.style.display='none'"></div>
             <div style="flex:1">
               <div style="font-size:13px;font-weight:600">Mercado Pago</div>
-              <div style="font-size:11px;color:#888;margin-top:1px" id="mp-status-text">Importa movimientos automáticamente</div>
+              <div style="font-size:11px;color:#888;margin-top:1px">Importar extracto CSV</div>
             </div>
-            <div id="mp-btn-area">
-              <button id="mp-connect-btn" onclick="conectarMP()" style="font-size:11px;font-weight:700;padding:5px 12px;border-radius:999px;background:#009ee3;color:#fff;border:none;cursor:pointer">Conectar</button>
-            </div>
-          </div>
-          <div id="mp-connected-info" style="display:none;padding:10px 0">
-            <div style="font-size:11px;color:#888;margin-bottom:8px" id="mp-last-sync">Última sync: —</div>
-            <button onclick="sincronizarMP()" style="font-size:11px;font-weight:600;padding:5px 12px;border-radius:8px;background:#e8f4fd;color:#0369a1;border:0.5px solid #bae6fd;cursor:pointer">🔄 Sincronizar ahora</button>
-            <button onclick="desconectarMP()" style="font-size:11px;font-weight:600;padding:5px 12px;border-radius:8px;background:none;color:#f87171;border:0.5px solid #fca5a5;cursor:pointer;margin-left:8px">Desconectar</button>
+            <span style="font-size:10px;font-weight:700;padding:3px 8px;border-radius:999px;background:#f3f4f6;color:#888">Pronto</span>
           </div>
         </div>
 
         <!-- Galicia -->
         <div class="card" style="margin-bottom:14px">
-          <div style="display:flex;align-items:center;gap:12px;padding:10px 0">
-            <div style="width:36px;height:36px;border-radius:10px;background:#e30613;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden"><svg viewBox="0 0 48 48" width="28" height="28"><text x="4" y="34" font-size="28" font-weight="900" fill="#fff" font-family="Arial">G</text></svg></div>
+          <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:0.5px solid #f3f3f0">
+            <div style="width:36px;height:36px;border-radius:10px;background:#fff;border:0.5px solid #eee;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden"><img src="https://www.galicia.ar/favicon.ico" style="width:28px;height:28px;object-fit:contain" onerror="this.parentElement.style.background='#e30613';this.outerHTML='<span style=\'color:#fff;font-weight:900;font-size:18px\'>G</span>'"></div>
             <div style="flex:1">
               <div style="font-size:13px;font-weight:600">Galicia</div>
-              <div style="font-size:11px;color:#888;margin-top:1px">Vía alertas por email</div>
+              <div style="font-size:11px;color:#888;margin-top:1px">Importar movimientos con IA</div>
             </div>
-            <span style="font-size:10px;font-weight:700;padding:3px 8px;border-radius:999px;background:#f3f4f6;color:#888">Pronto</span>
+            <button onclick="toggleGaliciaImport()" style="font-size:11px;font-weight:700;padding:5px 12px;border-radius:999px;background:#1a1a1a;color:#fff;border:none;cursor:pointer">Importar</button>
+          </div>
+          <!-- Panel importar -->
+          <div id="galicia-import-panel" style="display:none;padding-top:12px">
+            <!-- Tabs -->
+            <div style="display:flex;gap:6px;margin-bottom:12px">
+              <button id="gtab-paste" onclick="setGaliciaTab('paste')" style="flex:1;padding:7px;border-radius:8px;font-size:12px;font-weight:600;border:0.5px solid #1a1a1a;background:#1a1a1a;color:#fff;cursor:pointer">Pegar texto</button>
+              <button id="gtab-pdf" onclick="setGaliciaTab('pdf')" style="flex:1;padding:7px;border-radius:8px;font-size:12px;font-weight:600;border:0.5px solid #e5e5e0;background:#fff;color:#888;cursor:pointer">Subir PDF</button>
+            </div>
+            <!-- Paste mode -->
+            <div id="galicia-paste-mode">
+              <div style="font-size:11px;color:#888;margin-bottom:6px;line-height:1.5">Andá a Galicia homebanking → Mis cuentas → seleccioná los movimientos → copiá y pegá acá:</div>
+              <textarea id="galicia-texto" placeholder="Pegá los movimientos acá..." style="width:100%;height:120px;padding:10px;font-size:12px;border:0.5px solid #d1d5db;border-radius:10px;resize:vertical;font-family:monospace;box-sizing:border-box"></textarea>
+            </div>
+            <!-- PDF mode -->
+            <div id="galicia-pdf-mode" style="display:none">
+              <div style="font-size:11px;color:#888;margin-bottom:6px;line-height:1.5">Descargá el resumen PDF de Galicia homebanking y subilo acá:</div>
+              <input type="file" id="galicia-pdf-input" accept=".pdf" style="font-size:12px;padding:8px;border:0.5px solid #d1d5db;border-radius:10px;width:100%;box-sizing:border-box;background:#f9f9f7">
+            </div>
+            <button onclick="analizarGalicia()" id="galicia-analizar-btn" style="width:100%;margin-top:10px;padding:11px;background:#1a1a1a;color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer">🤖 Analizar con IA</button>
+            <div id="galicia-status" style="font-size:12px;color:#888;text-align:center;margin-top:8px;min-height:18px"></div>
+            <!-- Preview movimientos -->
+            <div id="galicia-preview" style="display:none;margin-top:12px">
+              <div style="font-size:12px;font-weight:700;margin-bottom:8px" id="galicia-preview-title"></div>
+              <div id="galicia-preview-list"></div>
+              <button onclick="confirmarGalicia()" style="width:100%;margin-top:10px;padding:11px;background:#16a34a;color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer">✓ Cargar seleccionados</button>
+            </div>
           </div>
         </div>
 
         <div style="font-size:10px;font-weight:700;color:#aaa;letter-spacing:.08em;margin-bottom:10px">PRÓXIMAMENTE</div>
         <div class="card">
           <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:0.5px solid #f3f3f0">
-            <div style="width:36px;height:36px;border-radius:10px;background:#f5c200;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden"><svg viewBox="0 0 48 48" width="28" height="28"><text x="4" y="34" font-size="26" font-weight="900" fill="#1a1a1a" font-family="Arial">U</text></svg></div>
+            <div style="width:36px;height:36px;border-radius:10px;background:#fff;border:0.5px solid #eee;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden"><img src="https://logo.clearbit.com/uala.com.ar" style="width:32px;height:32px;object-fit:contain" onerror="this.parentElement.style.background='#f5c200';this.outerHTML='<span style=\'font-weight:900;font-size:18px\'>U</span>'"></div>
             <div style="flex:1"><div style="font-size:13px;font-weight:600;color:#888">Uala</div><div style="font-size:11px;color:#aaa;margin-top:1px">Billetera digital</div></div>
             <span style="font-size:10px;font-weight:700;padding:3px 8px;border-radius:999px;background:#f3f4f6;color:#888">Pronto</span>
           </div>
           <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:0.5px solid #f3f3f0">
-            <div style="width:36px;height:36px;border-radius:10px;background:#ec0000;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden"><svg viewBox="0 0 48 48" width="28" height="28"><text x="3" y="34" font-size="20" font-weight="900" fill="#fff" font-family="Arial">SAN</text></svg></div>
+            <div style="width:36px;height:36px;border-radius:10px;background:#fff;border:0.5px solid #eee;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden"><img src="https://logo.clearbit.com/santander.com.ar" style="width:32px;height:32px;object-fit:contain" onerror="this.parentElement.style.background='#ec0000';this.outerHTML='<span style=\'color:#fff;font-weight:900;font-size:13px\'>SAN</span>'"></div>
             <div style="flex:1"><div style="font-size:13px;font-weight:600;color:#888">Santander</div><div style="font-size:11px;color:#aaa;margin-top:1px">Banco Santander</div></div>
             <span style="font-size:10px;font-weight:700;padding:3px 8px;border-radius:999px;background:#f3f4f6;color:#888">Pronto</span>
           </div>
           <div style="display:flex;align-items:center;gap:12px;padding:10px 0">
-            <div style="width:36px;height:36px;border-radius:10px;background:#004481;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden"><svg viewBox="0 0 48 48" width="28" height="28"><text x="2" y="34" font-size="22" font-weight="900" fill="#fff" font-family="Arial">BB</text></svg></div>
+            <div style="width:36px;height:36px;border-radius:10px;background:#fff;border:0.5px solid #eee;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden"><img src="https://logo.clearbit.com/bbva.com" style="width:32px;height:32px;object-fit:contain" onerror="this.parentElement.style.background='#004481';this.outerHTML='<span style=\'color:#fff;font-weight:900;font-size:14px\'>BBVA</span>'"></div>
             <div style="flex:1"><div style="font-size:13px;font-weight:600;color:#888">BBVA</div><div style="font-size:11px;color:#aaa;margin-top:1px">Banco BBVA</div></div>
             <span style="font-size:10px;font-weight:700;padding:3px 8px;border-radius:999px;background:#f3f4f6;color:#888">Pronto</span>
           </div>
@@ -725,6 +744,55 @@ select,input[type=text],input[type=number],input[type=date],input[type=month]{pa
     </div>
     <div class="form-group"><label><span data-t="lbl-comentario">Comentario</span> <span style="color:#bbb;font-weight:400" data-t="lbl-comentario-hint">(opcional)</span></label><input type="text" id="inp-comentario" placeholder="Ej: cuota 3/6, mercado semanal..."></div>
     <button class="btn-primary" id="btn-guardar" onclick="guardar()" data-t="btn-guardar">Guardar movimiento</button>
+    <div style="display:flex;align-items:center;gap:10px;margin-top:10px">
+      <div style="flex:1;height:0.5px;background:#e5e5e0"></div>
+      <span style="font-size:11px;color:#aaa">o</span>
+      <div style="flex:1;height:0.5px;background:#e5e5e0"></div>
+    </div>
+    <button onclick="toggleImportarBanco()" style="width:100%;margin-top:10px;padding:12px;background:#f5f5f3;border:0.5px solid #e5e5e0;border-radius:12px;font-size:13px;font-weight:600;color:#555;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">
+      <span>📥</span><span>Importar del banco</span>
+    </button>
+    <!-- Panel importar banco -->
+    <div id="import-banco-panel" style="display:none;margin-top:12px;background:#f9f9f7;border:0.5px solid #e5e5e0;border-radius:14px;padding:14px">
+      <div style="font-size:13px;font-weight:700;margin-bottom:12px">Importar movimientos</div>
+      <!-- Selector de banco -->
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
+        <button class="banco-sel-btn active" onclick="selBanco(this,'Galicia')" style="display:flex;align-items:center;gap:6px;padding:6px 10px;border-radius:99px;border:0.5px solid #1a1a1a;background:#1a1a1a;color:#fff;font-size:12px;font-weight:600;cursor:pointer">
+          <img src="https://www.galicia.ar/favicon.ico" style="width:14px;height:14px;object-fit:contain" onerror="this.style.display='none'"> Galicia
+        </button>
+        <button class="banco-sel-btn" onclick="selBanco(this,'Santander')" style="display:flex;align-items:center;gap:6px;padding:6px 10px;border-radius:99px;border:0.5px solid #e5e5e0;background:#fff;color:#888;font-size:12px;font-weight:600;cursor:pointer">
+          <img src="https://logo.clearbit.com/santander.com.ar" style="width:14px;height:14px;object-fit:contain" onerror="this.style.display='none'"> Santander
+        </button>
+        <button class="banco-sel-btn" onclick="selBanco(this,'BBVA')" style="display:flex;align-items:center;gap:6px;padding:6px 10px;border-radius:99px;border:0.5px solid #e5e5e0;background:#fff;color:#888;font-size:12px;font-weight:600;cursor:pointer">
+          <img src="https://logo.clearbit.com/bbva.com" style="width:14px;height:14px;object-fit:contain" onerror="this.style.display='none'"> BBVA
+        </button>
+        <button class="banco-sel-btn" onclick="selBanco(this,'Uala')" style="display:flex;align-items:center;gap:6px;padding:6px 10px;border-radius:99px;border:0.5px solid #e5e5e0;background:#fff;color:#888;font-size:12px;font-weight:600;cursor:pointer">
+          <img src="https://logo.clearbit.com/uala.com.ar" style="width:14px;height:14px;object-fit:contain" onerror="this.style.display='none'"> Uala
+        </button>
+        <button class="banco-sel-btn" onclick="selBanco(this,'Otro')" style="padding:6px 10px;border-radius:99px;border:0.5px solid #e5e5e0;background:#fff;color:#888;font-size:12px;font-weight:600;cursor:pointer">Otro</button>
+      </div>
+      <!-- Tabs texto / PDF -->
+      <div style="display:flex;gap:6px;margin-bottom:10px">
+        <button id="ibtab-paste" onclick="setImportTab('paste')" style="flex:1;padding:7px;border-radius:8px;font-size:12px;font-weight:600;border:0.5px solid #1a1a1a;background:#1a1a1a;color:#fff;cursor:pointer">Pegar texto</button>
+        <button id="ibtab-pdf" onclick="setImportTab('pdf')" style="flex:1;padding:7px;border-radius:8px;font-size:12px;font-weight:600;border:0.5px solid #e5e5e0;background:#fff;color:#888;cursor:pointer">Subir PDF</button>
+      </div>
+      <div id="ib-paste-mode">
+        <div style="font-size:11px;color:#888;margin-bottom:6px">Copiá los movimientos del homebanking y pegá acá:</div>
+        <textarea id="ib-texto" placeholder="Pegá el extracto acá..." style="width:100%;height:110px;padding:10px;font-size:12px;border:0.5px solid #d1d5db;border-radius:10px;resize:vertical;font-family:monospace;box-sizing:border-box;background:#fff"></textarea>
+      </div>
+      <div id="ib-pdf-mode" style="display:none">
+        <div style="font-size:11px;color:#888;margin-bottom:6px">Subí el PDF del resumen:</div>
+        <input type="file" id="ib-pdf-input" accept=".pdf" style="font-size:12px;padding:8px;border:0.5px solid #d1d5db;border-radius:10px;width:100%;box-sizing:border-box;background:#fff">
+      </div>
+      <button onclick="analizarImport()" id="ib-analizar-btn" style="width:100%;margin-top:10px;padding:11px;background:#1a1a1a;color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer">🤖 Analizar con IA</button>
+      <div id="ib-status" style="font-size:12px;color:#888;text-align:center;margin-top:8px;min-height:18px"></div>
+      <!-- Preview -->
+      <div id="ib-preview" style="display:none;margin-top:12px">
+        <div style="font-size:12px;font-weight:700;margin-bottom:8px" id="ib-preview-title"></div>
+        <div id="ib-preview-list"></div>
+        <button onclick="confirmarImport()" style="width:100%;margin-top:10px;padding:11px;background:#16a34a;color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer">✓ Cargar seleccionados</button>
+      </div>
+    </div>
     <div id="carga-msg" style="margin-top:10px"></div>
     <div id="alertas-carga-card" class="card" style="display:none;margin-top:10px">
       <div class="card-title">⚠️ Alertas del mes</div>
@@ -1625,7 +1693,9 @@ const T_ES={
   // Config
   'sec-config-title':'⚙️ Configuración',
   'cfg-cuenta':'CUENTA','cfg-perfil':'Perfil','cfg-ingresos-proy':'Ingresos proyectados',
-  'cfg-finanzas':'FINANZAS','cfg-cats':'Categorías','cfg-inflacion':'Tasa de inflación',
+  'cfg-inversor':'Perfil de inversor',
+  'cfg-finanzas':'APP','cfg-cats':'Categorías','cfg-inflacion':'Tasa de inflación',
+  'cfg-notificaciones':'Notificaciones',
   'cfg-idioma':'Idioma','cfg-integraciones':'INTEGRACIONES','cfg-bancos':'Bancos y billeteras',
   'cfg-datos':'DATOS','cfg-exportar':'Exportar (PDF / CSV / Excel)',
   // Drawer
@@ -1664,7 +1734,9 @@ const T_EN={
   'sec-presupuesto-title':'🧐 Budget','tab-seguimiento':'Tracking','tab-editar':'Edit',
   'sec-config-title':'⚙️ Settings',
   'cfg-cuenta':'ACCOUNT','cfg-perfil':'Profile','cfg-ingresos-proy':'Projected income',
-  'cfg-finanzas':'FINANCES','cfg-cats':'Categories','cfg-inflacion':'Inflation rate',
+  'cfg-inversor':'Investor profile',
+  'cfg-finanzas':'APP','cfg-cats':'Categories','cfg-inflacion':'Inflation rate',
+  'cfg-notificaciones':'Notifications',
   'cfg-idioma':'Language','cfg-integraciones':'INTEGRATIONS','cfg-bancos':'Banks & wallets',
   'cfg-datos':'DATA','cfg-exportar':'Export (PDF / CSV / Excel)',
   'drawer-title':'Menu','drnav-resumen':'Summary','drnav-movimientos':'Transactions',
@@ -1750,10 +1822,12 @@ window.setLang=(lang)=>{
     config:T['sec-config-title'],objetivos:T['sec-objetivos-title']
   };
 
-  // Re-render secciones visibles para aplicar traducciones dinámicas
-  renderResumen();
-  renderGastos();
-  renderCashflow();
+  // Re-render solo sección activa
+  const secActiva=document.querySelector('.section.active');
+  const secId=secActiva?.id?.replace('sec-','');
+  if(secId==='resumen')renderResumen();
+  else if(secId==='gastos')renderGastos();
+  else if(secId==='cashflow')renderCashflow();
 
   toast(lang==='en'?'Language: English':'Idioma: Español','info',2000);
 };
@@ -2004,72 +2078,253 @@ window.volverConfigMain=()=>{
   if(tt)tt.textContent='⚙️ Configuración';
 };
 
-// ── INTEGRACIONES — MERCADO PAGO ──
-const MP_CLIENT_ID_APP='3326257618209576';
-const MP_REDIRECT_URI='https://exquisite-starship-4e153a.netlify.app/.netlify/functions/mp-oauth-callback';
+// ── IMPORTAR DEL BANCO (desde formulario de carga) ──
+let _importBanco='Galicia';
+let _importTab='paste';
+let _importMovimientos=[];
 
-async function renderIntegracionesSubpage(){
+window.toggleImportarBanco=()=>{
+  const p=document.getElementById('import-banco-panel');
+  if(p)p.style.display=p.style.display==='none'?'block':'none';
+};
+
+window.selBanco=(btn,banco)=>{
+  _importBanco=banco;
+  document.querySelectorAll('.banco-sel-btn').forEach(b=>{
+    b.style.background='#fff';b.style.color='#888';b.style.borderColor='#e5e5e0';
+  });
+  btn.style.background='#1a1a1a';btn.style.color='#fff';btn.style.borderColor='#1a1a1a';
+};
+
+window.setImportTab=(tab)=>{
+  _importTab=tab;
+  document.getElementById('ib-paste-mode').style.display=tab==='paste'?'block':'none';
+  document.getElementById('ib-pdf-mode').style.display=tab==='pdf'?'block':'none';
+  document.getElementById('ibtab-paste').style.background=tab==='paste'?'#1a1a1a':'#fff';
+  document.getElementById('ibtab-paste').style.color=tab==='paste'?'#fff':'#888';
+  document.getElementById('ibtab-paste').style.borderColor=tab==='paste'?'#1a1a1a':'#e5e5e0';
+  document.getElementById('ibtab-pdf').style.background=tab==='pdf'?'#1a1a1a':'#fff';
+  document.getElementById('ibtab-pdf').style.color=tab==='pdf'?'#fff':'#888';
+  document.getElementById('ibtab-pdf').style.borderColor=tab==='pdf'?'#1a1a1a':'#e5e5e0';
+};
+
+window.analizarImport=async()=>{
+  const btn=document.getElementById('ib-analizar-btn');
+  const status=document.getElementById('ib-status');
+  const preview=document.getElementById('ib-preview');
+  btn.disabled=true;btn.textContent='🤖 Analizando...';
+  status.textContent='Enviando a Claude...';
+  preview.style.display='none';
+  _importMovimientos=[];
   try{
-    const userId=auth.currentUser?.uid;
-    if(!userId)return;
-    const s=await getDoc(doc(db,'integraciones',userId));
-    const mpData=s.exists()?s.data()?.mp:null;
-    const btnArea=document.getElementById('mp-btn-area');
-    const connectedInfo=document.getElementById('mp-connected-info');
-    const statusText=document.getElementById('mp-status-text');
-    const lastSync=document.getElementById('mp-last-sync');
-    if(mpData?.activo){
-      if(btnArea)btnArea.style.display='none';
-      if(connectedInfo)connectedInfo.style.display='block';
-      if(statusText)statusText.textContent='Conectado ✓';
-      if(lastSync&&mpData.ultimaSync){
-        const d=new Date(mpData.ultimaSync);
-        lastSync.textContent=`Última sync: ${d.toLocaleDateString('es-AR')} ${d.toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'})} · ${mpData.ultimosImportados||0} mov. importados`;
-      }
-    }else{
-      if(btnArea)btnArea.style.display='block';
-      if(connectedInfo)connectedInfo.style.display='none';
-      if(statusText)statusText.textContent='Importa movimientos automáticamente';
+    let body={banco:_importBanco};
+    if(_importTab==='paste'){
+      const texto=document.getElementById('ib-texto')?.value?.trim();
+      if(!texto){status.textContent='Pegá el texto primero';btn.disabled=false;btn.textContent='🤖 Analizar con IA';return;}
+      body.texto=texto;
+    } else {
+      const file=document.getElementById('ib-pdf-input')?.files?.[0];
+      if(!file){status.textContent='Seleccioná un PDF primero';btn.disabled=false;btn.textContent='🤖 Analizar con IA';return;}
+      const base64=await new Promise(res=>{const r=new FileReader();r.onload=e=>res(e.target.result.split(',')[1]);r.readAsDataURL(file);});
+      body.pdf_base64=base64;body.filename=file.name;
     }
-  }catch(e){console.error('renderIntegracionesSubpage:',e);}
+    const res=await fetch('/.netlify/functions/bank-import',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const data=await res.json();
+    if(!data.movimientos?.length){status.textContent=data.advertencias?.[0]||'No se encontraron movimientos';btn.disabled=false;btn.textContent='🤖 Analizar con IA';return;}
+    _importMovimientos=data.movimientos;
+    renderImportPreview(data.movimientos);
+    status.textContent='';
+  }catch(e){status.textContent='Error: '+e.message;}
+  btn.disabled=false;btn.textContent='🤖 Analizar con IA';
+};
+
+function renderImportPreview(movs){
+  const preview=document.getElementById('ib-preview');
+  const list=document.getElementById('ib-preview-list');
+  document.getElementById('ib-preview-title').textContent=`${movs.length} movimientos detectados — revisá y confirmá:`;
+  list.innerHTML=movs.map((m,i)=>{
+    const color=m.es_debito===false?'#16a34a':'#dc2626';
+    const signo=m.es_debito===false?'+':'-';
+    const selVal=`${m.tipo}|${m.categoria}`;
+    const opts=Object.entries(CATEGORIAS).map(([tipo,cats])=>
+      cats.map(c=>`<option value="${tipo}|${c}" ${(`${tipo}|${c}`)===selVal?'selected':''}>${tipo} · ${c}</option>`).join('')
+    ).join('');
+    return`<div style="display:flex;align-items:flex-start;gap:8px;padding:8px 0;border-bottom:0.5px solid #e5e5e0">
+      <input type="checkbox" id="ibmov-${i}" checked style="margin-top:3px;flex-shrink:0">
+      <div style="flex:1;min-width:0">
+        <div style="font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${m.descripcion}</div>
+        <div style="font-size:10px;color:#888;margin-top:3px">${m.fecha} · <select id="ibcat-${i}" style="font-size:10px;padding:1px 4px;border:0.5px solid #e5e5e0;border-radius:4px;background:#fff;max-width:150px">${opts}</select></div>
+      </div>
+      <div style="font-size:13px;font-weight:700;color:${color};flex-shrink:0">${signo}${fmt(m.monto)}</div>
+    </div>`;
+  }).join('');
+  preview.style.display='block';
 }
 
-window.conectarMP=()=>{
-  const userId=auth.currentUser?.uid;
-  if(!userId){toast('Tenés que estar logueado','err',2000);return;}
-  const url=`https://auth.mercadopago.com/authorization?client_id=${MP_CLIENT_ID_APP}&response_type=code&platform_id=mp&state=${userId}&redirect_uri=${encodeURIComponent(MP_REDIRECT_URI)}`;
-  window.location.href=url;
+window.confirmarImport=async()=>{
+  const btn=document.querySelector('#ib-preview button');
+  btn.disabled=true;btn.textContent='Cargando...';
+  let cargados=0;
+  const quien=auth.currentUser?.email?.includes('sjpouiller')?'Sebas':'Male';
+  const fpago=_importBanco==='Galicia'?'Tarjeta Credito - VISA Sebas':_importBanco==='Mercado Pago'?'Mercado Pago':'Tarjeta Debito';
+  try{
+    for(let i=0;i<_importMovimientos.length;i++){
+      const chk=document.getElementById(`ibmov-${i}`);
+      if(!chk?.checked)continue;
+      const m=_importMovimientos[i];
+      const[tipo,cat]=(document.getElementById(`ibcat-${i}`)?.value||'Gasto variable|Otros').split('|');
+      await addDoc(collection(db,'gastos'),{
+        fecha:m.fecha,mes:m.fecha.slice(0,7),tipo,
+        tipoIngreso:tipo==='Ingreso'?cat:'',categoria:tipo!=='Ingreso'?cat:'',
+        monto:m.monto,formaPago:fpago,pago:quien,
+        comentario:m.descripcion,fuente:'bank_import_'+_importBanco.toLowerCase(),
+        creadoEn:serverTimestamp(),usuario:auth.currentUser?.email||''
+      });
+      cargados++;
+    }
+    toast(`✓ ${cargados} movimientos importados de ${_importBanco}`,'ok',3000);
+    document.getElementById('import-banco-panel').style.display='none';
+    document.getElementById('ib-texto').value='';
+    document.getElementById('ib-preview').style.display='none';
+    _importMovimientos=[];
+  }catch(e){toast('Error: '+e.message,'err',3000);}
+  btn.disabled=false;btn.textContent='✓ Cargar seleccionados';
 };
 
-window.sincronizarMP=async()=>{
-  toast('Sincronizando...','info',2000);
+// ── INTEGRACIONES — GALICIA IMPORT ──
+let _galiciaTab='paste';
+let _galiciaMovimientos=[];
+
+window.toggleGaliciaImport=()=>{
+  const panel=document.getElementById('galicia-import-panel');
+  if(panel)panel.style.display=panel.style.display==='none'?'block':'none';
+};
+
+window.setGaliciaTab=(tab)=>{
+  _galiciaTab=tab;
+  document.getElementById('galicia-paste-mode').style.display=tab==='paste'?'block':'none';
+  document.getElementById('galicia-pdf-mode').style.display=tab==='pdf'?'block':'none';
+  document.getElementById('gtab-paste').style.background=tab==='paste'?'#1a1a1a':'#fff';
+  document.getElementById('gtab-paste').style.color=tab==='paste'?'#fff':'#888';
+  document.getElementById('gtab-paste').style.borderColor=tab==='paste'?'#1a1a1a':'#e5e5e0';
+  document.getElementById('gtab-pdf').style.background=tab==='pdf'?'#1a1a1a':'#fff';
+  document.getElementById('gtab-pdf').style.color=tab==='pdf'?'#fff':'#888';
+  document.getElementById('gtab-pdf').style.borderColor=tab==='pdf'?'#1a1a1a':'#e5e5e0';
+};
+
+window.analizarGalicia=async()=>{
+  const btn=document.getElementById('galicia-analizar-btn');
+  const status=document.getElementById('galicia-status');
+  const preview=document.getElementById('galicia-preview');
+  btn.disabled=true;btn.textContent='🤖 Analizando...';
+  status.textContent='Enviando a Claude...';
+  preview.style.display='none';
+  _galiciaMovimientos=[];
+
   try{
-    const res=await fetch('/.netlify/functions/mp-sync');
+    let body={};
+    if(_galiciaTab==='paste'){
+      const texto=document.getElementById('galicia-texto')?.value?.trim();
+      if(!texto){status.textContent='Pegá el texto primero';btn.disabled=false;btn.textContent='🤖 Analizar con IA';return;}
+      body={texto};
+    } else {
+      const file=document.getElementById('galicia-pdf-input')?.files?.[0];
+      if(!file){status.textContent='Seleccioná un PDF primero';btn.disabled=false;btn.textContent='🤖 Analizar con IA';return;}
+      const reader=new FileReader();
+      const base64=await new Promise(res=>{reader.onload=e=>res(e.target.result.split(',')[1]);reader.readAsDataURL(file);});
+      body={pdf_base64:base64,filename:file.name};
+    }
+
+    const res=await fetch('/.netlify/functions/bank-import',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({...body,banco:'Galicia'})
+    });
     const data=await res.json();
-    if(data.ok){
-      const imp=data.resultados?.[0]?.importados||0;
-      toast(`✓ ${imp} movimientos importados`,'ok',3000);
-      renderIntegracionesSubpage();
-    }else{toast('Error al sincronizar','err',2500);}
-  }catch(e){toast('Error al sincronizar','err',2500);}
+
+    if(!data.movimientos?.length){
+      status.textContent=data.advertencias?.[0]||'No se encontraron movimientos';
+      btn.disabled=false;btn.textContent='🤖 Analizar con IA';
+      return;
+    }
+
+    _galiciaMovimientos=data.movimientos;
+    renderGaliciaPreview(data.movimientos);
+    status.textContent='';
+  }catch(e){
+    status.textContent='Error: '+e.message;
+  }
+  btn.disabled=false;btn.textContent='🤖 Analizar con IA';
 };
 
-window.desconectarMP=async()=>{
-  const userId=auth.currentUser?.uid;
-  if(!userId)return;
+function renderGaliciaPreview(movs){
+  const preview=document.getElementById('galicia-preview');
+  const list=document.getElementById('galicia-preview-list');
+  const title=document.getElementById('galicia-preview-title');
+  title.textContent=`${movs.length} movimientos detectados — revisá y confirmá:`;
+
+  // Construir todas las opciones de categoría agrupadas
+  const todasLasOpts=Object.entries(CATEGORIAS).map(([tipo,cats])=>
+    cats.map(c=>`<option value="${tipo}|${c}">${tipo} · ${c}</option>`).join('')
+  ).join('');
+
+  list.innerHTML=movs.map((m,i)=>{
+    const color=m.es_debito===false?'#16a34a':'#dc2626';
+    const signo=m.es_debito===false?'+':'-';
+    const selVal=`${m.tipo}|${m.categoria}`;
+    // Construir opciones con el de Claude seleccionado
+    const opts=Object.entries(CATEGORIAS).map(([tipo,cats])=>
+      cats.map(c=>`<option value="${tipo}|${c}" ${(`${tipo}|${c}`)===selVal?'selected':''}>${tipo} · ${c}</option>`).join('')
+    ).join('');
+    return`<div style="display:flex;align-items:flex-start;gap:8px;padding:8px 0;border-bottom:0.5px solid #f3f3f0">
+      <input type="checkbox" id="gmov-${i}" checked style="margin-top:3px;flex-shrink:0">
+      <div style="flex:1;min-width:0">
+        <div style="font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${m.descripcion}">${m.descripcion}</div>
+        <div style="font-size:10px;color:#888;margin-top:3px">${m.fecha} · <select id="gcat-${i}" style="font-size:10px;padding:1px 4px;border:0.5px solid #e5e5e0;border-radius:4px;background:#fff;max-width:160px">${opts}</select></div>
+      </div>
+      <div style="font-size:13px;font-weight:700;color:${color};flex-shrink:0">${signo}${fmt(m.monto)}</div>
+    </div>`;
+  }).join('');
+
+  preview.style.display='block';
+}
+
+window.confirmarGalicia=async()=>{
+  const btn=document.querySelector('#galicia-preview button');
+  btn.disabled=true;btn.textContent='Cargando...';
+  let cargados=0;
   try{
-    await setDoc(doc(db,'integraciones',userId),{mp:{activo:false}},{merge:true});
-    renderIntegracionesSubpage();
-    toast('Mercado Pago desconectado','ok',2500);
-  }catch(e){console.error(e);}
+    for(let i=0;i<_galiciaMovimientos.length;i++){
+      const chk=document.getElementById(`gmov-${i}`);
+      if(!chk?.checked)continue;
+      const m=_galiciaMovimientos[i];
+      const catSel=document.getElementById(`gcat-${i}`)?.value||'Gasto variable|Otros';
+      const[tipo,cat]=catSel.split('|');
+      await addDoc(collection(db,'gastos'),{
+        fecha:m.fecha,mes:m.fecha.slice(0,7),
+        tipo,tipoIngreso:tipo==='Ingreso'?cat:'',
+        categoria:tipo!=='Ingreso'?cat:'',
+        monto:m.monto,
+        formaPago:'Tarjeta Credito - VISA Sebas',
+        pago:auth.currentUser?.email?.includes('sjpouiller')?'Sebas':'Male',
+        comentario:m.descripcion,
+        fuente:'galicia_import',
+        creadoEn:serverTimestamp(),
+        usuario:auth.currentUser?.email||''
+      });
+      cargados++;
+    }
+    toast(`✓ ${cargados} movimientos importados de Galicia`,'ok',3000);
+    document.getElementById('galicia-import-panel').style.display='none';
+    document.getElementById('galicia-texto').value='';
+    document.getElementById('galicia-preview').style.display='none';
+    _galiciaMovimientos=[];
+  }catch(e){
+    toast('Error al cargar: '+e.message,'err',3000);
+  }
+  btn.disabled=false;btn.textContent='✓ Cargar seleccionados';
 };
 
-// Detectar redirect de MP al abrir la app
-(()=>{
-  const p=new URLSearchParams(window.location.search);
-  if(p.get('mp_ok')==='1'){toast('✓ Mercado Pago conectado correctamente','ok',3500);window.history.replaceState({},'',window.location.pathname);}
-  if(p.get('mp_error')==='1'){toast('Error al conectar Mercado Pago','err',3500);window.history.replaceState({},'',window.location.pathname);}
-})();
 
 // ── PERFIL SUB ──
 let _perfilData={};
