@@ -383,9 +383,9 @@ select,input[type=text],input[type=number],input[type=date],input[type=month]{pa
           <div class="config-row" style="cursor:default"><span data-t="cfg-notificaciones">Notificaciones</span><div id="toggle-notif" onclick="toggleNotif()" style="width:40px;height:22px;border-radius:99px;background:#e5e5e0;position:relative;cursor:pointer;flex-shrink:0;transition:background .2s"><div id="toggle-notif-dot" style="position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)"></div></div></div>
           <div class="config-row" style="cursor:default"><span data-t="cfg-idioma">Idioma</span><div style="display:flex;border-radius:99px;border:0.5px solid #e0e0dc;overflow:hidden;flex-shrink:0"><div id="lang-es" style="font-size:12px;padding:3px 10px;background:#1a1a1a;color:#fff;cursor:pointer" onclick="setLang('es')">ES</div><div id="lang-en" style="font-size:12px;padding:3px 10px;background:#fff;color:#aaa;cursor:pointer" onclick="setLang('en')">EN</div></div></div>
         </div>
-        <div class="config-main-card">
+        <div class="config-main-card" style="opacity:0.35;pointer-events:none">
           <div class="config-card-title" data-t="cfg-integraciones">INTEGRACIONES</div>
-          <div class="config-row" onclick="abrirSubConfig('integraciones')"><span data-t="cfg-bancos">Bancos y billeteras</span><span class="config-row-right">›</span></div>
+          <div class="config-row"><span data-t="cfg-bancos">Bancos y billeteras</span><span class="config-row-right" style="font-size:10px;color:#aaa">Próximamente</span></div>
         </div>
         <div class="config-main-card">
           <div class="config-card-title" data-t="cfg-datos">DATOS</div>
@@ -755,22 +755,6 @@ select,input[type=text],input[type=number],input[type=date],input[type=month]{pa
     <!-- Panel importar banco -->
     <div id="import-banco-panel" style="display:none;margin-top:12px;background:#f9f9f7;border:0.5px solid #e5e5e0;border-radius:14px;padding:14px">
       <div style="font-size:13px;font-weight:700;margin-bottom:12px">Importar movimientos</div>
-      <!-- Selector de banco -->
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
-        <button class="banco-sel-btn active" onclick="selBanco(this,'Galicia')" style="display:flex;align-items:center;gap:6px;padding:6px 10px;border-radius:99px;border:0.5px solid #1a1a1a;background:#1a1a1a;color:#fff;font-size:12px;font-weight:600;cursor:pointer">
-          <img src="https://www.galicia.ar/favicon.ico" style="width:14px;height:14px;object-fit:contain" onerror="this.style.display='none'"> Galicia
-        </button>
-        <button class="banco-sel-btn" onclick="selBanco(this,'Santander')" style="display:flex;align-items:center;gap:6px;padding:6px 10px;border-radius:99px;border:0.5px solid #e5e5e0;background:#fff;color:#888;font-size:12px;font-weight:600;cursor:pointer">
-          <img src="https://logo.clearbit.com/santander.com.ar" style="width:14px;height:14px;object-fit:contain" onerror="this.style.display='none'"> Santander
-        </button>
-        <button class="banco-sel-btn" onclick="selBanco(this,'BBVA')" style="display:flex;align-items:center;gap:6px;padding:6px 10px;border-radius:99px;border:0.5px solid #e5e5e0;background:#fff;color:#888;font-size:12px;font-weight:600;cursor:pointer">
-          <img src="https://logo.clearbit.com/bbva.com" style="width:14px;height:14px;object-fit:contain" onerror="this.style.display='none'"> BBVA
-        </button>
-        <button class="banco-sel-btn" onclick="selBanco(this,'Uala')" style="display:flex;align-items:center;gap:6px;padding:6px 10px;border-radius:99px;border:0.5px solid #e5e5e0;background:#fff;color:#888;font-size:12px;font-weight:600;cursor:pointer">
-          <img src="https://logo.clearbit.com/uala.com.ar" style="width:14px;height:14px;object-fit:contain" onerror="this.style.display='none'"> Uala
-        </button>
-        <button class="banco-sel-btn" onclick="selBanco(this,'Otro')" style="padding:6px 10px;border-radius:99px;border:0.5px solid #e5e5e0;background:#fff;color:#888;font-size:12px;font-weight:600;cursor:pointer">Otro</button>
-      </div>
       <!-- Tabs texto / PDF -->
       <div style="display:flex;gap:6px;margin-bottom:10px">
         <button id="ibtab-paste" onclick="setImportTab('paste')" style="flex:1;padding:7px;border-radius:8px;font-size:12px;font-weight:600;border:0.5px solid #1a1a1a;background:#1a1a1a;color:#fff;cursor:pointer">Pegar texto</button>
@@ -2079,7 +2063,6 @@ window.volverConfigMain=()=>{
 };
 
 // ── IMPORTAR DEL BANCO (desde formulario de carga) ──
-let _importBanco='Galicia';
 let _importTab='paste';
 let _importMovimientos=[];
 
@@ -2088,13 +2071,6 @@ window.toggleImportarBanco=()=>{
   if(p)p.style.display=p.style.display==='none'?'block':'none';
 };
 
-window.selBanco=(btn,banco)=>{
-  _importBanco=banco;
-  document.querySelectorAll('.banco-sel-btn').forEach(b=>{
-    b.style.background='#fff';b.style.color='#888';b.style.borderColor='#e5e5e0';
-  });
-  btn.style.background='#1a1a1a';btn.style.color='#fff';btn.style.borderColor='#1a1a1a';
-};
 
 window.setImportTab=(tab)=>{
   _importTab=tab;
@@ -2117,7 +2093,7 @@ window.analizarImport=async()=>{
   preview.style.display='none';
   _importMovimientos=[];
   try{
-    let body={banco:_importBanco};
+    let body={};
     if(_importTab==='paste'){
       const texto=document.getElementById('ib-texto')?.value?.trim();
       if(!texto){status.textContent='Pegá el texto primero';btn.disabled=false;btn.textContent='🤖 Analizar con IA';return;}
@@ -2166,7 +2142,7 @@ window.confirmarImport=async()=>{
   btn.disabled=true;btn.textContent='Cargando...';
   let cargados=0;
   const quien=auth.currentUser?.email?.includes('sjpouiller')?'Sebas':'Male';
-  const fpago=_importBanco==='Galicia'?'Tarjeta Credito - VISA Sebas':_importBanco==='Mercado Pago'?'Mercado Pago':'Tarjeta Debito';
+  const fpago='Tarjeta Debito';
   try{
     for(let i=0;i<_importMovimientos.length;i++){
       const chk=document.getElementById(`ibmov-${i}`);
@@ -2177,12 +2153,12 @@ window.confirmarImport=async()=>{
         fecha:m.fecha,mes:m.fecha.slice(0,7),tipo,
         tipoIngreso:tipo==='Ingreso'?cat:'',categoria:tipo!=='Ingreso'?cat:'',
         monto:m.monto,formaPago:fpago,pago:quien,
-        comentario:m.descripcion,fuente:'bank_import_'+_importBanco.toLowerCase(),
+        comentario:m.descripcion,fuente:'bank_import',
         creadoEn:serverTimestamp(),usuario:auth.currentUser?.email||''
       });
       cargados++;
     }
-    toast(`✓ ${cargados} movimientos importados de ${_importBanco}`,'ok',3000);
+    toast(`✓ ${cargados} movimientos importados`,'ok',3000);
     document.getElementById('import-banco-panel').style.display='none';
     document.getElementById('ib-texto').value='';
     document.getElementById('ib-preview').style.display='none';
