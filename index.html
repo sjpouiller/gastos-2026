@@ -280,6 +280,10 @@ select,input[type=text],input[type=number],input[type=date],input[type=month]{pa
 .cat-tab.active{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
 .cat-item{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:0.5px solid #f3f3f0;font-size:13px}
 .cat-item:last-child{border-bottom:none}
+/* ONBOARDING & INVITE */
+#onboarding-screen input[type=text],#onboarding-screen input[type=email]{outline:none}
+#onboarding-screen input[type=text]:focus,#onboarding-screen input[type=email]:focus{border-color:#1a1a1a}
+#invite-screen .btn-google{margin-top:0}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
@@ -288,7 +292,7 @@ select,input[type=text],input[type=number],input[type=date],input[type=month]{pa
 <div id="login-screen">
   <div class="login-icon">💰</div>
   <div class="login-title">Gastos 2026</div>
-  <div class="login-sub">Finanzas familiares<br>Sebas & Male</div>
+  <div class="login-sub">Finanzas familiares</div>
   <button class="btn-google" onclick="loginGoogle()">
     <svg class="google-logo" viewBox="0 0 24 24">
       <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -298,8 +302,131 @@ select,input[type=text],input[type=number],input[type=date],input[type=month]{pa
     </svg>
     Entrar con Google
   </button>
-  <div class="login-note">Solo Sebas y Male tienen acceso</div>
+  <div class="login-note">Gratis para vos y tu familia</div>
   <div id="login-error" style="margin-top:12px;font-size:12px;color:#dc2626;max-width:300px;text-align:center"></div>
+</div>
+
+<!-- PANTALLA INVITACIÓN -->
+<div id="invite-screen" style="display:none;min-height:100vh;display:none;flex-direction:column;align-items:center;justify-content:center;padding:2rem;text-align:center;background:#f5f5f3">
+  <div style="font-size:64px;margin-bottom:1.5rem">💌</div>
+  <h2 style="font-size:22px;font-weight:700;margin-bottom:8px">¡Te invitaron!</h2>
+  <p style="font-size:14px;color:#666;margin-bottom:4px;max-width:280px"><strong id="inv-nombre-invitante">Alguien</strong> te invitó a unirte a <strong id="inv-nombre-hogar">un hogar</strong> en Gastos 2026.</p>
+  <p style="font-size:12px;color:#aaa;margin-bottom:28px">Aceptá con tu cuenta de Google para empezar.</p>
+  <button class="btn-google" onclick="loginYAceptar()">
+    <svg class="google-logo" viewBox="0 0 24 24">
+      <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+      <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+      <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/>
+      <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+    </svg>
+    Aceptar con Google
+  </button>
+  <button onclick="rechazarInvitacion()" style="margin-top:12px;background:none;border:none;font-size:13px;color:#aaa;cursor:pointer;padding:8px">Rechazar invitación</button>
+</div>
+
+<!-- ONBOARDING -->
+<div id="onboarding-screen" style="display:none;min-height:100vh;background:#f5f5f3;padding:0">
+  <div style="max-width:420px;margin:0 auto;padding:40px 24px 32px">
+    <!-- Progress dots -->
+    <div id="ob-dots" style="display:flex;gap:6px;justify-content:center;margin-bottom:32px"></div>
+
+    <!-- Paso 1: Bienvenida -->
+    <div id="ob-step-1">
+      <div style="font-size:56px;text-align:center;margin-bottom:16px">👋</div>
+      <h2 id="ob-saludo" style="font-size:22px;font-weight:700;text-align:center;margin-bottom:8px">¡Hola!</h2>
+      <p style="font-size:14px;color:#666;text-align:center;margin-bottom:28px">Vamos a configurar tu espacio en 5 pasos.</p>
+      <div style="margin-bottom:14px">
+        <label style="font-size:12px;font-weight:600;color:#888;display:block;margin-bottom:6px">TU NOMBRE</label>
+        <input id="ob-nombre" type="text" placeholder="Ej: Juan" style="width:100%;padding:12px 14px;border:0.5px solid #d1d5db;border-radius:12px;font-size:15px;background:#fff;box-sizing:border-box">
+      </div>
+      <div style="margin-bottom:28px">
+        <label style="font-size:12px;font-weight:600;color:#888;display:block;margin-bottom:6px">NOMBRE DEL HOGAR</label>
+        <input id="ob-hogar" type="text" placeholder="Ej: Familia García, Casa Palermo..." style="width:100%;padding:12px 14px;border:0.5px solid #d1d5db;border-radius:12px;font-size:15px;background:#fff;box-sizing:border-box">
+      </div>
+      <button onclick="obNext(1)" style="width:100%;padding:14px;background:#1a1a1a;color:#fff;border:none;border-radius:14px;font-size:15px;font-weight:600;cursor:pointer">Siguiente →</button>
+    </div>
+
+    <!-- Paso 2: Tipo de uso -->
+    <div id="ob-step-2" style="display:none">
+      <h2 style="font-size:22px;font-weight:700;text-align:center;margin-bottom:8px">¿Cómo vas a usar la app?</h2>
+      <p style="font-size:14px;color:#666;text-align:center;margin-bottom:28px">Podés cambiarlo después.</p>
+      <div id="ob-tipo-solo" onclick="selObTipo('solo')" style="padding:18px;border:0.5px solid #e5e5e0;border-radius:14px;background:#fff;cursor:pointer;margin-bottom:12px;transition:all .15s">
+        <div style="font-size:24px;margin-bottom:6px">🧍</div>
+        <div style="font-size:15px;font-weight:700">Solo</div>
+        <div style="font-size:13px;color:#888;margin-top:2px">Seguimiento personal de mis finanzas</div>
+      </div>
+      <div id="ob-tipo-familiar" onclick="selObTipo('familiar')" style="padding:18px;border:0.5px solid #e5e5e0;border-radius:14px;background:#fff;cursor:pointer;margin-bottom:28px;transition:all .15s">
+        <div style="font-size:24px;margin-bottom:6px">👫</div>
+        <div style="font-size:15px;font-weight:700">En pareja o familiar</div>
+        <div style="font-size:13px;color:#888;margin-top:2px">Gastos compartidos con otra persona</div>
+      </div>
+      <div style="display:flex;gap:10px">
+        <button onclick="obBack(2)" style="flex:1;padding:14px;background:#f0f0ee;color:#1a1a1a;border:none;border-radius:14px;font-size:15px;font-weight:600;cursor:pointer">← Volver</button>
+        <button onclick="obNext(2)" style="flex:2;padding:14px;background:#1a1a1a;color:#fff;border:none;border-radius:14px;font-size:15px;font-weight:600;cursor:pointer">Siguiente →</button>
+      </div>
+    </div>
+
+    <!-- Paso 3: Objetivo de ahorro -->
+    <div id="ob-step-3" style="display:none">
+      <h2 style="font-size:22px;font-weight:700;text-align:center;margin-bottom:8px">¿Cuánto querés ahorrar?</h2>
+      <p style="font-size:14px;color:#666;text-align:center;margin-bottom:28px">Podés ajustarlo cuando quieras.</p>
+      <div style="text-align:center;margin-bottom:8px">
+        <span id="ob-ahorro-pct" style="font-size:48px;font-weight:700">20%</span>
+      </div>
+      <div style="text-align:center;margin-bottom:6px;font-size:14px;color:#666">
+        <span id="ob-ahorro-ars">$200.000 / mes</span>
+        <span style="font-size:12px;color:#aaa"> sobre $1M de ingresos</span>
+      </div>
+      <input type="range" id="ob-ahorro" min="5" max="50" value="20" step="5" oninput="actualizarSliderAhorro()" style="width:100%;margin:20px 0 12px;accent-color:#1a1a1a">
+      <div style="display:flex;justify-content:space-between;font-size:12px;color:#aaa;margin-bottom:16px"><span>5%</span><span>50%</span></div>
+      <div id="ob-ahorro-tip" style="background:#f0f4ff;border:0.5px solid #bfdbfe;border-radius:10px;padding:10px 14px;font-size:13px;color:#1d4ed8;margin-bottom:28px">💡 Buen punto de partida. La mayoría de las familias apunta al 20%.</div>
+      <div style="display:flex;gap:10px">
+        <button onclick="obBack(3)" style="flex:1;padding:14px;background:#f0f0ee;color:#1a1a1a;border:none;border-radius:14px;font-size:15px;font-weight:600;cursor:pointer">← Volver</button>
+        <button onclick="obNext(3)" style="flex:2;padding:14px;background:#1a1a1a;color:#fff;border:none;border-radius:14px;font-size:15px;font-weight:600;cursor:pointer">Siguiente →</button>
+      </div>
+    </div>
+
+    <!-- Paso 4: Categorías -->
+    <div id="ob-step-4" style="display:none">
+      <h2 style="font-size:22px;font-weight:700;text-align:center;margin-bottom:8px">¿Qué categorías usás más?</h2>
+      <p style="font-size:14px;color:#666;text-align:center;margin-bottom:20px">Pre-seleccionamos las más comunes.</p>
+      <div id="ob-cats-container" style="max-height:340px;overflow-y:auto;padding-bottom:4px"></div>
+      <div style="display:flex;gap:10px;margin-top:20px">
+        <button onclick="obBack(4)" style="flex:1;padding:14px;background:#f0f0ee;color:#1a1a1a;border:none;border-radius:14px;font-size:15px;font-weight:600;cursor:pointer">← Volver</button>
+        <button onclick="obNext(4)" style="flex:2;padding:14px;background:#1a1a1a;color:#fff;border:none;border-radius:14px;font-size:15px;font-weight:600;cursor:pointer">Siguiente →</button>
+      </div>
+    </div>
+
+    <!-- Paso 5: Invitar co-usuario -->
+    <div id="ob-step-5" style="display:none">
+      <h2 style="font-size:22px;font-weight:700;text-align:center;margin-bottom:8px">¿Querés invitar a alguien?</h2>
+      <p style="font-size:14px;color:#666;text-align:center;margin-bottom:28px">Vas a compartir todos los gastos con esta persona.</p>
+      <div style="margin-bottom:14px">
+        <label style="font-size:12px;font-weight:600;color:#888;display:block;margin-bottom:6px">EMAIL DEL CO-USUARIO</label>
+        <input id="ob-email-coinquilino" type="email" placeholder="Ej: maria@gmail.com" style="width:100%;padding:12px 14px;border:0.5px solid #d1d5db;border-radius:12px;font-size:15px;background:#fff;box-sizing:border-box">
+      </div>
+      <div id="ob-invite-link" style="display:none;background:#f0fdf4;border:0.5px solid #86efac;border-radius:10px;padding:12px 14px;margin-bottom:16px">
+        <div style="font-size:12px;font-weight:600;color:#16a34a;margin-bottom:6px">🔗 Link de invitación</div>
+        <div id="ob-invite-link-text" style="font-size:12px;color:#333;word-break:break-all;margin-bottom:8px"></div>
+        <button onclick="copiarLinkInvitacion()" style="width:100%;padding:8px;background:#16a34a;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer">📋 Copiar link</button>
+        <div style="font-size:11px;color:#666;margin-top:6px;text-align:center">📧 Pronto se va a mandar por email automáticamente</div>
+      </div>
+      <button onclick="generarLinkInvitacion()" id="ob-btn-generar-link" style="width:100%;padding:12px;background:#f0f0ee;color:#1a1a1a;border:none;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;margin-bottom:10px">🔗 Generar link de invitación</button>
+      <div style="display:flex;gap:10px;margin-top:8px">
+        <button onclick="obBack(5)" style="flex:1;padding:14px;background:#f0f0ee;color:#1a1a1a;border:none;border-radius:14px;font-size:15px;font-weight:600;cursor:pointer">← Volver</button>
+        <button onclick="obNext(5)" style="flex:2;padding:14px;background:#1a1a1a;color:#fff;border:none;border-radius:14px;font-size:15px;font-weight:600;cursor:pointer">Siguiente →</button>
+      </div>
+      <button onclick="obNext(5)" style="width:100%;margin-top:10px;padding:10px;background:none;border:none;font-size:13px;color:#aaa;cursor:pointer">Saltar por ahora</button>
+    </div>
+
+    <!-- Paso 6: Éxito -->
+    <div id="ob-step-6" style="display:none;text-align:center">
+      <div style="font-size:64px;margin-bottom:16px">🎉</div>
+      <h2 style="font-size:22px;font-weight:700;margin-bottom:12px">¡Todo listo!</h2>
+      <div id="ob-resumen" style="background:#fff;border:0.5px solid #e5e5e0;border-radius:14px;padding:16px;text-align:left;margin-bottom:28px;font-size:14px;line-height:2"></div>
+      <button onclick="finalizarOnboarding()" style="width:100%;padding:14px;background:#1a1a1a;color:#fff;border:none;border-radius:14px;font-size:15px;font-weight:600;cursor:pointer">Ir a la app →</button>
+    </div>
+  </div>
 </div>
 
 <!-- APP -->
@@ -906,7 +1033,7 @@ select,input[type=text],input[type=number],input[type=date],input[type=month]{pa
 </div>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, onSnapshot, query, orderBy, serverTimestamp, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, onSnapshot, query, orderBy, serverTimestamp, setDoc, getDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 const cfg={apiKey:"AIzaSyBAZJ1VfbW4fUiZmKLrIJHoodqEelE8iIA",authDomain:"gastos-sebas-male.firebaseapp.com",projectId:"gastos-sebas-male",storageBucket:"gastos-sebas-male.firebasestorage.app",messagingSenderId:"966248890085",appId:"1:966248890085:web:b7cae55e5af740989a9e0c"};
@@ -914,7 +1041,9 @@ const fbApp=initializeApp(cfg);
 const db=getFirestore(fbApp);
 const auth=getAuth(fbApp);
 const provider=new GoogleAuthProvider();
-const AUTORIZADOS=["sjpouiller@gmail.com","malelanusse@odiseaswimwear.com.ar"];
+// Usuarios legacy — entran directo sin onboarding, apuntan al hogar 'sjpouiller'
+const USUARIOS_LEGACY={"sjpouiller@gmail.com":"sjpouiller","malelanusse@odiseaswimwear.com.ar":"sjpouiller"};
+let hogarId=null; // se setea después del login
 const USD_INICIAL=5152;
 
 let gastos=[];
@@ -960,50 +1089,154 @@ let _tt;
 function toast(msg,tipo='info',ms=4000){const el=document.getElementById('toast');el.textContent=msg;el.className=`toast toast-${tipo} show`;clearTimeout(_tt);_tt=setTimeout(()=>el.classList.remove('show'),ms);}
 
 // ── AUTH ──
-window.loginGoogle=async()=>{const err=document.getElementById('login-error');err.textContent='';try{const r=await signInWithPopup(auth,provider);if(!AUTORIZADOS.includes(r.user.email)){await signOut(auth);err.textContent=`❌ ${r.user.email} no tiene acceso.`;}}catch(e){err.textContent='Error al iniciar sesión. Intentá de nuevo.';console.error(e);}};
-window.logout=async()=>{unsub?.();await signOut(auth);};
+let _pendingInviteToken=null;
+
+// Detectar invite token en la URL antes del login
+(()=>{
+  const p=new URLSearchParams(window.location.search);
+  const tok=p.get('invite');
+  if(tok){
+    _pendingInviteToken=tok;
+    // Precargar datos de la invitación para mostrar en la pantalla
+    getDoc(doc(db,'invitaciones',tok)).then(s=>{
+      if(s.exists()&&Date.now()<s.data().expiresAt){
+        const inv=s.data();
+        document.getElementById('login-screen').style.display='none';
+        document.getElementById('invite-screen').style.display='flex';
+        document.getElementById('inv-nombre-invitante').textContent=inv.nombreInvitante||inv.emailInvitante;
+        document.getElementById('inv-nombre-hogar').textContent=inv.nombreHogar||'un hogar';
+      }
+    }).catch(()=>{});
+  }
+})();
+
+window.loginGoogle=async()=>{
+  const err=document.getElementById('login-error');
+  err.textContent='';
+  try{await signInWithPopup(auth,provider);}
+  catch(e){err.textContent='Error al iniciar sesión. Intentá de nuevo.';console.error(e);}
+};
+window.loginYAceptar=async()=>{
+  try{await signInWithPopup(auth,provider);}
+  catch(e){console.error(e);}
+};
+window.rechazarInvitacion=()=>{
+  _pendingInviteToken=null;
+  window.history.replaceState({},'','/');
+  document.getElementById('invite-screen').style.display='none';
+  document.getElementById('login-screen').style.display='flex';
+};
+window.logout=async()=>{unsub?.();hogarId=null;await signOut(auth);};
+
+function mostrarApp(user){
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('invite-screen').style.display='none';
+  document.getElementById('onboarding-screen').style.display='none';
+  document.getElementById('app-screen').style.display='block';
+  document.getElementById('bottom-nav').style.display='flex';
+  document.getElementById('fab-agente').style.display='flex';
+  const wrap=document.getElementById('user-avatar-wrap');
+  wrap.innerHTML=user.photoURL?`<img src="${user.photoURL}" class="user-avatar">`:`<div class="user-initials">${(user.displayName||'?')[0]}</div>`;
+  window._authUser=user;
+  if(window._authUserReady)window._authUserReady(user);
+}
+
+async function iniciarApp(user){
+  mostrarApp(user);
+  const dot=document.getElementById('sync-dot'),txt=document.getElementById('sync-txt');
+  dot.className='sync-dot syncing';txt.textContent='cargando...';
+  await cargarPresupuestos();
+  await cargarPlanItems();
+  await cargarCatCustom();
+  await cargarIngresosProyectados();
+  fetchDolarBlue();
+  sembrarCuotasResumen();
+  await cargarInflacion();
+  unsub=onSnapshot(query(collection(db,'hogares',hogarId,'gastos'),orderBy('fecha','desc')),snap=>{
+    gastos=snap.docs.map(d=>({id:d.id,...d.data()}));
+    window.gastos=gastos;
+    window.anioSel=anioSel;
+    dot.className='sync-dot';txt.textContent=gastos.length+' mov.';
+    if(!mesSel){mesSel=mesActualStr();}
+    renderResumen();renderGastos();renderCashflow();
+  },()=>{dot.className='sync-dot err';txt.textContent='error';});
+  window.history.replaceState({},'','/');
+}
+
+async function procesarInvitacion(token,user){
+  try{
+    const invSnap=await getDoc(doc(db,'invitaciones',token));
+    if(!invSnap.exists()){toast('Invitación inválida','err',3000);return false;}
+    const inv=invSnap.data();
+    if(Date.now()>inv.expiresAt){toast('La invitación expiró','err',3000);return false;}
+    // Crear usuario apuntando al hogar del invitante
+    await setDoc(doc(db,'usuarios',user.uid),{
+      hogarId:inv.hogarId,nombre:user.displayName||user.email,
+      email:user.email,rol:'couser',creadoEn:serverTimestamp()
+    });
+    // Agregar al hogar
+    await updateDoc(doc(db,'hogares',inv.hogarId,'metadata','info'),{
+      coUsuarios:arrayUnion(user.email)
+    });
+    await updateDoc(doc(db,'invitaciones',token),{status:'aceptada'});
+    hogarId=inv.hogarId;
+    toast('✓ Te uniste al hogar correctamente','ok',3000);
+    return true;
+  }catch(e){console.error('procesarInvitacion:',e);toast('Error al procesar la invitación','err',3000);return false;}
+}
 
 onAuthStateChanged(auth,async user=>{
-  if(user&&AUTORIZADOS.includes(user.email)){
-    document.getElementById('login-screen').style.display='none';
-    document.getElementById('app-screen').style.display='block';
-    document.getElementById('bottom-nav').style.display='flex';
-    document.getElementById('fab-agente').style.display='flex';
-    const wrap=document.getElementById('user-avatar-wrap');
-    wrap.innerHTML=user.photoURL?`<img src="${user.photoURL}" class="user-avatar">`:`<div class="user-initials">${(user.displayName||'?')[0]}</div>`;
-    // notificar al drawer
-    window._authUser=user;
-    if(window._authUserReady)window._authUserReady(user);
-    const dot=document.getElementById('sync-dot'),txt=document.getElementById('sync-txt');
-    dot.className='sync-dot syncing';txt.textContent='cargando...';
-    await cargarPresupuestos();
-    await cargarPlanItems();
-    await cargarCatCustom();
-    await cargarIngresosProyectados();
-    fetchDolarBlue();
-    sembrarCuotasResumen();
-    await cargarInflacion();
-    unsub=onSnapshot(query(collection(db,'gastos'),orderBy('fecha','desc')),snap=>{
-      gastos=snap.docs.map(d=>({id:d.id,...d.data()}));
-      window.gastos=gastos;
-      window.anioSel=anioSel;
-      dot.className='sync-dot';txt.textContent=gastos.length+' mov.';
-      if(!mesSel){mesSel=mesActualStr();}
-      renderResumen();renderGastos();renderCashflow();
-    },()=>{dot.className='sync-dot err';txt.textContent='error';});
+  if(user){
+    // 1. Si hay token de invitación pendiente, procesarlo primero
+    if(_pendingInviteToken){
+      const ok=await procesarInvitacion(_pendingInviteToken,user);
+      _pendingInviteToken=null;
+      if(ok){await iniciarApp(user);return;}
+    }
+    // 2. Buscar documento de usuario en Firestore
+    const usuarioSnap=await getDoc(doc(db,'usuarios',user.uid));
+    if(usuarioSnap.exists()){
+      hogarId=usuarioSnap.data().hogarId;
+      window.hogarId=hogarId;
+      await iniciarApp(user);
+    } else if(USUARIOS_LEGACY[user.email]){
+      // 3. Usuario legacy (Sebas o Male) — crear doc automáticamente sin onboarding
+      hogarId=USUARIOS_LEGACY[user.email];
+      window.hogarId=hogarId;
+      await setDoc(doc(db,'usuarios',user.uid),{
+        hogarId,nombre:user.displayName||user.email,
+        email:user.email,rol:'owner',creadoEn:serverTimestamp()
+      },{merge:true});
+      await iniciarApp(user);
+    } else {
+      // 4. Usuario nuevo — mostrar onboarding
+      window._authUser=user;
+      document.getElementById('login-screen').style.display='none';
+      document.getElementById('invite-screen').style.display='none';
+      document.getElementById('onboarding-screen').style.display='block';
+      const saludo=document.getElementById('ob-saludo');
+      if(saludo)saludo.textContent=`¡Hola, ${user.displayName?.split(' ')[0]||''}!`;
+      const obNombre=document.getElementById('ob-nombre');
+      if(obNombre&&user.displayName)obNombre.value=user.displayName.split(' ')[0];
+      iniciarOnboarding();
+    }
   }else{
     document.getElementById('login-screen').style.display='flex';
     document.getElementById('app-screen').style.display='none';
+    document.getElementById('onboarding-screen').style.display='none';
     document.getElementById('bottom-nav').style.display='none';
     document.getElementById('fab-agente').style.display='none';
-    gastos=[];mesSel=null;
+    gastos=[];mesSel=null;hogarId=null;
   }
 });
 
-// ── FIREBASE CONFIG ──
-async function cargarPresupuestos(){try{const s=await getDoc(doc(db,'config','presupuestos'));if(s.exists()){const d=s.data();presupuestos=d.montos||{};catConfigActivas=d.activas||[];}}catch(e){console.error(e);}}
-async function guardarPresupuestos(){try{await setDoc(doc(db,'config','presupuestos'),{montos:presupuestos,activas:catConfigActivas});}catch(e){console.error(e);}}
-async function cargarPlanItems(){try{const s=await getDoc(doc(db,'config','plan_lista'));if(s.exists())planItems=s.data().items||[];}catch(e){console.error(e);}}
+// ── FIREBASE CONFIG (multi-tenant) ──
+const cfgDoc=(id)=>doc(db,'hogares',hogarId,'config',id);
+const gastosCol=()=>collection(db,'hogares',hogarId,'gastos');
+const gastosDoc=(id)=>doc(db,'hogares',hogarId,'gastos',id);
+async function cargarPresupuestos(){try{const s=await getDoc(doc(db,'hogares',hogarId,'presupuestos','config'));if(s.exists()){const d=s.data();presupuestos=d.montos||{};catConfigActivas=d.activas||[];}}catch(e){console.error(e);}}
+async function guardarPresupuestos(){try{await setDoc(doc(db,'hogares',hogarId,'presupuestos','config'),{montos:presupuestos,activas:catConfigActivas});}catch(e){console.error(e);}}
+async function cargarPlanItems(){try{const s=await getDoc(doc(db,'hogares',hogarId,'plan_lista','config'));if(s.exists())planItems=s.data().items||[];}catch(e){console.error(e);}}
 
 // ── CUOTAS RESUMEN — sembrar movimientos reales en Firestore (una sola vez) ──
 const CUOTAS_RESUMEN=[
@@ -1031,10 +1264,10 @@ const CUOTAS_RESUMEN=[
 
 async function sembrarCuotasResumen(){
   try{
-    const flagDoc=await getDoc(doc(db,'config','cuotas_resumen_sembradas'));
-    if(flagDoc.exists())return; // ya sembradas, no duplicar
+    const flagDoc=await getDoc(cfgDoc('cuotas_resumen_sembradas'));
+    if(flagDoc.exists())return;
     for(const c of CUOTAS_RESUMEN){
-      await addDoc(collection(db,'gastos'),{
+      await addDoc(gastosCol(),{
         fecha:c.fecha,mes:c.mes,tipo:'Gasto fijo',tipoIngreso:'',
         categoria:'Cuotas tarjetas de crédito',monto:c.monto,
         formaPago:c.formaPago,pago:c.pago,comentario:c.comentario,
@@ -1042,11 +1275,11 @@ async function sembrarCuotasResumen(){
         creadoEn:serverTimestamp(),usuario:'sistema'
       });
     }
-    await setDoc(doc(db,'config','cuotas_resumen_sembradas'),{fecha:new Date().toISOString(),total:CUOTAS_RESUMEN.length});
+    await setDoc(cfgDoc('cuotas_resumen_sembradas'),{fecha:new Date().toISOString(),total:CUOTAS_RESUMEN.length});
     toast('✓ Cuotas de resúmenes cargadas automáticamente','ok',3000);
   }catch(e){console.error('sembrarCuotasResumen:',e);}
 }
-async function guardarPlanItems(){try{await setDoc(doc(db,'config','plan_lista'),{items:planItems});}catch(e){console.error(e);}}
+async function guardarPlanItems(){try{await setDoc(doc(db,'hogares',hogarId,'plan_lista','config'),{items:planItems});}catch(e){console.error(e);}}
 
 // ── TOP CATS ──
 function calcTopCats(){
@@ -1237,7 +1470,7 @@ window.guardar=async()=>{
         const fechaCuota=`${dCuota.getFullYear()}-${pad(dCuota.getMonth()+1)}-01`;
         const dd={fecha:fechaCuota,tipo,tipoIngreso:'',categoria:cat,monto:montoCuota,formaPago:'Tarjeta Credito CUOTAS',pago:quien,mes:mesCuota,creadoEn:serverTimestamp(),fuente:'app',usuario:auth.currentUser?.email||'',esCuota:true,cuotaNum:i+1,cuotasTotal:nCuotas,cuotaGrupoId:grupoId};
         if(comentario)dd.comentario=comentario;
-        await addDoc(collection(db,'gastos'),dd);
+        await addDoc(gastosCol(),dd);
       }
       msgEl.innerHTML=`<div class="alert alert-ok">✓ ${nCuotas} cuotas de ${fmt(montoCuota)} guardadas · ${cat}</div>`;
       toast(`✓ ${nCuotas} cuotas de ${fmt(montoCuota)} guardadas`,'ok',3000);
@@ -1496,7 +1729,7 @@ const hI=new Date();const inpF=document.getElementById('inp-fecha');if(inpF)inpF
 
 // ── ELIMINAR ──
 window.confirmarEliminar=(id)=>{const g=gastos.find(x=>x.id===id);if(!g)return;const cat=g.categoria||g.tipoIngreso||g.tipo;if(!confirm(`¿Eliminar este movimiento?\n\n${g.fecha} · ${cat} · $${Math.round(g.monto||0).toLocaleString('es-AR')}`))return;eliminarGasto(id);};
-window.eliminarGasto=async(id)=>{try{await deleteDoc(doc(db,'gastos',id));toast('🗑️ Movimiento eliminado','info',2500);}catch(e){toast('Error al eliminar: '+e.message,'warn',3000);console.error(e);}};
+window.eliminarGasto=async(id)=>{try{await deleteDoc(gastosDoc(id));toast('🗑️ Movimiento eliminado','info',2500);}catch(e){toast('Error al eliminar: '+e.message,'warn',3000);console.error(e);}};
 
 // ── EDITAR ──
 let editandoId=null;
@@ -1504,7 +1737,7 @@ window.actualizarCategoriasEdit=()=>{const t=document.getElementById('edit-tipo'
 window.toggleDolarFieldEdit=()=>{const c=document.getElementById('edit-cat')?.value||'';const g=document.getElementById('grp-dolar-edit');if(g)g.style.display=CATS_USD.includes(c)?'block':'none';};
 window.abrirEdicion=(id)=>{const g=gastos.find(x=>x.id===id);if(!g)return;editandoId=id;document.getElementById('edit-fecha').value=g.fecha||'';document.getElementById('edit-tipo').value=g.tipo||'Gasto variable';window.actualizarCategoriasEdit();const cat=g.categoria||g.tipoIngreso||'';const s=document.getElementById('edit-cat');for(let o of s.options){if(o.value===cat){o.selected=true;break;}}document.getElementById('edit-monto').value=g.monto||'';document.getElementById('edit-dolar').value=g.montoDolar||'';document.getElementById('edit-pago').value=g.formaPago||'Transferencia';document.getElementById('edit-quien').value=g.pago||'Sebas';document.getElementById('edit-comentario').value=g.comentario||'';document.getElementById('edit-msg').innerHTML='';toggleDolarFieldEdit();document.getElementById('modal-editar').style.display='block';};
 window.cerrarModal=()=>{document.getElementById('modal-editar').style.display='none';editandoId=null;};
-window.guardarEdicion=async()=>{if(!editandoId)return;const btn=document.querySelector('#modal-editar .btn-primary');const msgEl=document.getElementById('edit-msg');const fecha=document.getElementById('edit-fecha').value;const tipo=document.getElementById('edit-tipo').value;const cat=document.getElementById('edit-cat').value;const monto=parseFloat(document.getElementById('edit-monto').value)||0;const pago=document.getElementById('edit-pago').value;const quien=document.getElementById('edit-quien').value;const mD=parseFloat(document.getElementById('edit-dolar').value)||0;const comentario=document.getElementById('edit-comentario').value.trim();if(!fecha||!monto){msgEl.innerHTML='<div class="alert alert-err">Completá fecha y monto</div>';return;}btn.disabled=true;btn.textContent='Guardando...';try{const u={fecha,tipo,tipoIngreso:tipo==='Ingreso'?cat:'',categoria:tipo!=='Ingreso'?cat:'',monto,formaPago:pago,pago:quien,mes:fecha.slice(0,7),editadoEn:serverTimestamp(),usuario:auth.currentUser?.email||''};if(mD>0&&CATS_USD.includes(cat))u.montoDolar=mD;if(comentario)u.comentario=comentario;await updateDoc(doc(db,'gastos',editandoId),u);toast('✓ Movimiento actualizado','ok',2500);window.cerrarModal();}catch(e){msgEl.innerHTML=`<div class="alert alert-err">Error: ${e.message}</div>`;}btn.disabled=false;btn.textContent='Guardar cambios';};
+window.guardarEdicion=async()=>{if(!editandoId)return;const btn=document.querySelector('#modal-editar .btn-primary');const msgEl=document.getElementById('edit-msg');const fecha=document.getElementById('edit-fecha').value;const tipo=document.getElementById('edit-tipo').value;const cat=document.getElementById('edit-cat').value;const monto=parseFloat(document.getElementById('edit-monto').value)||0;const pago=document.getElementById('edit-pago').value;const quien=document.getElementById('edit-quien').value;const mD=parseFloat(document.getElementById('edit-dolar').value)||0;const comentario=document.getElementById('edit-comentario').value.trim();if(!fecha||!monto){msgEl.innerHTML='<div class="alert alert-err">Completá fecha y monto</div>';return;}btn.disabled=true;btn.textContent='Guardando...';try{const u={fecha,tipo,tipoIngreso:tipo==='Ingreso'?cat:'',categoria:tipo!=='Ingreso'?cat:'',monto,formaPago:pago,pago:quien,mes:fecha.slice(0,7),editadoEn:serverTimestamp(),usuario:auth.currentUser?.email||''};if(mD>0&&CATS_USD.includes(cat))u.montoDolar=mD;if(comentario)u.comentario=comentario;await updateDoc(gastosDoc(editandoId),u);toast('✓ Movimiento actualizado','ok',2500);window.cerrarModal();}catch(e){msgEl.innerHTML=`<div class="alert alert-err">Error: ${e.message}</div>`;}btn.disabled=false;btn.textContent='Guardar cambios';};
 
 // ── FEATURE 1: BANNERS CLICKEABLES ──
 window.abrirMetricModal=(tipo,mes,mesP)=>{
@@ -1829,11 +2062,11 @@ window.setLang=(lang)=>{
 window.catCustom={fijo:[],variable:[],ingreso:[],ahorro:[]};
 let catCustom=window.catCustom;
 let ingresosProyectados={};
-async function cargarCatCustom(){try{const s=await getDoc(doc(db,'config','categorias'));if(s.exists()){const d=s.data();Object.assign(window.catCustom,d);catCustom=window.catCustom;actualizarCategorias();}}catch(e){console.error(e);}}
-async function guardarCatCustom(){try{await setDoc(doc(db,'config','categorias'),window.catCustom);}catch(e){console.error(e);}}
+async function cargarCatCustom(){try{const s=await getDoc(cfgDoc('categorias'));if(s.exists()){const d=s.data();Object.assign(window.catCustom,d);catCustom=window.catCustom;actualizarCategorias();}}catch(e){console.error(e);}}
+async function guardarCatCustom(){try{await setDoc(cfgDoc('categorias'),window.catCustom);}catch(e){console.error(e);}}
 window.guardarCatCustom=guardarCatCustom;
-async function cargarIngresosProyectados(){try{const s=await getDoc(doc(db,'config','ingresos_proyectados'));if(s.exists()){ingresosProyectados=s.data();window.ingresosProyectados=ingresosProyectados;}}catch(e){console.error(e);}}
-async function guardarIngresosProyectados(){try{await setDoc(doc(db,'config','ingresos_proyectados'),ingresosProyectados);}catch(e){console.error(e);}}
+async function cargarIngresosProyectados(){try{const s=await getDoc(cfgDoc('ingresos_proyectados'));if(s.exists()){ingresosProyectados=s.data();window.ingresosProyectados=ingresosProyectados;}}catch(e){console.error(e);}}
+async function guardarIngresosProyectados(){try{await setDoc(cfgDoc('ingresos_proyectados'),ingresosProyectados);}catch(e){console.error(e);}}
 window.guardarIngresosProyectados=guardarIngresosProyectados;
 
 window.configTabs=(id,btn)=>{
@@ -2061,7 +2294,7 @@ window.abrirSubConfig=(id)=>{
   if(id==='ingresos')renderIngresosSubpage();
   if(id==='categorias'){_catTabActual='fijo';renderCatListNew();}
   if(id==='perfil')renderPerfilSubpage();
-  if(id==='integraciones')renderIntegracionesSubpage();
+  if(id==='integraciones'){}// próximamente
 };
 
 window.volverConfigMain=()=>{
@@ -2313,12 +2546,163 @@ window.confirmarGalicia=async()=>{
 };
 
 
+// ── ONBOARDING ──
+const OB_CATS_COMUNES={
+  'Gasto variable':['Supermercado','Nafta','Delivery','Salidas a comer','Farmacia','Uber / Taxi','Cafe'],
+  'Gasto fijo':['Expensas','Internet','Servicios - Luz','Servicios - Gas','Obra social / Prepaga'],
+  'Ingreso':['Sueldo','Freelance'],
+  'Ahorro':['Ahorro general','Compra USD']
+};
+let _obStep=1;
+let _obTipo='familiar';
+let _obCatsSeleccionadas=new Set([...OB_CATS_COMUNES['Gasto variable'],...OB_CATS_COMUNES['Gasto fijo']]);
+let _obInviteLink=null;
+
+function iniciarOnboarding(){
+  _obStep=1;
+  renderObDots();
+  renderObCats();
+  selObTipo('familiar');
+}
+
+function renderObDots(){
+  const dots=document.getElementById('ob-dots');
+  if(!dots)return;
+  dots.innerHTML=[1,2,3,4,5].map(i=>`<div style="width:${_obStep===i?20:8}px;height:8px;border-radius:99px;background:${_obStep===i?'#1a1a1a':'#d1d5db'};transition:all .2s"></div>`).join('');
+}
+
+function renderObCats(){
+  const c=document.getElementById('ob-cats-container');
+  if(!c)return;
+  c.innerHTML=Object.entries(OB_CATS_COMUNES).map(([tipo,cats],idx)=>`
+    <div style="margin-bottom:14px">
+      <div style="font-size:11px;font-weight:700;color:#aaa;letter-spacing:.08em;margin-bottom:8px;cursor:pointer" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'flex':'none'">
+        ${tipo.toUpperCase()} ${idx<2?'▼':'▶'}
+      </div>
+      <div style="display:${idx<2?'flex':'none'};flex-wrap:wrap;gap:6px">
+        ${cats.map(cat=>`<button onclick="toggleObCat(this,'${cat.replace(/'/g,"\\'")}')" style="padding:6px 12px;border-radius:99px;border:0.5px solid ${_obCatsSeleccionadas.has(cat)?'#1a1a1a':'#e5e5e0'};background:${_obCatsSeleccionadas.has(cat)?'#1a1a1a':'#fff'};color:${_obCatsSeleccionadas.has(cat)?'#fff':'#666'};font-size:12px;font-weight:600;cursor:pointer">${cat}</button>`).join('')}
+      </div>
+    </div>`).join('');
+}
+
+window.toggleObCat=(btn,cat)=>{
+  if(_obCatsSeleccionadas.has(cat)){_obCatsSeleccionadas.delete(cat);btn.style.background='#fff';btn.style.color='#666';btn.style.borderColor='#e5e5e0';}
+  else{_obCatsSeleccionadas.add(cat);btn.style.background='#1a1a1a';btn.style.color='#fff';btn.style.borderColor='#1a1a1a';}
+};
+
+window.selObTipo=(tipo)=>{
+  _obTipo=tipo;
+  const solo=document.getElementById('ob-tipo-solo');
+  const fam=document.getElementById('ob-tipo-familiar');
+  if(solo){solo.style.border=tipo==='solo'?'2px solid #1a1a1a':'0.5px solid #e5e5e0';solo.style.background=tipo==='solo'?'#f5f5f3':'#fff';}
+  if(fam){fam.style.border=tipo==='familiar'?'2px solid #1a1a1a':'0.5px solid #e5e5e0';fam.style.background=tipo==='familiar'?'#f5f5f3':'#fff';}
+};
+
+window.actualizarSliderAhorro=()=>{
+  const v=parseInt(document.getElementById('ob-ahorro')?.value||20);
+  const p=document.getElementById('ob-ahorro-pct');
+  const a=document.getElementById('ob-ahorro-ars');
+  const tip=document.getElementById('ob-ahorro-tip');
+  if(p)p.textContent=v+'%';
+  if(a)a.textContent='$'+Math.round(v*10000).toLocaleString('es-AR')+' / mes';
+  if(tip){
+    if(v<=10)tip.textContent='💡 Cualquier ahorro suma. Empezá de a poco.';
+    else if(v<=20)tip.textContent='💡 Buen punto de partida. La mayoría de las familias apunta al 20%.';
+    else if(v<=30)tip.textContent='💪 Muy bien. Estás por encima del promedio.';
+    else tip.textContent='🚀 Ambicioso. Asegurate de que sea realista para mantenerlo.';
+  }
+};
+
+window.obNext=async(paso)=>{
+  if(paso===1){
+    const nombre=document.getElementById('ob-nombre')?.value.trim();
+    const hogar=document.getElementById('ob-hogar')?.value.trim();
+    if(!nombre||!hogar){toast('Completá tu nombre y el del hogar','warn',2500);return;}
+  }
+  _obStep=paso+1;
+  [1,2,3,4,5,6].forEach(i=>{const el=document.getElementById(`ob-step-${i}`);if(el)el.style.display=i===_obStep?'block':'none';});
+  renderObDots();
+  if(_obStep===6)mostrarObResumen();
+};
+
+window.obBack=(paso)=>{
+  _obStep=paso-1;
+  [1,2,3,4,5,6].forEach(i=>{const el=document.getElementById(`ob-step-${i}`);if(el)el.style.display=i===_obStep?'block':'none';});
+  renderObDots();
+};
+
+function mostrarObResumen(){
+  const nombre=document.getElementById('ob-nombre')?.value.trim()||'';
+  const hogar=document.getElementById('ob-hogar')?.value.trim()||'';
+  const ahorro=document.getElementById('ob-ahorro')?.value||20;
+  const email=document.getElementById('ob-email-coinquilino')?.value.trim()||'';
+  const r=document.getElementById('ob-resumen');
+  if(r)r.innerHTML=`🏠 <strong>${hogar}</strong><br>👤 ${nombre}<br>🎯 Objetivo de ahorro: <strong>${ahorro}%</strong>${_obInviteLink?`<br>🔗 Link de invitación generado`:(email?`<br>📧 Co-usuario: ${email}`:'')}<br>🗂️ ${_obCatsSeleccionadas.size} categorías seleccionadas`;
+}
+
+window.generarLinkInvitacion=async()=>{
+  const email=document.getElementById('ob-email-coinquilino')?.value.trim();
+  const nombre=document.getElementById('ob-nombre')?.value.trim()||'';
+  const hogar=document.getElementById('ob-hogar')?.value.trim()||'Mi hogar';
+  const user=window._authUser;
+  if(!user){toast('Error: no hay usuario','err',2000);return;}
+  const token=[...Array(32)].map(()=>Math.random().toString(36)[2]).join('');
+  const futurHogarId=user.uid;
+  try{
+    await setDoc(doc(db,'invitaciones',token),{
+      hogarId:futurHogarId,
+      emailInvitado:email||'',
+      emailInvitante:user.email,
+      nombreInvitante:nombre||user.displayName||user.email,
+      nombreHogar:hogar,
+      status:'pendiente',
+      expiresAt:Date.now()+(7*24*60*60*1000),
+      creadoEn:serverTimestamp()
+    });
+    const link=`${window.location.origin}/?invite=${token}`;
+    _obInviteLink=link;
+    const linkDiv=document.getElementById('ob-invite-link');
+    const linkText=document.getElementById('ob-invite-link-text');
+    if(linkDiv)linkDiv.style.display='block';
+    if(linkText)linkText.textContent=link;
+    document.getElementById('ob-btn-generar-link').style.display='none';
+    toast('✓ Link generado','ok',2500);
+  }catch(e){toast('Error al generar link: '+e.message,'err',3000);}
+};
+
+window.copiarLinkInvitacion=()=>{
+  if(_obInviteLink){navigator.clipboard.writeText(_obInviteLink).then(()=>toast('✓ Link copiado','ok',2000));}
+};
+
+window.finalizarOnboarding=async()=>{
+  const user=window._authUser;
+  if(!user)return;
+  const nombre=document.getElementById('ob-nombre')?.value.trim()||user.displayName||'';
+  const hogar=document.getElementById('ob-hogar')?.value.trim()||'Mi hogar';
+  const ahorro=parseInt(document.getElementById('ob-ahorro')?.value||20);
+  const newHogarId=user.uid;
+  try{
+    await setDoc(doc(db,'hogares',newHogarId,'metadata','info'),{
+      nombre:hogar,creadoPor:user.email,coUsuarios:[],
+      objetivoAhorro:ahorro,tipo:_obTipo,
+      categorias:[..._obCatsSeleccionadas],creadoEn:serverTimestamp()
+    });
+    await setDoc(doc(db,'usuarios',user.uid),{
+      hogarId:newHogarId,nombre,email:user.email,
+      rol:'owner',creadoEn:serverTimestamp()
+    });
+    hogarId=newHogarId;
+    window.hogarId=hogarId;
+    await iniciarApp(user);
+  }catch(e){toast('Error al guardar: '+e.message,'err',3000);console.error(e);}
+};
+
 // ── PERFIL SUB ──
 let _perfilData={};
 async function renderPerfilSubpage(){
   const u=window._authUser;
   // Cargar datos guardados de Firestore
-  try{const s=await getDoc(doc(db,'config','perfil'));if(s.exists())_perfilData=s.data();}catch(e){}
+  try{const s=await getDoc(cfgDoc('perfil'));if(s.exists())_perfilData=s.data();}catch(e){}
   // Iniciales / foto
   const nombre=_perfilData.nombre||u?.displayName||'';
   const email=u?.email||'';
@@ -2347,7 +2731,7 @@ window.guardarPerfil=async()=>{
   const msgEl=document.getElementById('perfil-save-msg');
   _perfilData={..._perfilData,nombre,telefono:tel};
   try{
-    await setDoc(doc(db,'config','perfil'),_perfilData);
+    await setDoc(cfgDoc('perfil'),_perfilData);
     if(msgEl)msgEl.innerHTML='<div class="alert alert-ok">✓ Perfil guardado</div>';
     setTimeout(()=>{if(msgEl)msgEl.innerHTML='';},2500);
   }catch(e){if(msgEl)msgEl.innerHTML=`<div class="alert alert-err">Error: ${e.message}</div>`;}
@@ -2481,7 +2865,7 @@ window.guardarInflacion=async()=>{
   const tasa=_infToggleOn?(parseFloat(document.getElementById('inf-custom-val')?.value)||2.8):2.8;
   const usaCustom=_infToggleOn;
   try{
-    await setDoc(doc(db,'config','inflacion'),{tasa,usaCustom});
+    await setDoc(cfgDoc('inflacion'),{tasa,usaCustom});
     window._tasaInflacion=tasa;
     window._infToggleOn=usaCustom;
     // actualizar label en config main
@@ -2494,7 +2878,7 @@ window.guardarInflacion=async()=>{
 
 async function cargarInflacion(){
   try{
-    const s=await getDoc(doc(db,'config','inflacion'));
+    const s=await getDoc(cfgDoc('inflacion'));
     if(s.exists()){
       const d=s.data();
       window._tasaInflacion=d.tasa||2.8;
