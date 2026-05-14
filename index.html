@@ -1062,6 +1062,8 @@ let dolarBlue={compra:null,venta:null,fechaStr:''};
 // exponer al scope global para las funciones del segundo script
 window.gastos=gastos;
 window.anioSel=anioSel;
+window._auth=auth;
+window._addGasto=(data)=>addDoc(gastosCol(),{...data,creadoEn:serverTimestamp()});
 window.mesSel=mesSel;
 
 async function fetchDolarBlue(){
@@ -2389,7 +2391,8 @@ window.confirmarImport=async()=>{
   const btn=document.querySelector('#ib-preview button');
   btn.disabled=true;btn.textContent='Cargando...';
   let cargados=0;
-  const quien=auth.currentUser?.email?.includes('sjpouiller')?'Sebas':'Male';
+  const authU=window._auth?.currentUser;
+  const quien=authU?.email?.includes('sjpouiller')?'Sebas':'Male';
   const fpago='Tarjeta Debito';
   try{
     for(let i=0;i<_importMovimientos.length;i++){
@@ -2397,12 +2400,12 @@ window.confirmarImport=async()=>{
       if(!chk?.checked)continue;
       const m=_importMovimientos[i];
       const[tipo,cat]=(document.getElementById(`ibcat-${i}`)?.value||'Gasto variable|Otros').split('|');
-      await addDoc(collection(db,'gastos'),{
+      await window._addGasto({
         fecha:m.fecha,mes:m.fecha.slice(0,7),tipo,
         tipoIngreso:tipo==='Ingreso'?cat:'',categoria:tipo!=='Ingreso'?cat:'',
         monto:m.monto,formaPago:fpago,pago:quien,
         comentario:m.descripcion,fuente:'bank_import',
-        creadoEn:serverTimestamp(),usuario:auth.currentUser?.email||''
+        usuario:authU?.email||''
       });
       cargados++;
     }
