@@ -1399,7 +1399,7 @@ window.renderGastos=()=>{
   const pmap=prev?gastos.filter(g=>g.mes===prev).reduce((a,g)=>{const k=(g.categoria||g.tipoIngreso||'?')+'|||'+g.pago;a[k]=(a[k]||0)+(g.monto||0);return a},{}):{}; 
   const cmap=d.reduce((a,g)=>{const k=(g.categoria||g.tipoIngreso||'?')+'|||'+g.pago;a[k]=(a[k]||0)+(g.monto||0);return a},{});
   if(!d.length){document.getElementById('gastos-list').innerHTML='<div class="empty-state">📭<br>Sin movimientos</div>';return;}
-  document.getElementById('gastos-list').innerHTML=`<div class="gastos-list">${d.slice(0,100).map(g=>{const tc=g.tipo==='Ingreso'?'tag-ing':g.tipo==='Gasto fijo'?'tag-fijo':g.tipo==='Ahorro'?'tag-aho':'tag-var';const cat=g.categoria||g.tipoIngreso||g.tipo;const f=g.fecha?g.fecha.slice(8)+'/'+g.fecha.slice(5,7):'';const k=cat+'|||'+g.pago;const badge=prev&&pmap[k]>0?varBadge(cmap[k]||0,pmap[k],g.tipo!=='Ingreso'):'';const uE=g.montoDolar?`<span style="font-size:10px;color:#1d4ed8;font-weight:600">U$S ${g.montoDolar}</span>`:'';const coment=g.comentario?`<span style="font-size:10px;color:#94a3b8;font-style:italic">💬 ${g.comentario}</span>`:'';return`<div class="gasto-item"><div class="gasto-info"><div class="gasto-cat">${cat}</div><div class="gasto-meta">${f} · <span class="tag ${tc}">${g.tipo}</span> · ${g.pago}${g.comentario?'':''}</div>${g.comentario?`<div style="font-size:10px;color:#94a3b8;font-style:italic;margin-top:2px">💬 ${g.comentario}</div>`:''}</div><div class="gasto-right" style="display:flex;flex-direction:column;align-items:flex-end;gap:3px"><div class="gasto-monto ${g.tipo==='Ingreso'?'pos':''}">${g.tipo==='Ingreso'?'+':''}${fmt(g.monto)}</div>${uE}${badge?`<div class="gasto-var">${badge} vs ${prev?mesCorto(prev):''}</div>`:''}<div style="display:flex;gap:4px"><button onclick="abrirEdicion('${g.id}')" style="font-size:15px;background:none;border:none;cursor:pointer;padding:2px 4px;color:#aaa">✏️</button><button onclick="confirmarEliminar('${g.id}')" style="font-size:15px;background:none;border:none;cursor:pointer;padding:2px 4px;color:#f87171">🗑️</button></div></div></div>`;}).join('')}</div>`;
+  document.getElementById('gastos-list').innerHTML=`<div class="gastos-list">${d.slice(0,100).map(g=>{const tc=g.tipo==='Ingreso'?'tag-ing':g.tipo==='Gasto fijo'?'tag-fijo':g.tipo==='Ahorro'?'tag-aho':'tag-var';const cat=g.categoria||g.tipoIngreso||g.tipo;const f=g.fecha?g.fecha.slice(8)+'/'+g.fecha.slice(5,7):'';const k=cat+'|||'+g.pago;const badge=prev&&pmap[k]>0?varBadge(cmap[k]||0,pmap[k],g.tipo!=='Ingreso'):'';const uE=g.montoDolar?`<span style="font-size:10px;color:#1d4ed8;font-weight:600">U$S ${g.montoDolar}</span>`:'';const cuotaTag=g.esCuota&&g.cuotaNum&&g.cuotasTotal?`<span style="font-size:10px;font-weight:600;color:#0369a1;background:#e0f2fe;border-radius:4px;padding:1px 5px">cuota ${g.cuotaNum}/${g.cuotasTotal}</span>`:'';return`<div class="gasto-item"><div class="gasto-info"><div class="gasto-cat">${cat}</div><div class="gasto-meta">${f} · <span class="tag ${tc}">${g.tipo}</span> · ${g.pago}${cuotaTag?' · '+cuotaTag:''}</div>${g.comentario?`<div style="font-size:10px;color:#94a3b8;font-style:italic;margin-top:2px">💬 ${g.comentario}</div>`:''}</div><div class="gasto-right" style="display:flex;flex-direction:column;align-items:flex-end;gap:3px"><div class="gasto-monto ${g.tipo==='Ingreso'?'pos':''}">${g.tipo==='Ingreso'?'+':''}${fmt(g.monto)}</div>${uE}${badge?`<div class="gasto-var">${badge} vs ${prev?mesCorto(prev):''}</div>`:''}<div style="display:flex;gap:4px"><button onclick="abrirEdicion('${g.id}')" style="font-size:15px;background:none;border:none;cursor:pointer;padding:2px 4px;color:#aaa">✏️</button><button onclick="confirmarEliminar('${g.id}')" style="font-size:15px;background:none;border:none;cursor:pointer;padding:2px 4px;color:#f87171">🗑️</button></div></div></div>`;}).join('')}</div>`;
 };
 
 // ── CASHFLOW ──
@@ -2378,14 +2378,17 @@ function renderImportPreview(movs){
       cats.map(c=>`<option value="${tipo}|${c}" ${(`${tipo}|${c}`)===selVal?'selected':''}>${tipo} · ${c}</option>`).join('')
     ).join('');
     return`<div style="display:flex;align-items:flex-start;gap:8px;padding:8px 0;border-bottom:0.5px solid #e5e5e0">
-      <input type="checkbox" id="ibmov-${i}" checked style="margin-top:3px;flex-shrink:0">
+      <input type="checkbox" id="ibmov-${i}" checked style="margin-top:4px;flex-shrink:0">
       <div style="flex:1;min-width:0">
         <div style="font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${m.descripcion}</div>
-        <div style="font-size:10px;color:#888;margin-top:4px;display:flex;flex-wrap:wrap;gap:4px;align-items:center">
-          <input type="date" id="ibfecha-${i}" value="${m.fecha}" style="font-size:10px;padding:1px 4px;border:0.5px solid #e5e5e0;border-radius:4px;background:#fff">
-          <select id="ibcat-${i}" style="font-size:10px;padding:1px 4px;border:0.5px solid #e5e5e0;border-radius:4px;background:#fff;max-width:160px">${opts}</select>
-          <span style="display:flex;align-items:center;gap:2px">${signo}<input type="number" id="ibmonto-${i}" value="${m.monto}" min="0" style="font-size:10px;padding:1px 4px;border:0.5px solid #e5e5e0;border-radius:4px;background:#fff;width:80px"></span>
+        <div style="font-size:10px;margin-top:4px;display:flex;gap:4px;align-items:center;flex-wrap:wrap">
+          <input type="date" id="ibfecha-${i}" value="${m.fecha}" style="font-size:10px;padding:2px 4px;border:0.5px solid #e5e5e0;border-radius:4px;background:#fff;width:118px">
+          <select id="ibcat-${i}" style="font-size:10px;padding:2px 4px;border:0.5px solid #e5e5e0;border-radius:4px;background:#fff;max-width:180px;flex:1">${opts}</select>
         </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:1px;flex-shrink:0;color:${color}">
+        <span style="font-size:13px;font-weight:700">${signo}$</span>
+        <input type="number" id="ibmonto-${i}" value="${m.monto}" min="0" style="font-size:13px;font-weight:700;color:${color};border:none;border-bottom:1px solid ${color};background:transparent;width:72px;text-align:right;padding:0 0 1px 0;outline:none">
       </div>
     </div>`;
   }).join('');
