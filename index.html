@@ -1510,7 +1510,8 @@ window.guardar=async()=>{
     await addDoc(gastosCol(),dd);
     msgEl.innerHTML=`<div class="alert alert-ok">✓ ${cat} · ${fmt(monto)} guardado</div>`;
     document.getElementById('inp-monto').value='';const inpD=document.getElementById('inp-dolar');if(inpD)inpD.value='';document.getElementById('inp-comentario').value='';
-    toast(`✓ ${cat} · ${fmt(monto)}`,'ok',2500);
+    if(mes!==mesActualStr())toast(`⚠️ Guardado en ${mes}, no en el mes actual (${mesActualStr()}). Chequeá que esté ok.`,'warn',6000);
+    else toast(`✓ ${cat} · ${fmt(monto)}`,'ok',2500);
     // cerrar sheet tras 1.2s
     setTimeout(()=>{msgEl.innerHTML='';if(window.toggleCarga&&window._cargaOpen!==false)window.toggleCarga();},1200);
     document.getElementById('inp-tipo').value='Gasto variable';document.getElementById('inp-pago').value='Transferencia';document.getElementById('inp-quien-carga').value='Sebas';
