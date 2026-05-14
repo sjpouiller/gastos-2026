@@ -1507,7 +1507,7 @@ window.guardar=async()=>{
     const dd={fecha,tipo,tipoIngreso:tipo==='Ingreso'?cat:'',categoria:tipo!=='Ingreso'?cat:'',monto,formaPago:pago,pago:quien,mes,creadoEn:serverTimestamp(),fuente:'app',usuario:auth.currentUser?.email||''};
     if(montoDolar>0&&(cat==='Compra USD'||cat==='Sueldo USD'||cat==='Venta USD'))dd.montoDolar=montoDolar;
     if(comentario)dd.comentario=comentario;
-    await addDoc(collection(db,'gastos'),dd);
+    await addDoc(gastosCol(),dd);
     msgEl.innerHTML=`<div class="alert alert-ok">✓ ${cat} · ${fmt(monto)} guardado</div>`;
     document.getElementById('inp-monto').value='';const inpD=document.getElementById('inp-dolar');if(inpD)inpD.value='';document.getElementById('inp-comentario').value='';
     toast(`✓ ${cat} · ${fmt(monto)}`,'ok',2500);
@@ -2527,7 +2527,7 @@ window.confirmarGalicia=async()=>{
       const m=_galiciaMovimientos[i];
       const catSel=document.getElementById(`gcat-${i}`)?.value||'Gasto variable|Otros';
       const[tipo,cat]=catSel.split('|');
-      await addDoc(collection(db,'gastos'),{
+      await addDoc(gastosCol(),{
         fecha:m.fecha,mes:m.fecha.slice(0,7),
         tipo,tipoIngreso:tipo==='Ingreso'?cat:'',
         categoria:tipo!=='Ingreso'?cat:'',
