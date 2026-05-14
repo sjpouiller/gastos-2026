@@ -281,6 +281,7 @@ select,input[type=text],input[type=number],input[type=date],input[type=month]{pa
 .cat-item{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:0.5px solid #f3f3f0;font-size:13px}
 .cat-item:last-child{border-bottom:none}
 </style>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
 <body>
 <!-- LOGIN -->
@@ -1621,20 +1622,28 @@ window.exportarPDF=()=>{
   toast('PDF listo para imprimir','ok',2500);
 };
 
-// ── EXPORTAR EXCEL (CSV compatible con Excel) ──
+// ── EXPORTAR EXCEL (.xlsx real con SheetJS) ──
 window.exportarExcel=()=>{
+  if(!window.XLSX){toast('Cargando librería...','info',1500);return;}
   const mF=mesSel==='todo'?null:mesSel;
   let d=mF?gastos.filter(g=>g.mes===mF):gastos.filter(g=>g.mes?.startsWith(anioSel));
   d=[...d].sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||''));
-  const cols=['Fecha','Tipo','Categoría','Monto','Forma de pago','Quién pagó','Comentario','Mes'];
-  const rows=d.map(g=>[g.fecha||'',g.tipo||'',g.categoria||g.tipoIngreso||'',g.monto||0,g.formaPago||'',g.pago||'',g.comentario||'',g.mes||''].map(v=>`"${String(v).replace(/"/g,'""')}"`).join('\t'));
-  const tsv='\uFEFF'+cols.join('\t')+'\n'+rows.join('\n');
-  const blob=new Blob([tsv],{type:'text/plain;charset=utf-8'});
-  const fname=`gastos_${mF||anioSel}_${new Date().toISOString().slice(0,10)}.xls`;
-  try{
-    if(navigator.share&&navigator.canShare){const f=new File([blob],fname,{type:'text/plain'});if(navigator.canShare({files:[f]})){navigator.share({files:[f],title:'Gastos export'}).catch(()=>{});return;}}
-  }catch(e){}
-  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=fname;document.body.appendChild(a);a.click();document.body.removeChild(a);
+  const filas=d.map(g=>({
+    'Fecha':g.fecha||'',
+    'Tipo':g.tipo||'',
+    'Categoría':g.categoria||g.tipoIngreso||'',
+    'Monto':g.monto||0,
+    'Forma de pago':g.formaPago||'',
+    'Quién pagó':g.pago||'',
+    'Comentario':g.comentario||'',
+    'Mes':g.mes||''
+  }));
+  const ws=XLSX.utils.json_to_sheet(filas);
+  ws['!cols']=[{wch:12},{wch:16},{wch:24},{wch:12},{wch:22},{wch:10},{wch:24},{wch:8}];
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,'Gastos');
+  const fname=`gastos_${mF||anioSel}_${new Date().toISOString().slice(0,10)}.xlsx`;
+  XLSX.writeFile(wb,fname);
   toast('Excel exportado','ok',2500);
 };
 
