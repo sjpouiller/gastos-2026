@@ -1083,7 +1083,7 @@ const MESES_CORTO={'01':'Ene','02':'Feb','03':'Mar','04':'Abr','05':'May','06':'
 const nombreMes=m=>MESES_FULL[m?.slice(5)]||m;
 const mesCorto=m=>MESES_CORTO[m?.slice(5)]||m;
 // exponer helpers al scope global
-window.fmt=fmt;window.fmtK=fmtK;window.toast=toast;
+window.fmt=fmt;window.fmtK=fmtK;window.toast=toast;window.mesActualStr=mesActualStr;
 
 function mesActualStr(){const h=new Date();return`${h.getFullYear()}-${pad(h.getMonth()+1)}`;}
 function mesAnterior(mes){const[y,m]=mes.split('-').map(Number);const d=new Date(y,m-2,1);return`${d.getFullYear()}-${pad(d.getMonth()+1)}`;}
@@ -2352,7 +2352,7 @@ window.analizarImport=async()=>{
       const base64=await new Promise(res=>{const r=new FileReader();r.onload=e=>res(e.target.result.split(',')[1]);r.readAsDataURL(file);});
       body.pdf_base64=base64;body.filename=file.name;
     }
-    body.fecha_hoy=mesActualStr().slice(0,7)+'-'+String(new Date().getDate()).padStart(2,'0');
+    body.fecha_hoy=new Date().toISOString().slice(0,10);
     const res=await fetch('/.netlify/functions/bank-import',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
     const raw=await res.text();
     if(!raw){status.textContent=`Error del servidor (${res.status}) — sin respuesta. Intentá de nuevo.`;btn.disabled=false;btn.textContent='🤖 Analizar con IA';return;}
@@ -2398,7 +2398,7 @@ window.confirmarImport=async()=>{
   const authU=window._auth?.currentUser;
   const quien=authU?.email?.includes('sjpouiller')?'Sebas':'Male';
   const fpago='Tarjeta Debito';
-  const mesHoy=mesActualStr();
+  const mesHoy=(window.mesActualStr||mesActualStr)();
   try{
     for(let i=0;i<_importMovimientos.length;i++){
       const chk=document.getElementById(`ibmov-${i}`);
