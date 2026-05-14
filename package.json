@@ -1,0 +1,11 @@
+{
+  "name": "gastos-2026-scripts",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "migrate": "node migrate.js"
+  },
+  "dependencies": {
+    "firebase-admin": "^12.0.0"
+  }
+}

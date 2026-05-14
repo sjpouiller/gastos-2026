@@ -86,7 +86,7 @@ async function enviarEmail(asunto, cuerpo) {
     </div>
     <div style="padding:28px;font-size:14px;line-height:1.8;color:#333;white-space:pre-wrap">${cuerpo}</div>
     <div style="padding:16px 28px;border-top:1px solid #e5e5e0;font-size:11px;color:#aaa;text-align:center">
-      Gastos 2026 · Sebas & Male · <a href="https://exquisite-starship-4e153a.netlify.app" style="color:#aaa">Abrir app</a>
+      Plata Clara · Sebas & Male · <a href="https://plataclara.netlify.app" style="color:#aaa">Abrir app</a>
     </div>
   </div>
 </body>
@@ -96,7 +96,7 @@ async function enviarEmail(asunto, cuerpo) {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${process.env.RESEND_API_KEY}` },
     body: JSON.stringify({
-      from: 'Gastos 2026 <onboarding@resend.dev>',
+      from: 'Plata Clara <onboarding@resend.dev>',
       to: ['sjpouiller@gmail.com'],
       subject: asunto,
       html
