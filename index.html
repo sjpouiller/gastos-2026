@@ -1083,7 +1083,7 @@ const MESES_CORTO={'01':'Ene','02':'Feb','03':'Mar','04':'Abr','05':'May','06':'
 const nombreMes=m=>MESES_FULL[m?.slice(5)]||m;
 const mesCorto=m=>MESES_CORTO[m?.slice(5)]||m;
 // exponer helpers al scope global
-window.fmt=fmt;window.fmtK=fmtK;
+window.fmt=fmt;window.fmtK=fmtK;window.toast=toast;
 
 function mesActualStr(){const h=new Date();return`${h.getFullYear()}-${pad(h.getMonth()+1)}`;}
 function mesAnterior(mes){const[y,m]=mes.split('-').map(Number);const d=new Date(y,m-2,1);return`${d.getFullYear()}-${pad(d.getMonth()+1)}`;}
