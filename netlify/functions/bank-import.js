@@ -19,13 +19,14 @@ exports.handler = async function(event) {
   }
 
   try {
-    const { texto, pdf_base64, banco } = JSON.parse(event.body || '{}');
+    const { texto, pdf_base64, banco, fecha_hoy } = JSON.parse(event.body || '{}');
 
     if(!texto && !pdf_base64){
       return { statusCode: 400, body: JSON.stringify({ error: 'Falta texto o PDF' }) };
     }
 
     const PROMPT_SISTEMA = `Sos un parser experto de extractos bancarios argentinos para una app de finanzas personales.
+${fecha_hoy ? `La fecha de hoy es ${fecha_hoy}. Usá esta fecha cuando el texto no especifique una fecha exacta (ej: "hoy", "ayer", etc.).` : ''}
 
 Tu tarea es extraer TODOS los movimientos y asignarle a cada uno el tipo y categoría más apropiada.
 

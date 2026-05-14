@@ -2352,6 +2352,7 @@ window.analizarImport=async()=>{
       const base64=await new Promise(res=>{const r=new FileReader();r.onload=e=>res(e.target.result.split(',')[1]);r.readAsDataURL(file);});
       body.pdf_base64=base64;body.filename=file.name;
     }
+    body.fecha_hoy=mesActualStr().slice(0,7)+'-'+String(new Date().getDate()).padStart(2,'0');
     const res=await fetch('/.netlify/functions/bank-import',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
     const raw=await res.text();
     if(!raw){status.textContent=`Error del servidor (${res.status}) — sin respuesta. Intentá de nuevo.`;btn.disabled=false;btn.textContent='🤖 Analizar con IA';return;}
@@ -2379,9 +2380,12 @@ function renderImportPreview(movs){
       <input type="checkbox" id="ibmov-${i}" checked style="margin-top:3px;flex-shrink:0">
       <div style="flex:1;min-width:0">
         <div style="font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${m.descripcion}</div>
-        <div style="font-size:10px;color:#888;margin-top:3px">${m.fecha} · <select id="ibcat-${i}" style="font-size:10px;padding:1px 4px;border:0.5px solid #e5e5e0;border-radius:4px;background:#fff;max-width:150px">${opts}</select></div>
+        <div style="font-size:10px;color:#888;margin-top:4px;display:flex;flex-wrap:wrap;gap:4px;align-items:center">
+          <input type="date" id="ibfecha-${i}" value="${m.fecha}" style="font-size:10px;padding:1px 4px;border:0.5px solid #e5e5e0;border-radius:4px;background:#fff">
+          <select id="ibcat-${i}" style="font-size:10px;padding:1px 4px;border:0.5px solid #e5e5e0;border-radius:4px;background:#fff;max-width:160px">${opts}</select>
+          <span style="display:flex;align-items:center;gap:2px">${signo}<input type="number" id="ibmonto-${i}" value="${m.monto}" min="0" style="font-size:10px;padding:1px 4px;border:0.5px solid #e5e5e0;border-radius:4px;background:#fff;width:80px"></span>
+        </div>
       </div>
-      <div style="font-size:13px;font-weight:700;color:${color};flex-shrink:0">${signo}${fmt(m.monto)}</div>
     </div>`;
   }).join('');
   preview.style.display='block';
@@ -2394,22 +2398,35 @@ window.confirmarImport=async()=>{
   const authU=window._auth?.currentUser;
   const quien=authU?.email?.includes('sjpouiller')?'Sebas':'Male';
   const fpago='Tarjeta Debito';
+  const mesHoy=mesActualStr();
   try{
     for(let i=0;i<_importMovimientos.length;i++){
       const chk=document.getElementById(`ibmov-${i}`);
       if(!chk?.checked)continue;
       const m=_importMovimientos[i];
+      const fecha=document.getElementById(`ibfecha-${i}`)?.value||m.fecha;
+      const monto=parseFloat(document.getElementById(`ibmonto-${i}`)?.value)||m.monto;
       const[tipo,cat]=(document.getElementById(`ibcat-${i}`)?.value||'Gasto variable|Otros').split('|');
       await window._addGasto({
-        fecha:m.fecha,mes:m.fecha.slice(0,7),tipo,
+        fecha,mes:fecha.slice(0,7),tipo,
         tipoIngreso:tipo==='Ingreso'?cat:'',categoria:tipo!=='Ingreso'?cat:'',
-        monto:m.monto,formaPago:fpago,pago:quien,
+        monto,formaPago:fpago,pago:quien,
         comentario:m.descripcion,fuente:'bank_import',
         usuario:authU?.email||''
       });
       cargados++;
     }
-    toast(`✓ ${cargados} movimientos importados`,'ok',3000);
+    // Warning si algún movimiento es de un mes distinto al actual
+    const mesesDistintos=Array.from({length:_importMovimientos.length},(_,i)=>{
+      if(!document.getElementById(`ibmov-${i}`)?.checked)return null;
+      return document.getElementById(`ibfecha-${i}`)?.value?.slice(0,7);
+    }).filter(Boolean).filter(m=>m!==mesHoy);
+    if(mesesDistintos.length>0){
+      const mesesUnicos=[...new Set(mesesDistintos)].join(', ');
+      toast(`✓ ${cargados} importados — ojo: hay fechas de ${mesesUnicos}, no de ${mesHoy}`,'warn',6000);
+    } else {
+      toast(`✓ ${cargados} movimientos importados`,'ok',3000);
+    }
     document.getElementById('import-banco-panel').style.display='none';
     document.getElementById('ib-texto').value='';
     document.getElementById('ib-preview').style.display='none';
