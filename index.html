@@ -968,9 +968,38 @@ select,input[type=text],input[type=number],input[type=date],input[type=month]{pa
   </div>
   <div class="drawer-footer">
     <span>v1.0.0</span>
+    <span style="color:#888;cursor:pointer" onclick="toggleDrawer();abrirContacto()">💬 Contacto</span>
     <span style="color:#16a34a;font-weight:600;cursor:pointer" onclick="toggleDrawer();logout()">Salir</span>
   </div>
 </div>
+<!-- CONTACTO SHEET -->
+<div id="contacto-sheet" style="position:fixed;bottom:0;left:0;right:0;background:#fff;border-radius:16px 16px 0 0;border-top:0.5px solid #e5e5e0;z-index:300;transform:translateY(100%);transition:transform .3s ease;max-height:85vh;display:flex;flex-direction:column">
+  <div style="width:36px;height:4px;background:#e5e5e0;border-radius:2px;margin:10px auto 0"></div>
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px 10px">
+    <div style="font-size:16px;font-weight:700">💬 Contacto</div>
+    <button onclick="cerrarContacto()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#aaa;padding:4px">×</button>
+  </div>
+  <div style="padding:0 18px 24px;overflow-y:auto;flex:1">
+    <p style="font-size:13px;color:#888;margin:0 0 16px">¿Tenés una sugerencia, encontraste un error o querés pedir algo? Escribinos.</p>
+    <div style="margin-bottom:12px">
+      <label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:5px">Asunto</label>
+      <select id="contacto-asunto" style="width:100%;padding:10px 12px;font-size:14px;border:0.5px solid #d1d5db;border-radius:10px;background:#fff;appearance:none;-webkit-appearance:none">
+        <option>💡 Sugerencia</option>
+        <option>🐛 Error / Bug</option>
+        <option>✨ Pedido de feature</option>
+        <option>❓ Consulta</option>
+        <option>🙌 Otro</option>
+      </select>
+    </div>
+    <div style="margin-bottom:16px">
+      <label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:5px">Mensaje</label>
+      <textarea id="contacto-mensaje" placeholder="Escribí tu mensaje acá..." style="width:100%;height:130px;padding:10px 12px;font-size:14px;border:0.5px solid #d1d5db;border-radius:10px;resize:none;font-family:inherit;box-sizing:border-box"></textarea>
+    </div>
+    <button onclick="enviarContacto()" id="contacto-btn" style="width:100%;padding:13px;background:#1a1a1a;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer">✉️ Enviar mensaje</button>
+    <div id="contacto-status" style="font-size:12px;color:#888;text-align:center;margin-top:10px;min-height:18px"></div>
+  </div>
+</div>
+<div id="contacto-overlay" onclick="cerrarContacto()" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.4);z-index:295"></div>
 <!-- FAB AGENTE -->
 <button id="fab-agente" onclick="toggleAgente()" style="display:none;position:fixed;bottom:72px;right:16px;width:52px;height:52px;border-radius:50%;background:#1a1a1a;color:#fff;border:none;font-size:22px;cursor:pointer;align-items:center;justify-content:center;z-index:200;box-shadow:0 4px 16px rgba(0,0,0,.25)">🤖</button>
 <!-- AGENT SHEET -->
@@ -3017,6 +3046,37 @@ async function guardarObjetivos(){
 window._authUserReady=(user)=>{
   window._authUser=user;
   actualizarDrawerHeader();
+};
+
+window.abrirContacto=()=>{
+  document.getElementById('contacto-sheet').style.transform='translateY(0)';
+  document.getElementById('contacto-overlay').style.display='block';
+};
+window.cerrarContacto=()=>{
+  document.getElementById('contacto-sheet').style.transform='translateY(100%)';
+  document.getElementById('contacto-overlay').style.display='none';
+};
+window.enviarContacto=async()=>{
+  const btn=document.getElementById('contacto-btn');
+  const status=document.getElementById('contacto-status');
+  const asunto=document.getElementById('contacto-asunto')?.value||'';
+  const mensaje=document.getElementById('contacto-mensaje')?.value?.trim()||'';
+  if(!mensaje){status.textContent='Escribí un mensaje antes de enviar.';return;}
+  btn.disabled=true;btn.textContent='Enviando...';status.textContent='';
+  try{
+    const usuario=window._authUser?.email||'Desconocido';
+    const res=await fetch('/.netlify/functions/contacto',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({asunto,mensaje,usuario})});
+    const data=await res.json();
+    if(data.ok){
+      document.getElementById('contacto-mensaje').value='';
+      status.textContent='';
+      window.toast?.('✓ Mensaje enviado, gracias!','ok',3000);
+      setTimeout(()=>window.cerrarContacto(),800);
+    } else {
+      status.textContent='Error al enviar. Intentá de nuevo.';
+    }
+  }catch(e){status.textContent='Error: '+e.message;}
+  btn.disabled=false;btn.textContent='✉️ Enviar mensaje';
 };
 </script>
 <script>
