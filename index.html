@@ -2354,10 +2354,11 @@ window.analizarImport=async()=>{
       body.pdf_base64=base64;body.filename=file.name;
     }
     body.fecha_hoy=new Date().toISOString().slice(0,10);
+    status.textContent='Analizando con IA… puede tardar hasta 30s con PDFs';
     const res=await fetch('/.netlify/functions/bank-import',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
     const raw=await res.text();
-    if(!raw){status.textContent=`Error del servidor (${res.status}) — sin respuesta. Intentá de nuevo.`;btn.disabled=false;btn.textContent='🤖 Analizar con IA';return;}
-    const data=JSON.parse(raw);
+    if(!raw||!res.ok){status.textContent=`Error del servidor (${res.status})${res.status===504?' — tiempo de espera agotado, intentá con texto pegado en lugar de PDF':' — intentá de nuevo.'} `;btn.disabled=false;btn.textContent='🤖 Analizar con IA';return;}
+    let data;try{data=JSON.parse(raw);}catch(pe){status.textContent='Error procesando respuesta del servidor. Intentá de nuevo.';btn.disabled=false;btn.textContent='🤖 Analizar con IA';return;}
     if(!data.movimientos?.length){status.textContent=data.advertencias?.[0]||'No se encontraron movimientos';btn.disabled=false;btn.textContent='🤖 Analizar con IA';return;}
     _importMovimientos=data.movimientos;
     renderImportPreview(data.movimientos);
