@@ -890,15 +890,15 @@ select,input[type=text],input[type=number],input[type=date],input[type=month]{pa
       <!-- Tabs texto / PDF -->
       <div style="display:flex;gap:6px;margin-bottom:10px">
         <button id="ibtab-paste" onclick="setImportTab('paste')" style="flex:1;padding:7px;border-radius:8px;font-size:12px;font-weight:600;border:0.5px solid #1a1a1a;background:#1a1a1a;color:#fff;cursor:pointer">Pegar texto</button>
-        <button id="ibtab-pdf" onclick="setImportTab('pdf')" style="flex:1;padding:7px;border-radius:8px;font-size:12px;font-weight:600;border:0.5px solid #e5e5e0;background:#fff;color:#888;cursor:pointer">Subir PDF</button>
+        <button id="ibtab-pdf" onclick="setImportTab('pdf')" style="flex:1;padding:7px;border-radius:8px;font-size:12px;font-weight:600;border:0.5px solid #e5e5e0;background:#fff;color:#888;cursor:pointer">Subir archivo</button>
       </div>
       <div id="ib-paste-mode">
         <div style="font-size:11px;color:#888;margin-bottom:6px">Copiá los movimientos del homebanking y pegá acá:</div>
         <textarea id="ib-texto" placeholder="Pegá el extracto acá..." style="width:100%;height:110px;padding:10px;font-size:12px;border:0.5px solid #d1d5db;border-radius:10px;resize:vertical;font-family:monospace;box-sizing:border-box;background:#fff"></textarea>
       </div>
       <div id="ib-pdf-mode" style="display:none">
-        <div style="font-size:11px;color:#888;margin-bottom:6px">Subí el PDF del resumen:</div>
-        <input type="file" id="ib-pdf-input" accept=".pdf" style="font-size:12px;padding:8px;border:0.5px solid #d1d5db;border-radius:10px;width:100%;box-sizing:border-box;background:#fff">
+        <div style="font-size:11px;color:#888;margin-bottom:6px">Subí el resumen del banco (PDF, CSV o Excel):</div>
+        <input type="file" id="ib-pdf-input" accept=".pdf,.csv,.xls,.xlsx" style="font-size:12px;padding:8px;border:0.5px solid #d1d5db;border-radius:10px;width:100%;box-sizing:border-box;background:#fff">
       </div>
       <button onclick="analizarImport()" id="ib-analizar-btn" style="width:100%;margin-top:10px;padding:11px;background:#1a1a1a;color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer">🤖 Analizar con IA</button>
       <div id="ib-status" style="font-size:12px;color:#888;text-align:center;margin-top:8px;min-height:18px"></div>
@@ -2349,9 +2349,18 @@ window.analizarImport=async()=>{
       body.texto=texto;
     } else {
       const file=document.getElementById('ib-pdf-input')?.files?.[0];
-      if(!file){status.textContent='Seleccioná un PDF primero';btn.disabled=false;btn.textContent='🤖 Analizar con IA';return;}
-      const base64=await new Promise(res=>{const r=new FileReader();r.onload=e=>res(e.target.result.split(',')[1]);r.readAsDataURL(file);});
-      body.pdf_base64=base64;body.filename=file.name;
+      if(!file){status.textContent='Seleccioná un archivo primero';btn.disabled=false;btn.textContent='🤖 Analizar con IA';return;}
+      const ext=file.name.split('.').pop().toLowerCase();
+      if(ext==='csv'){
+        body.texto=await new Promise(res=>{const r=new FileReader();r.onload=e=>res(e.target.result);r.readAsText(file,'UTF-8');});
+      } else if(ext==='xls'||ext==='xlsx'){
+        const ab=await new Promise(res=>{const r=new FileReader();r.onload=e=>res(e.target.result);r.readAsArrayBuffer(file);});
+        const wb=XLSX.read(ab,{type:'array'});
+        body.texto=wb.SheetNames.map(n=>XLSX.utils.sheet_to_csv(wb.Sheets[n])).join('\n');
+      } else {
+        const base64=await new Promise(res=>{const r=new FileReader();r.onload=e=>res(e.target.result.split(',')[1]);r.readAsDataURL(file);});
+        body.pdf_base64=base64;body.filename=file.name;
+      }
     }
     body.fecha_hoy=new Date().toISOString().slice(0,10);
     status.textContent='Analizando con IA… puede tardar hasta 30s con PDFs';
