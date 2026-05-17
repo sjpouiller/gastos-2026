@@ -1093,6 +1093,9 @@ window.gastos=gastos;
 window.anioSel=anioSel;
 window._auth=auth;
 window._addGasto=(data)=>addDoc(gastosCol(),{...data,creadoEn:serverTimestamp()});
+window._setDoc=(ref,data)=>setDoc(ref,data);
+window._doc=(...args)=>doc(db,...args);
+window._serverTimestamp=()=>serverTimestamp();
 window.mesSel=mesSel;
 
 async function fetchDolarBlue(){
@@ -2716,7 +2719,7 @@ window.generarLinkInvitacion=async()=>{
   const token=[...Array(32)].map(()=>Math.random().toString(36)[2]).join('');
   const futurHogarId=user.uid;
   try{
-    await setDoc(doc(db,'invitaciones',token),{
+    await window._setDoc(window._doc('invitaciones',token),{
       hogarId:futurHogarId,
       emailInvitado:email||'',
       emailInvitante:user.email,
@@ -2724,7 +2727,7 @@ window.generarLinkInvitacion=async()=>{
       nombreHogar:hogar,
       status:'pendiente',
       expiresAt:Date.now()+(7*24*60*60*1000),
-      creadoEn:serverTimestamp()
+      creadoEn:window._serverTimestamp()
     });
     const link=`${window.location.origin}/?invite=${token}`;
     _obInviteLink=link;
@@ -2749,19 +2752,18 @@ window.finalizarOnboarding=async()=>{
   const ahorro=parseInt(document.getElementById('ob-ahorro')?.value||20);
   const newHogarId=user.uid;
   try{
-    await setDoc(doc(db,'hogares',newHogarId,'metadata','info'),{
+    await window._setDoc(window._doc('hogares',newHogarId,'metadata','info'),{
       nombre:hogar,creadoPor:user.email,coUsuarios:[],
       objetivoAhorro:ahorro,tipo:_obTipo,
-      categorias:[..._obCatsSeleccionadas],creadoEn:serverTimestamp()
+      categorias:[..._obCatsSeleccionadas],creadoEn:window._serverTimestamp()
     });
-    await setDoc(doc(db,'usuarios',user.uid),{
+    await window._setDoc(window._doc('usuarios',user.uid),{
       hogarId:newHogarId,nombre,email:user.email,
-      rol:'owner',creadoEn:serverTimestamp()
+      rol:'owner',creadoEn:window._serverTimestamp()
     });
-    hogarId=newHogarId;
-    window.hogarId=hogarId;
+    window.hogarId=newHogarId;
     await iniciarApp(user);
-  }catch(e){toast('Error al guardar: '+e.message,'err',3000);console.error(e);}
+  }catch(e){window.toast?.('Error al guardar: '+e.message,'err',3000);console.error(e);}
 };
 
 // ── PERFIL SUB ──
