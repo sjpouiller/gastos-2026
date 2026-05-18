@@ -1097,6 +1097,7 @@ window._setDoc=(ref,data)=>setDoc(ref,data);
 window._doc=(...args)=>doc(db,...args);
 window._serverTimestamp=()=>serverTimestamp();
 window._iniciarApp=(user)=>iniciarApp(user);
+window._setHogarId=(id)=>{hogarId=id;window.hogarId=id;};
 window.mesSel=mesSel;
 
 async function fetchDolarBlue(){
@@ -2762,7 +2763,7 @@ window.finalizarOnboarding=async()=>{
       hogarId:newHogarId,nombre,email:user.email,
       rol:'owner',creadoEn:window._serverTimestamp()
     });
-    window.hogarId=newHogarId;
+    window._setHogarId(newHogarId);
     await window._iniciarApp(user);
   }catch(e){window.toast?.('Error al guardar: '+e.message,'err',3000);console.error(e);}
 };
