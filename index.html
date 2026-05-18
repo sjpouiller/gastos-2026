@@ -1127,7 +1127,7 @@ select,input[type=text],input[type=number],input[type=date],input[type=month]{pa
 </div>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, onSnapshot, query, orderBy, serverTimestamp, setDoc, getDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, onSnapshot, query, orderBy, serverTimestamp, setDoc, getDoc, getDocs, where, arrayUnion } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 const cfg={apiKey:"AIzaSyBAZJ1VfbW4fUiZmKLrIJHoodqEelE8iIA",authDomain:"gastos-sebas-male.firebaseapp.com",projectId:"gastos-sebas-male",storageBucket:"gastos-sebas-male.firebasestorage.app",messagingSenderId:"966248890085",appId:"1:966248890085:web:b7cae55e5af740989a9e0c"};
@@ -1142,6 +1142,8 @@ let formasDePago=['Transferencia','Efectivo','Tarjeta Débito','Tatjeta Credito 
 let quienesPagan=['Yo'];
 const FORMAS_PAGO_DEFAULT=['Transferencia','Efectivo','Tarjeta Débito','Tatjeta Credito CUOTAS'];
 const QUIENES_PAGAN_DEFAULT=['Yo'];
+window.FORMAS_PAGO_DEFAULT=FORMAS_PAGO_DEFAULT;
+window.QUIENES_PAGAN_DEFAULT=QUIENES_PAGAN_DEFAULT;
 const USD_INICIAL=5152;
 let ahorrosIniciales={usd:0,inversiones:0,otros:0};
 
@@ -1161,6 +1163,7 @@ window._auth=auth;
 window._addGasto=(data)=>addDoc(gastosCol(),{...data,creadoEn:serverTimestamp()});
 window._setDoc=(ref,data)=>setDoc(ref,data);
 window._doc=(...args)=>doc(db,...args);
+window._getDoc=(ref)=>getDoc(ref);
 window._serverTimestamp=()=>serverTimestamp();
 window._iniciarApp=(user)=>iniciarApp(user);
 window._setHogarId=(id)=>{hogarId=id;window.hogarId=id;};
@@ -1258,6 +1261,7 @@ async function iniciarApp(user){
   await cargarPreferencias();
   await cargarAhorrosIniciales();
   fetchDolarBlue();
+  limpiarCuotasAjenas();
   sembrarCuotasResumen();
   await cargarInflacion();
   unsub=onSnapshot(query(collection(db,'hogares',hogarId,'gastos'),orderBy('fecha','desc')),snap=>{
@@ -1439,6 +1443,16 @@ const CUOTAS_RESUMEN=[
   {mes:'2026-11',fecha:'2026-11-01',monto:567299,formaPago:'Tarjeta Credito - VISA Sebas',pago:'Sebas',comentario:'Cuotas largas VISA Sebas abr-26'},
 ];
 
+async function limpiarCuotasAjenas(){
+  // Borra movimientos sembrados automáticamente en hogares que no son sjpouiller
+  if(hogarId==='sjpouiller')return;
+  try{
+    const snap=await getDocs(query(gastosCol(),where('fuente','==','resumen_automatico')));
+    if(snap.empty)return;
+    for(const d of snap.docs)await deleteDoc(gastosDoc(d.id));
+    console.log(`Limpiados ${snap.size} movimientos ajenos`);
+  }catch(e){console.error('limpiarCuotasAjenas:',e);}
+}
 async function sembrarCuotasResumen(){
   if(hogarId!=='sjpouiller')return; // solo para el hogar original
   try{
@@ -2520,9 +2534,9 @@ function actualizarDrawerHeader(){
   const mesKey=`${h.getFullYear()}-${String(h.getMonth()+1).padStart(2,'0')}`;
   const sub=document.getElementById('drawer-sub');
   if(!sub)return;
-  // Nombre del hogar desde Firestore
-  if(hogarId){
-    getDoc(doc(db,'hogares',hogarId,'metadata','info')).then(s=>{
+  // Nombre del hogar desde Firestore (usar wrapper expuesto por el módulo)
+  if(window.hogarId&&window._getDoc&&window._doc){
+    window._getDoc(window._doc('hogares',window.hogarId,'metadata','info')).then(s=>{
       const nombreHogar=s.exists()?s.data().nombre||'Plata Clara':'Plata Clara';
       const el=document.getElementById('drawer-nombre-hogar');
       if(el)el.textContent=nombreHogar;
