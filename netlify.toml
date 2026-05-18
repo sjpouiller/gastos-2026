@@ -1,6 +1,9 @@
 [build]
   functions = "netlify/functions"
 
+[build.environment]
+  SECRETS_SCAN_SMART_DETECTION_OMIT_VALUES = "AIzaSyBAZJ1VfbW4fUiZmKLrIJHoodqEelE8iIA"
+
 [[plugins]]
   package = "@netlify/plugin-functions-install-core"
 
