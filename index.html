@@ -401,8 +401,34 @@ select,input[type=text],input[type=number],input[type=date],input[type=month]{pa
       </div>
     </div>
 
-    <!-- Paso 5: Invitar co-usuario -->
+    <!-- Paso 5: Pagadores y formas de pago -->
     <div id="ob-step-5" style="display:none">
+      <h2 style="font-size:22px;font-weight:700;text-align:center;margin-bottom:8px">¿Quiénes registran gastos?</h2>
+      <p style="font-size:14px;color:#666;text-align:center;margin-bottom:20px">Podés agregar o quitar personas y formas de pago. Se puede cambiar después en Configuración.</p>
+      <div style="margin-bottom:16px">
+        <div style="font-size:12px;font-weight:700;color:#888;margin-bottom:8px">PERSONAS</div>
+        <div id="ob-pagadores-list" style="margin-bottom:8px"></div>
+        <div style="display:flex;gap:8px">
+          <input id="ob-new-pagador" type="text" placeholder="Agregar persona..." style="flex:1;padding:10px 12px;border:0.5px solid #d1d5db;border-radius:10px;font-size:14px">
+          <button onclick="obAgregarPagador()" style="padding:10px 16px;background:#1a1a1a;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer">+</button>
+        </div>
+      </div>
+      <div style="margin-bottom:20px">
+        <div style="font-size:12px;font-weight:700;color:#888;margin-bottom:8px">FORMAS DE PAGO</div>
+        <div id="ob-fps-list" style="margin-bottom:8px"></div>
+        <div style="display:flex;gap:8px">
+          <input id="ob-new-fp" type="text" placeholder="Agregar forma de pago..." style="flex:1;padding:10px 12px;border:0.5px solid #d1d5db;border-radius:10px;font-size:14px">
+          <button onclick="obAgregarFP()" style="padding:10px 16px;background:#1a1a1a;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer">+</button>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px">
+        <button onclick="obBack(5)" style="flex:1;padding:14px;background:#f0f0ee;color:#1a1a1a;border:none;border-radius:14px;font-size:15px;font-weight:600;cursor:pointer">← Volver</button>
+        <button onclick="obNext(5)" style="flex:2;padding:14px;background:#1a1a1a;color:#fff;border:none;border-radius:14px;font-size:15px;font-weight:600;cursor:pointer">Siguiente →</button>
+      </div>
+    </div>
+
+    <!-- Paso 6: Invitar co-usuario -->
+    <div id="ob-step-6" style="display:none">
       <h2 style="font-size:22px;font-weight:700;text-align:center;margin-bottom:8px">¿Querés invitar a alguien?</h2>
       <p style="font-size:14px;color:#666;text-align:center;margin-bottom:28px">Vas a compartir todos los gastos con esta persona.</p>
       <div style="margin-bottom:14px">
@@ -417,14 +443,14 @@ select,input[type=text],input[type=number],input[type=date],input[type=month]{pa
       </div>
       <button onclick="generarLinkInvitacion()" id="ob-btn-generar-link" style="width:100%;padding:12px;background:#f0f0ee;color:#1a1a1a;border:none;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;margin-bottom:10px">🔗 Generar link de invitación</button>
       <div style="display:flex;gap:10px;margin-top:8px">
-        <button onclick="obBack(5)" style="flex:1;padding:14px;background:#f0f0ee;color:#1a1a1a;border:none;border-radius:14px;font-size:15px;font-weight:600;cursor:pointer">← Volver</button>
-        <button onclick="obNext(5)" style="flex:2;padding:14px;background:#1a1a1a;color:#fff;border:none;border-radius:14px;font-size:15px;font-weight:600;cursor:pointer">Siguiente →</button>
+        <button onclick="obBack(6)" style="flex:1;padding:14px;background:#f0f0ee;color:#1a1a1a;border:none;border-radius:14px;font-size:15px;font-weight:600;cursor:pointer">← Volver</button>
+        <button onclick="obNext(6)" style="flex:2;padding:14px;background:#1a1a1a;color:#fff;border:none;border-radius:14px;font-size:15px;font-weight:600;cursor:pointer">Siguiente →</button>
       </div>
-      <button onclick="obNext(5)" style="width:100%;margin-top:10px;padding:10px;background:none;border:none;font-size:13px;color:#aaa;cursor:pointer">Saltar por ahora</button>
+      <button onclick="obNext(6)" style="width:100%;margin-top:10px;padding:10px;background:none;border:none;font-size:13px;color:#aaa;cursor:pointer">Saltar por ahora</button>
     </div>
 
-    <!-- Paso 6: Éxito -->
-    <div id="ob-step-6" style="display:none;text-align:center">
+    <!-- Paso 7: Éxito -->
+    <div id="ob-step-7" style="display:none;text-align:center">
       <div style="font-size:64px;margin-bottom:16px">🎉</div>
       <h2 style="font-size:22px;font-weight:700;margin-bottom:12px">¡Todo listo!</h2>
       <div id="ob-resumen" style="background:#fff;border:0.5px solid #e5e5e0;border-radius:14px;padding:16px;text-align:left;margin-bottom:28px;font-size:14px;line-height:2"></div>
@@ -511,6 +537,7 @@ select,input[type=text],input[type=number],input[type=date],input[type=month]{pa
         <div class="config-main-card">
           <div class="config-card-title" data-t="cfg-finanzas">APP</div>
           <div class="config-row" onclick="abrirSubConfig('categorias')"><span data-t="cfg-cats">Categorías</span><span class="config-row-right">›</span></div>
+          <div class="config-row" onclick="abrirSubConfig('preferencias')"><span>Formas de pago y pagadores</span><span class="config-row-right">›</span></div>
           <div class="config-row" onclick="abrirSubConfig('inflacion')"><span data-t="cfg-inflacion">Tasa de inflación</span><span><span class="config-row-val">3.2%</span><span class="config-row-right">›</span></span></div>
           <div class="config-row" style="cursor:default"><span data-t="cfg-notificaciones">Notificaciones</span><div id="toggle-notif" onclick="toggleNotif()" style="width:40px;height:22px;border-radius:99px;background:#e5e5e0;position:relative;cursor:pointer;flex-shrink:0;transition:background .2s"><div id="toggle-notif-dot" style="position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)"></div></div></div>
           <div class="config-row" style="cursor:default"><span data-t="cfg-idioma">Idioma</span><div style="display:flex;border-radius:99px;border:0.5px solid #e0e0dc;overflow:hidden;flex-shrink:0"><div id="lang-es" style="font-size:12px;padding:3px 10px;background:#1a1a1a;color:#fff;cursor:pointer" onclick="setLang('es')">ES</div><div id="lang-en" style="font-size:12px;padding:3px 10px;background:#fff;color:#aaa;cursor:pointer" onclick="setLang('en')">EN</div></div></div>
@@ -656,6 +683,10 @@ select,input[type=text],input[type=number],input[type=date],input[type=month]{pa
         <button class="btn-primary" onclick="guardarInflacion()">Guardar</button>
       </div>
       <!-- Sub: Exportar -->
+      <div id="config-preferencias" class="subpage">
+        <div class="subpage-header"><button class="subpage-back" onclick="volverConfigMain()">‹</button><div class="subpage-title">Formas de pago y pagadores</div></div>
+        <div id="pref-content"></div>
+      </div>
       <div id="config-exportar" class="subpage">
         <div class="subpage-header"><button class="subpage-back" onclick="volverConfigMain()">‹</button><div class="subpage-title">Exportar datos</div></div>
         <div style="background:#f0f4ff;border:0.5px solid #bfdbfe;border-radius:10px;padding:10px 12px;margin-bottom:12px;font-size:12px;color:#1d4ed8;line-height:1.6">📱 En el celular se abre el menú Compartir del sistema. En la compu descarga directo.</div>
@@ -924,7 +955,7 @@ select,input[type=text],input[type=number],input[type=date],input[type=month]{pa
     <div class="drawer-user">
       <div class="drawer-av" id="drawer-av">SP</div>
       <div>
-        <div class="drawer-name">Sebas &amp; Male</div>
+        <div class="drawer-name" id="drawer-nombre-hogar">Plata Clara</div>
         <div class="drawer-sub" id="drawer-sub">cargando...</div>
       </div>
     </div>
@@ -1077,6 +1108,10 @@ const provider=new GoogleAuthProvider();
 // Usuarios legacy — entran directo sin onboarding, apuntan al hogar 'sjpouiller'
 const USUARIOS_LEGACY={"sjpouiller@gmail.com":"sjpouiller","malelanusse@odiseaswimwear.com.ar":"sjpouiller"};
 let hogarId=null; // se setea después del login
+let formasDePago=['Transferencia','Efectivo','Tarjeta Débito','Tatjeta Credito CUOTAS'];
+let quienesPagan=['Yo'];
+const FORMAS_PAGO_DEFAULT=['Transferencia','Efectivo','Tarjeta Débito','Tatjeta Credito CUOTAS'];
+const QUIENES_PAGAN_DEFAULT=['Yo'];
 const USD_INICIAL=5152;
 
 let gastos=[];
@@ -1189,6 +1224,7 @@ async function iniciarApp(user){
   await cargarPlanItems();
   await cargarCatCustom();
   await cargarIngresosProyectados();
+  await cargarPreferencias();
   fetchDolarBlue();
   sembrarCuotasResumen();
   await cargarInflacion();
@@ -1277,6 +1313,53 @@ const gastosDoc=(id)=>doc(db,'hogares',hogarId,'gastos',id);
 async function cargarPresupuestos(){try{const s=await getDoc(doc(db,'hogares',hogarId,'presupuestos','config'));if(s.exists()){const d=s.data();presupuestos=d.montos||{};catConfigActivas=d.activas||[];}}catch(e){console.error(e);}}
 async function guardarPresupuestos(){try{await setDoc(doc(db,'hogares',hogarId,'presupuestos','config'),{montos:presupuestos,activas:catConfigActivas});}catch(e){console.error(e);}}
 async function cargarPlanItems(){try{const s=await getDoc(doc(db,'hogares',hogarId,'plan_lista','config'));if(s.exists())planItems=s.data().items||[];}catch(e){console.error(e);}}
+async function cargarPreferencias(){
+  try{
+    const s=await getDoc(cfgDoc('preferencias'));
+    if(s.exists()){
+      const d=s.data();
+      if(d.formasDePago?.length)formasDePago=d.formasDePago;
+      if(d.quienesPagan?.length)quienesPagan=d.quienesPagan;
+    } else if(hogarId==='sjpouiller'){
+      // Sembrar preferencias reales de Sebas & Male
+      formasDePago=['Transferencia','Efectivo','Tarjeta Credito - VISA Sebas','Tarjeta Credito - MASTER Sebas','Tarjeta Credito - VISA Male','Tarjeta Credito - MASTER Male','Tarjeta Debito','Tatjeta Credito CUOTAS'];
+      quienesPagan=['Sebas','Male'];
+      await guardarPreferencias();
+    }
+  }catch(e){console.error(e);}
+  actualizarSelectsFormulario();
+}
+async function guardarPreferencias(){
+  try{await setDoc(cfgDoc('preferencias'),{formasDePago,quienesPagan});}catch(e){console.error(e);}
+}
+function actualizarSelectsFormulario(){
+  // Formas de pago — siempre incluir Tatjeta Credito CUOTAS al final
+  const fps=[...formasDePago.filter(f=>f!=='Tatjeta Credito CUOTAS'),'Tatjeta Credito CUOTAS'];
+  const fpOpts=fps.map(f=>`<option>${f}</option>`).join('');
+  ['inp-pago','edit-pago'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(!el)return;
+    const val=el.value;
+    el.innerHTML=fpOpts;
+    if([...el.options].some(o=>o.value===val))el.value=val;
+  });
+  // Quiénes pagan
+  const qpOpts=quienesPagan.map(q=>`<option>${q}</option>`).join('');
+  ['inp-quien-carga','edit-quien'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(!el)return;
+    const val=el.value;
+    el.innerHTML=qpOpts;
+    if([...el.options].some(o=>o.value===val))el.value=val;
+  });
+  // Filtro de movimientos
+  const filQuien=document.getElementById('fil-quien');
+  if(filQuien){
+    const val=filQuien.value;
+    filQuien.innerHTML=`<option value="">Todos</option>`+quienesPagan.map(q=>`<option value="${q}">${q}</option>`).join('');
+    if([...filQuien.options].some(o=>o.value===val))filQuien.value=val;
+  }
+}
 
 // ── CUOTAS RESUMEN — sembrar movimientos reales en Firestore (una sola vez) ──
 const CUOTAS_RESUMEN=[
@@ -1303,6 +1386,7 @@ const CUOTAS_RESUMEN=[
 ];
 
 async function sembrarCuotasResumen(){
+  if(hogarId!=='sjpouiller')return; // solo para el hogar original
   try{
     const flagDoc=await getDoc(cfgDoc('cuotas_resumen_sembradas'));
     if(flagDoc.exists())return;
@@ -1395,7 +1479,7 @@ function renderResumenMes(mes){
 
 function renderPersonas(gm,gmPrev){
   let ph='';
-  ['Sebas','Male'].forEach(p=>{
+  (quienesPagan.length?quienesPagan:['Sebas','Male']).forEach(p=>{
     const pg=gm.filter(g=>g.pago===p&&(g.tipo==='Gasto fijo'||g.tipo==='Gasto variable'));
     const pgP=gmPrev?gmPrev.filter(g=>g.pago===p&&(g.tipo==='Gasto fijo'||g.tipo==='Gasto variable')):[];
     const tot=pg.reduce((s,g)=>s+(g.monto||0),0),totP=pgP.reduce((s,g)=>s+(g.monto||0),0);
@@ -1548,7 +1632,7 @@ window.guardar=async()=>{
     else toast(`✓ ${cat} · ${fmt(monto)}`,'ok',2500);
     // cerrar sheet tras 1.2s
     setTimeout(()=>{msgEl.innerHTML='';if(window.toggleCarga&&window._cargaOpen!==false)window.toggleCarga();},1200);
-    document.getElementById('inp-tipo').value='Gasto variable';document.getElementById('inp-pago').value='Transferencia';document.getElementById('inp-quien-carga').value='Sebas';
+    document.getElementById('inp-tipo').value='Gasto variable';document.getElementById('inp-pago').value=formasDePago[0]||'Transferencia';document.getElementById('inp-quien-carga').value=quienesPagan[0]||'Yo';
     actualizarCategorias();toggleDolarField();toggleCuotasPanel();
     try{const sr=await fetch('/.netlify/functions/sync-sheets',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({fecha,tipo,tipoIngreso:tipo==='Ingreso'?cat:'',categoria:tipo!=='Ingreso'?cat:'',monto,formaPago:pago,pago:quien,mes:fecha.slice(0,7)})});const sd=await sr.json();if(!sr.ok||sd.error)console.error('Sheets sync error:',sd.error);}catch(e){console.error('Sheets sync failed:',e);}
   }catch(e){msgEl.innerHTML=`<div class="alert alert-err">Error: ${e.message}</div>`;}
@@ -2106,6 +2190,64 @@ let ingresosProyectados={};
 async function cargarCatCustom(){try{const s=await getDoc(cfgDoc('categorias'));if(s.exists()){const d=s.data();Object.assign(window.catCustom,d);catCustom=window.catCustom;actualizarCategorias();}}catch(e){console.error(e);}}
 async function guardarCatCustom(){try{await setDoc(cfgDoc('categorias'),window.catCustom);}catch(e){console.error(e);}}
 window.guardarCatCustom=guardarCatCustom;
+
+function renderPrefSubpage(){
+  const fpHtml=formasDePago.filter(f=>f!=='Tatjeta Credito CUOTAS').map((f,i)=>`
+    <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:0.5px solid #f0f0ee">
+      <span style="flex:1;font-size:14px">${f}</span>
+      <button onclick="eliminarFormaPago(${i})" style="background:none;border:none;color:#f87171;font-size:18px;cursor:pointer;padding:2px 6px">×</button>
+    </div>`).join('');
+  const qpHtml=quienesPagan.map((q,i)=>`
+    <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:0.5px solid #f0f0ee">
+      <span style="flex:1;font-size:14px">${q}</span>
+      <button onclick="eliminarPagador(${i})" style="background:none;border:none;color:#f87171;font-size:18px;cursor:pointer;padding:2px 6px">×</button>
+    </div>`).join('');
+  document.getElementById('pref-content').innerHTML=`
+    <div class="card" style="margin-bottom:12px">
+      <div class="card-title">💳 Formas de pago</div>
+      <div style="font-size:11px;color:#888;margin-bottom:10px">"Tatjeta Credito CUOTAS" siempre está disponible y no se puede eliminar.</div>
+      ${fpHtml}
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <input id="new-fp" type="text" placeholder="Nueva forma de pago..." style="flex:1;padding:9px 12px;font-size:13px;border:0.5px solid #d1d5db;border-radius:10px">
+        <button onclick="agregarFormaPago()" style="padding:9px 16px;background:#1a1a1a;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer">+</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">👤 Pagadores</div>
+      <div style="font-size:11px;color:#888;margin-bottom:10px">Las personas que pueden registrar gastos en este hogar.</div>
+      ${qpHtml}
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <input id="new-qp" type="text" placeholder="Nuevo pagador..." style="flex:1;padding:9px 12px;font-size:13px;border:0.5px solid #d1d5db;border-radius:10px">
+        <button onclick="agregarPagador()" style="padding:9px 16px;background:#1a1a1a;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer">+</button>
+      </div>
+    </div>`;
+}
+window.agregarFormaPago=async()=>{
+  const inp=document.getElementById('new-fp');
+  const val=inp?.value.trim();
+  if(!val){window.toast?.('Escribí una forma de pago','warn',2000);return;}
+  if(formasDePago.includes(val)){window.toast?.('Ya existe','warn',2000);return;}
+  formasDePago.push(val);inp.value='';
+  await guardarPreferencias();actualizarSelectsFormulario();renderPrefSubpage();
+  window.toast?.(`"${val}" agregada`,'ok',2000);
+};
+window.eliminarFormaPago=async(i)=>{
+  formasDePago.splice(i,1);
+  await guardarPreferencias();actualizarSelectsFormulario();renderPrefSubpage();
+};
+window.agregarPagador=async()=>{
+  const inp=document.getElementById('new-qp');
+  const val=inp?.value.trim();
+  if(!val){window.toast?.('Escribí un nombre','warn',2000);return;}
+  if(quienesPagan.includes(val)){window.toast?.('Ya existe','warn',2000);return;}
+  quienesPagan.push(val);inp.value='';
+  await guardarPreferencias();actualizarSelectsFormulario();renderPrefSubpage();
+  window.toast?.(`"${val}" agregado`,'ok',2000);
+};
+window.eliminarPagador=async(i)=>{
+  quienesPagan.splice(i,1);
+  await guardarPreferencias();actualizarSelectsFormulario();renderPrefSubpage();
+};
 async function cargarIngresosProyectados(){try{const s=await getDoc(cfgDoc('ingresos_proyectados'));if(s.exists()){ingresosProyectados=s.data();window.ingresosProyectados=ingresosProyectados;}}catch(e){console.error(e);}}
 async function guardarIngresosProyectados(){try{await setDoc(cfgDoc('ingresos_proyectados'),ingresosProyectados);}catch(e){console.error(e);}}
 window.guardarIngresosProyectados=guardarIngresosProyectados;
@@ -2290,6 +2432,14 @@ function actualizarDrawerHeader(){
   const mesKey=`${h.getFullYear()}-${String(h.getMonth()+1).padStart(2,'0')}`;
   const sub=document.getElementById('drawer-sub');
   if(!sub)return;
+  // Nombre del hogar desde Firestore
+  if(hogarId){
+    getDoc(doc(db,'hogares',hogarId,'metadata','info')).then(s=>{
+      const nombreHogar=s.exists()?s.data().nombre||'Plata Clara':'Plata Clara';
+      const el=document.getElementById('drawer-nombre-hogar');
+      if(el)el.textContent=nombreHogar;
+    }).catch(()=>{});
+  }
   if(window.gastos&&window.gastos.length){
     const ing=window.gastos.filter(g=>g.mes===mesKey&&g.tipo==='Ingreso').reduce((s,g)=>s+(g.monto||0),0);
     const fij=window.gastos.filter(g=>g.mes===mesKey&&g.tipo==='Gasto fijo').reduce((s,g)=>s+(g.monto||0),0);
@@ -2330,7 +2480,8 @@ window.abrirSubConfig=(id)=>{
   const el=document.getElementById('config-'+id);
   if(el)el.classList.add('active');
   const tt=document.getElementById('topbar-title');
-  const titles={perfil:'👤 Perfil',ingresos:'💵 Ingresos proyectados',inversor:'⚖️ Perfil inversor',categorias:'🗂 Categorías',inflacion:'📉 Inflación',exportar:'📤 Exportar',integraciones:'🔗 Integraciones'};
+  const titles={perfil:'👤 Perfil',ingresos:'💵 Ingresos proyectados',inversor:'⚖️ Perfil inversor',categorias:'🗂 Categorías',inflacion:'📉 Inflación',exportar:'📤 Exportar',integraciones:'🔗 Integraciones',preferencias:'💳 Formas de pago y pagadores'};
+  if(id==='preferencias')renderPrefSubpage();
   if(tt)tt.textContent=titles[id]||'⚙️ Configuración';
   if(id==='ingresos')renderIngresosSubpage();
   if(id==='categorias'){_catTabActual='fijo';renderCatListNew();}
@@ -2640,7 +2791,7 @@ function iniciarOnboarding(){
 function renderObDots(){
   const dots=document.getElementById('ob-dots');
   if(!dots)return;
-  dots.innerHTML=[1,2,3,4,5].map(i=>`<div style="width:${_obStep===i?20:8}px;height:8px;border-radius:99px;background:${_obStep===i?'#1a1a1a':'#d1d5db'};transition:all .2s"></div>`).join('');
+  dots.innerHTML=[1,2,3,4,5,6,7].map(i=>`<div style="width:${_obStep===i?20:8}px;height:8px;border-radius:99px;background:${_obStep===i?'#1a1a1a':'#d1d5db'};transition:all .2s"></div>`).join('');
 }
 
 function renderObCats(){
@@ -2691,16 +2842,42 @@ window.obNext=async(paso)=>{
     const hogar=document.getElementById('ob-hogar')?.value.trim();
     if(!nombre||!hogar){toast('Completá tu nombre y el del hogar','warn',2500);return;}
   }
+  if(paso===5){renderObPagadores();}
   _obStep=paso+1;
-  [1,2,3,4,5,6].forEach(i=>{const el=document.getElementById(`ob-step-${i}`);if(el)el.style.display=i===_obStep?'block':'none';});
+  [1,2,3,4,5,6,7].forEach(i=>{const el=document.getElementById(`ob-step-${i}`);if(el)el.style.display=i===_obStep?'block':'none';});
   renderObDots();
-  if(_obStep===6)mostrarObResumen();
+  if(_obStep===7)mostrarObResumen();
 };
 
 window.obBack=(paso)=>{
   _obStep=paso-1;
-  [1,2,3,4,5,6].forEach(i=>{const el=document.getElementById(`ob-step-${i}`);if(el)el.style.display=i===_obStep?'block':'none';});
+  [1,2,3,4,5,6,7].forEach(i=>{const el=document.getElementById(`ob-step-${i}`);if(el)el.style.display=i===_obStep?'block':'none';});
   renderObDots();
+};
+
+// Vars temporales onboarding pagadores/fps
+let _obPagadores=[...QUIENES_PAGAN_DEFAULT];
+let _obFormasPago=[...FORMAS_PAGO_DEFAULT];
+
+function renderObPagadores(){
+  const pList=document.getElementById('ob-pagadores-list');
+  const fpList=document.getElementById('ob-fps-list');
+  if(pList)pList.innerHTML=_obPagadores.map((p,i)=>`<div style="display:flex;align-items:center;padding:6px 0;border-bottom:0.5px solid #f0f0ee"><span style="flex:1;font-size:14px">${p}</span><button onclick="_obPagadores.splice(${i},1);renderObPagadores()" style="background:none;border:none;color:#f87171;font-size:16px;cursor:pointer">×</button></div>`).join('');
+  if(fpList)fpList.innerHTML=_obFormasPago.filter(f=>f!=='Tatjeta Credito CUOTAS').map((f,i)=>`<div style="display:flex;align-items:center;padding:6px 0;border-bottom:0.5px solid #f0f0ee"><span style="flex:1;font-size:14px">${f}</span><button onclick="_obFormasPago.splice(${i},1);renderObPagadores()" style="background:none;border:none;color:#f87171;font-size:16px;cursor:pointer">×</button></div>`).join('');
+}
+window.obAgregarPagador=()=>{
+  const inp=document.getElementById('ob-new-pagador');
+  const val=inp?.value.trim();
+  if(!val)return;
+  if(!_obPagadores.includes(val))_obPagadores.push(val);
+  inp.value='';renderObPagadores();
+};
+window.obAgregarFP=()=>{
+  const inp=document.getElementById('ob-new-fp');
+  const val=inp?.value.trim();
+  if(!val)return;
+  if(!_obFormasPago.includes(val))_obFormasPago.push(val);
+  inp.value='';renderObPagadores();
 };
 
 function mostrarObResumen(){
@@ -2709,7 +2886,7 @@ function mostrarObResumen(){
   const ahorro=document.getElementById('ob-ahorro')?.value||20;
   const email=document.getElementById('ob-email-coinquilino')?.value.trim()||'';
   const r=document.getElementById('ob-resumen');
-  if(r)r.innerHTML=`🏠 <strong>${hogar}</strong><br>👤 ${nombre}<br>🎯 Objetivo de ahorro: <strong>${ahorro}%</strong>${_obInviteLink?`<br>🔗 Link de invitación generado`:(email?`<br>📧 Co-usuario: ${email}`:'')}<br>🗂️ ${_obCatsSeleccionadas.size} categorías seleccionadas`;
+  if(r)r.innerHTML=`🏠 <strong>${hogar}</strong><br>👤 ${nombre}<br>🎯 Objetivo de ahorro: <strong>${ahorro}%</strong>${_obInviteLink?`<br>🔗 Link de invitación generado`:(email?`<br>📧 Co-usuario: ${email}`:'')}<br>🗂️ ${_obCatsSeleccionadas.size} categorías seleccionadas<br>👥 ${_obPagadores.join(', ')}`;
 }
 
 window.generarLinkInvitacion=async()=>{
@@ -2764,6 +2941,10 @@ window.finalizarOnboarding=async()=>{
       rol:'owner',creadoEn:window._serverTimestamp()
     });
     window._setHogarId(newHogarId);
+    // Guardar preferencias de pagadores y formas de pago del onboarding
+    formasDePago=[..._obFormasPago];
+    quienesPagan=[..._obPagadores];
+    await guardarPreferencias();
     await window._iniciarApp(user);
   }catch(e){window.toast?.('Error al guardar: '+e.message,'err',3000);console.error(e);}
 };
