@@ -449,8 +449,34 @@ select,input[type=text],input[type=number],input[type=date],input[type=month]{pa
       <button onclick="obNext(6)" style="width:100%;margin-top:10px;padding:10px;background:none;border:none;font-size:13px;color:#aaa;cursor:pointer">Saltar por ahora</button>
     </div>
 
-    <!-- Paso 7: Éxito -->
-    <div id="ob-step-7" style="display:none;text-align:center">
+    <!-- Paso 7: Ahorros existentes -->
+    <div id="ob-step-7" style="display:none">
+      <h2 style="font-size:22px;font-weight:700;text-align:center;margin-bottom:8px">¿Tenés ahorros?</h2>
+      <p style="font-size:14px;color:#666;text-align:center;margin-bottom:24px">Así se ven reflejados desde el primer día. Podés actualizarlos después.</p>
+      <div style="margin-bottom:14px">
+        <label style="font-size:12px;font-weight:600;color:#888;display:block;margin-bottom:6px">💵 DÓLARES (USD)</label>
+        <input id="ob-ahorro-usd" type="number" placeholder="0" min="0" style="width:100%;padding:12px 14px;border:0.5px solid #d1d5db;border-radius:12px;font-size:15px;background:#fff;box-sizing:border-box">
+        <div style="font-size:11px;color:#aaa;margin-top:4px">Saldo actual en dólares (billetes, cuenta bancaria en USD, etc.)</div>
+      </div>
+      <div style="margin-bottom:14px">
+        <label style="font-size:12px;font-weight:600;color:#888;display:block;margin-bottom:6px">📈 INVERSIONES (ARS)</label>
+        <input id="ob-ahorro-inv" type="number" placeholder="0" min="0" style="width:100%;padding:12px 14px;border:0.5px solid #d1d5db;border-radius:12px;font-size:15px;background:#fff;box-sizing:border-box">
+        <div style="font-size:11px;color:#aaa;margin-top:4px">FCI, acciones, plazos fijos, etc. (valor en pesos)</div>
+      </div>
+      <div style="margin-bottom:24px">
+        <label style="font-size:12px;font-weight:600;color:#888;display:block;margin-bottom:6px">🏦 OTROS AHORROS (ARS)</label>
+        <input id="ob-ahorro-otros" type="number" placeholder="0" min="0" style="width:100%;padding:12px 14px;border:0.5px solid #d1d5db;border-radius:12px;font-size:15px;background:#fff;box-sizing:border-box">
+        <div style="font-size:11px;color:#aaa;margin-top:4px">Caja de ahorro, efectivo en pesos, etc.</div>
+      </div>
+      <div style="display:flex;gap:10px">
+        <button onclick="obBack(7)" style="flex:1;padding:14px;background:#f0f0ee;color:#1a1a1a;border:none;border-radius:14px;font-size:15px;font-weight:600;cursor:pointer">← Volver</button>
+        <button onclick="obNext(7)" style="flex:2;padding:14px;background:#1a1a1a;color:#fff;border:none;border-radius:14px;font-size:15px;font-weight:600;cursor:pointer">Siguiente →</button>
+      </div>
+      <button onclick="obNext(7)" style="width:100%;margin-top:10px;padding:10px;background:none;border:none;font-size:13px;color:#aaa;cursor:pointer">No tengo ahorros, saltar</button>
+    </div>
+
+    <!-- Paso 8: Éxito -->
+    <div id="ob-step-8" style="display:none;text-align:center">
       <div style="font-size:64px;margin-bottom:16px">🎉</div>
       <h2 style="font-size:22px;font-weight:700;margin-bottom:12px">¡Todo listo!</h2>
       <div id="ob-resumen" style="background:#fff;border:0.5px solid #e5e5e0;border-radius:14px;padding:16px;text-align:left;margin-bottom:28px;font-size:14px;line-height:2"></div>
@@ -484,6 +510,10 @@ select,input[type=text],input[type=number],input[type=date],input[type=month]{pa
     </div>
     <!-- MOVIMIENTOS -->
     <div id="sec-gastos" class="section">
+      <div class="period-selector">
+        <div class="year-tabs" id="year-tabs-gastos"></div>
+        <div class="mes-tabs" id="mes-tabs-gastos"></div>
+      </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
         <select id="fil-tipo" onchange="renderGastos()" style="padding:9px 10px;font-size:12px;border:0.5px solid #d1d5db;border-radius:10px;background:#fff;color:#1a1a1a;appearance:none;-webkit-appearance:none">
           <option value="">Todos los tipos</option><option value="Gasto fijo">Fijos</option>
@@ -1113,6 +1143,7 @@ let quienesPagan=['Yo'];
 const FORMAS_PAGO_DEFAULT=['Transferencia','Efectivo','Tarjeta Débito','Tatjeta Credito CUOTAS'];
 const QUIENES_PAGAN_DEFAULT=['Yo'];
 const USD_INICIAL=5152;
+let ahorrosIniciales={usd:0,inversiones:0,otros:0};
 
 let gastos=[];
 let anioSel='2026';
@@ -1158,7 +1189,7 @@ function mesActualStr(){const h=new Date();return`${h.getFullYear()}-${pad(h.get
 function mesAnterior(mes){const[y,m]=mes.split('-').map(Number);const d=new Date(y,m-2,1);return`${d.getFullYear()}-${pad(d.getMonth()+1)}`;}
 function sumarMes(mes,tipo){return gastos.filter(g=>g.mes===mes&&(tipo?g.tipo===tipo:true)).reduce((s,g)=>s+(g.monto||0),0);}
 window.sumarMes=sumarMes;
-function calcSaldoUSD(){const c=gastos.filter(g=>g.categoria==='Compra USD'||g.tipoIngreso==='Sueldo USD').reduce((s,g)=>s+(g.montoDolar||0),0);const v=gastos.filter(g=>g.tipoIngreso==='Venta USD').reduce((s,g)=>s+(g.montoDolar||0),0);return USD_INICIAL+c-v;}
+function calcSaldoUSD(){const c=gastos.filter(g=>g.categoria==='Compra USD'||g.tipoIngreso==='Sueldo USD').reduce((s,g)=>s+(g.montoDolar||0),0);const v=gastos.filter(g=>g.tipoIngreso==='Venta USD').reduce((s,g)=>s+(g.montoDolar||0),0);const base=hogarId==='sjpouiller'?USD_INICIAL:ahorrosIniciales.usd;return base+c-v;}
 function varBadge(actual,anterior,invertido=false){if(!anterior||anterior===0)return'<span class="badge-neu">nuevo</span>';const pct=Math.round((actual-anterior)/anterior*100);if(Math.abs(pct)<1)return'<span class="badge-neu">sin cambio</span>';const sube=pct>0;const esBueno=invertido?!sube:sube;const cls=esBueno?'badge-down':'badge-up';return`<span class="${cls}">${sube?'▲':'▼'}${Math.abs(pct)}%</span>`;}
 let _tt;
 function toast(msg,tipo='info',ms=4000){const el=document.getElementById('toast');el.textContent=msg;el.className=`toast toast-${tipo} show`;clearTimeout(_tt);_tt=setTimeout(()=>el.classList.remove('show'),ms);}
@@ -1225,6 +1256,7 @@ async function iniciarApp(user){
   await cargarCatCustom();
   await cargarIngresosProyectados();
   await cargarPreferencias();
+  await cargarAhorrosIniciales();
   fetchDolarBlue();
   sembrarCuotasResumen();
   await cargarInflacion();
@@ -1332,6 +1364,11 @@ async function cargarPreferencias(){
 async function guardarPreferencias(){
   try{await setDoc(cfgDoc('preferencias'),{formasDePago,quienesPagan});}catch(e){console.error(e);}
 }
+async function cargarAhorrosIniciales(){
+  try{const s=await getDoc(cfgDoc('ahorros_iniciales'));if(s.exists()){const d=s.data();ahorrosIniciales={usd:d.usd||0,inversiones:d.inversiones||0,otros:d.otros||0};}}catch(e){console.error(e);}
+}
+window.cargarAhorrosIniciales=cargarAhorrosIniciales;
+window.guardarAhorrosIniciales=async(usd,inv,otros)=>{ahorrosIniciales={usd,inversiones:inv,otros};try{await setDoc(cfgDoc('ahorros_iniciales'),{usd,inversiones:inv,otros,actualizadoEn:serverTimestamp()});}catch(e){console.error(e);}}
 function actualizarSelectsFormulario(){
   // Formas de pago — siempre incluir Tatjeta Credito CUOTAS al final
   const fps=[...formasDePago.filter(f=>f!=='Tatjeta Credito CUOTAS'),'Tatjeta Credito CUOTAS'];
@@ -1359,6 +1396,23 @@ function actualizarSelectsFormulario(){
     filQuien.innerHTML=`<option value="">Todos</option>`+quienesPagan.map(q=>`<option value="${q}">${q}</option>`).join('');
     if([...filQuien.options].some(o=>o.value===val))filQuien.value=val;
   }
+  // Autodetectar pagador según usuario logueado
+  autodetectarPagador();
+}
+function autodetectarPagador(){
+  if(!quienesPagan.length)return;
+  const email=window._authUser?.email||'';
+  const display=window._authUser?.displayName||'';
+  // Buscar coincidencia por nombre o email
+  const match=quienesPagan.find(q=>
+    email.toLowerCase().includes(q.toLowerCase())||
+    display.toLowerCase().includes(q.toLowerCase())
+  );
+  const defaultPagador=match||quienesPagan[0];
+  ['inp-quien-carga','edit-quien'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el&&[...el.options].some(o=>o.value===defaultPagador))el.value=defaultPagador;
+  });
 }
 
 // ── CUOTAS RESUMEN — sembrar movimientos reales en Firestore (una sola vez) ──
@@ -1493,7 +1547,25 @@ function renderPersonas(gm,gmPrev){
 }
 
 // ── MOVIMIENTOS ──
+function renderGastosTabs(){
+  const anios=[...new Set(gastos.map(g=>g.mes?.slice(0,4)).filter(Boolean))].sort().reverse();
+  if(!anios.includes(anioSel)&&anios.length)anioSel=anios[0];
+  const ytEl=document.getElementById('year-tabs-gastos');
+  if(ytEl)ytEl.innerHTML=anios.map(a=>`<button class="year-tab ${a===anioSel?'active':''}" onclick="cambiarAnioGastos('${a}')">${a}</button>`).join('');
+  const meses=[...new Set(gastos.filter(g=>g.mes?.startsWith(anioSel)).map(g=>g.mes))].filter(Boolean).sort();
+  const mtEl=document.getElementById('mes-tabs-gastos');
+  if(!mtEl)return;
+  const todoBtn=`<button class="mes-tab todo-tab ${mesSel==='todo'?'active':''}" onclick="cambiarMesGastos('todo')">Todo el año</button>`;
+  mtEl.innerHTML=todoBtn+meses.map(m=>`<button class="mes-tab ${m===mesSel?'active':''}" onclick="cambiarMesGastos('${m}')">${nombreMes(m)}</button>`).join('');
+  // scroll al mes activo
+  const active=mtEl.querySelector('.mes-tab.active');
+  if(active)active.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});
+}
+window.cambiarMesGastos=m=>{mesSel=m;renderResumen();renderGastos();};
+window.cambiarAnioGastos=a=>{anioSel=a;mesSel=mesActualStr();renderResumen();renderGastos();renderCashflow();};
+
 window.renderGastos=()=>{
+  renderGastosTabs();
   const tipo=document.getElementById('fil-tipo')?.value||'';
   const quien=document.getElementById('fil-quien')?.value||'';
   const oF=document.getElementById('fil-fecha')?.value||'desc';
@@ -1501,9 +1573,7 @@ window.renderGastos=()=>{
   const mF=mesSel==='todo'?null:mesSel;
   let d;
   if(mF){
-    // mostrar mes seleccionado + mes anterior por default
-    const prev=mesAnterior(mF);
-    d=gastos.filter(g=>g.mes===mF||g.mes===prev);
+    d=gastos.filter(g=>g.mes===mF); // solo el mes seleccionado
   } else {
     d=gastos.filter(g=>g.mes?.startsWith(anioSel));
   }
@@ -1513,11 +1583,11 @@ window.renderGastos=()=>{
   else if(oM==='asc')d=[...d].sort((a,b)=>(a.monto||0)-(b.monto||0));
   else if(oF==='asc')d=[...d].sort((a,b)=>{const fc=(a.fecha||'').localeCompare(b.fecha||'');if(fc!==0)return fc;return(a.creadoEn?.toMillis?.()??0)-(b.creadoEn?.toMillis?.()??0);});
   else d=[...d].sort((a,b)=>{const fc=(b.fecha||'').localeCompare(a.fecha||'');if(fc!==0)return fc;return(b.creadoEn?.toMillis?.()??0)-(a.creadoEn?.toMillis?.()??0);});
-  const prev=mF?mesAnterior(mF):null;
-  const pmap=prev?gastos.filter(g=>g.mes===prev).reduce((a,g)=>{const k=(g.categoria||g.tipoIngreso||'?')+'|||'+g.pago;a[k]=(a[k]||0)+(g.monto||0);return a},{}):{}; 
+  const prevMes=mF?mesAnterior(mF):null;
+  const pmap=prevMes?gastos.filter(g=>g.mes===prevMes).reduce((a,g)=>{const k=(g.categoria||g.tipoIngreso||'?')+'|||'+g.pago;a[k]=(a[k]||0)+(g.monto||0);return a},{}):{};
   const cmap=d.reduce((a,g)=>{const k=(g.categoria||g.tipoIngreso||'?')+'|||'+g.pago;a[k]=(a[k]||0)+(g.monto||0);return a},{});
   if(!d.length){document.getElementById('gastos-list').innerHTML='<div class="empty-state">📭<br>Sin movimientos</div>';return;}
-  document.getElementById('gastos-list').innerHTML=`<div class="gastos-list">${d.slice(0,100).map(g=>{const tc=g.tipo==='Ingreso'?'tag-ing':g.tipo==='Gasto fijo'?'tag-fijo':g.tipo==='Ahorro'?'tag-aho':'tag-var';const cat=g.categoria||g.tipoIngreso||g.tipo;const f=g.fecha?g.fecha.slice(8)+'/'+g.fecha.slice(5,7):'';const k=cat+'|||'+g.pago;const badge=prev&&pmap[k]>0?varBadge(cmap[k]||0,pmap[k],g.tipo!=='Ingreso'):'';const uE=g.montoDolar?`<span style="font-size:10px;color:#1d4ed8;font-weight:600">U$S ${g.montoDolar}</span>`:'';const cuotaTag=g.esCuota&&g.cuotaNum&&g.cuotasTotal?`<span style="font-size:10px;font-weight:600;color:#0369a1;background:#e0f2fe;border-radius:4px;padding:1px 5px">cuota ${g.cuotaNum}/${g.cuotasTotal}</span>`:'';return`<div class="gasto-item"><div class="gasto-info"><div class="gasto-cat">${cat}</div><div class="gasto-meta">${f} · <span class="tag ${tc}">${g.tipo}</span> · ${g.pago}${cuotaTag?' · '+cuotaTag:''}</div>${g.comentario?`<div style="font-size:10px;color:#94a3b8;font-style:italic;margin-top:2px">💬 ${g.comentario}</div>`:''}</div><div class="gasto-right" style="display:flex;flex-direction:column;align-items:flex-end;gap:3px"><div class="gasto-monto ${g.tipo==='Ingreso'?'pos':''}">${g.tipo==='Ingreso'?'+':''}${fmt(g.monto)}</div>${uE}${badge?`<div class="gasto-var">${badge} vs ${prev?mesCorto(prev):''}</div>`:''}<div style="display:flex;gap:4px"><button onclick="abrirEdicion('${g.id}')" style="font-size:15px;background:none;border:none;cursor:pointer;padding:2px 4px;color:#aaa">✏️</button><button onclick="confirmarEliminar('${g.id}')" style="font-size:15px;background:none;border:none;cursor:pointer;padding:2px 4px;color:#f87171">🗑️</button></div></div></div>`;}).join('')}</div>`;
+  document.getElementById('gastos-list').innerHTML=`<div class="gastos-list">${d.slice(0,200).map(g=>{const tc=g.tipo==='Ingreso'?'tag-ing':g.tipo==='Gasto fijo'?'tag-fijo':g.tipo==='Ahorro'?'tag-aho':'tag-var';const cat=g.categoria||g.tipoIngreso||g.tipo;const f=g.fecha?g.fecha.slice(8)+'/'+g.fecha.slice(5,7):'';const k=cat+'|||'+g.pago;const badge=prevMes&&pmap[k]>0?varBadge(cmap[k]||0,pmap[k],g.tipo!=='Ingreso'):'';const uE=g.montoDolar?`<span style="font-size:10px;color:#1d4ed8;font-weight:600">U$S ${g.montoDolar}</span>`:'';const cuotaTag=g.esCuota&&g.cuotaNum&&g.cuotasTotal?`<span style="font-size:10px;font-weight:600;color:#0369a1;background:#e0f2fe;border-radius:4px;padding:1px 5px">cuota ${g.cuotaNum}/${g.cuotasTotal}</span>`:'';return`<div class="gasto-item"><div class="gasto-info"><div class="gasto-cat">${cat}</div><div class="gasto-meta">${f} · <span class="tag ${tc}">${g.tipo}</span> · ${g.pago}${cuotaTag?' · '+cuotaTag:''}</div>${g.comentario?`<div style="font-size:10px;color:#94a3b8;font-style:italic;margin-top:2px">💬 ${g.comentario}</div>`:''}</div><div class="gasto-right" style="display:flex;flex-direction:column;align-items:flex-end;gap:3px"><div class="gasto-monto ${g.tipo==='Ingreso'?'pos':''}">${g.tipo==='Ingreso'?'+':''}${fmt(g.monto)}</div>${uE}${badge?`<div class="gasto-var">${badge} vs ${prevMes?mesCorto(prevMes):''}</div>`:''}<div style="display:flex;gap:4px"><button onclick="abrirEdicion('${g.id}')" style="font-size:15px;background:none;border:none;cursor:pointer;padding:2px 4px;color:#aaa">✏️</button><button onclick="confirmarEliminar('${g.id}')" style="font-size:15px;background:none;border:none;cursor:pointer;padding:2px 4px;color:#f87171">🗑️</button></div></div></div>`;}).join('')}</div>`;
 };
 
 // ── CASHFLOW ──
@@ -1910,9 +1980,11 @@ function renderAhorroCard(mes,mesP){
   const saldoTotalUSD=calcSaldoUSD();
   // Total en pesos = sum de items mostrados (Compra USD usa valor de mercado)
   const arsValorUSD=dolarBlue.compra?Math.round(saldoTotalUSD*dolarBlue.compra):(amap['Compra USD']||0);
-  const totalMostrado=(amap['Ahorro general']||0)+(amap['Fondo emergencia']||0)+(amap['Inversiones']||0)+arsValorUSD;
+  const invInicial=ahorrosIniciales.inversiones||0;
+  const otrosInicial=ahorrosIniciales.otros||0;
+  const totalMostrado=(amap['Ahorro general']||0)+(amap['Fondo emergencia']||0)+(amap['Inversiones']||0)+arsValorUSD+invInicial+otrosInicial;
   const arsValorP=dolarBlue.compra?Math.round(saldoTotalUSD*dolarBlue.compra):(amapP['Compra USD']||0);
-  const totalMostradoP=(amapP['Ahorro general']||0)+(amapP['Fondo emergencia']||0)+(amapP['Inversiones']||0)+arsValorP;
+  const totalMostradoP=(amapP['Ahorro general']||0)+(amapP['Fondo emergencia']||0)+(amapP['Inversiones']||0)+arsValorP+invInicial+otrosInicial;
   const vsLabel=mesP?`<div style="font-size:11px;color:#888;margin-top:3px">vs ${mesCorto(mesP)}: ${varBadge(totalMostrado,totalMostradoP,false)}</div>`:`<div style="font-size:11px;color:#888;margin-top:3px">acumulado ${anioSel}</div>`;
   const detalle=CA.map(c=>{
     if(c==='Compra USD'){
@@ -1922,9 +1994,15 @@ function renderAhorroCard(mes,mesP){
       const sub=dolarBlue.compra?`<div style="font-size:10px;color:#1d4ed8;margin-top:2px">${fmtUSD(saldoTotalUSD)} × blue $${dolarBlue.compra.toLocaleString('es-AR')}</div>`:'';
       return`<div class="row-item"><span class="row-cat">${c}${sub}</span><div class="row-right"><span style="font-size:13px;font-weight:700">${displayVal}</span></div></div>`;
     }
+    if(c==='Inversiones'){
+      const total=(amap[c]||0)+invInicial;
+      const sub=invInicial>0&&!amap[c]?`<div style="font-size:10px;color:#888;margin-top:2px">saldo inicial</div>`:'';
+      return`<div class="row-item"><span class="row-cat">${c}${sub}</span><div class="row-right"><span style="font-size:13px;font-weight:700">${total?fmt(total):'—'}</span></div></div>`;
+    }
     return`<div class="row-item"><span class="row-cat">${c}</span><div class="row-right"><span style="font-size:13px;font-weight:700">${amap[c]?fmt(amap[c]):'—'}</span>${amap[c]&&amapP[c]?varBadge(amap[c],amapP[c],false):''}</div></div>`;
   }).join('');
-  return`<div class="card"><div class="card-title">${titulo}</div><div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:10px;border-bottom:0.5px solid #f3f3f0;margin-bottom:8px"><div><div style="font-size:13px;font-weight:700">Total ahorrado</div>${vsLabel}</div><div style="font-size:22px;font-weight:700;color:#16a34a">${fmt(totalMostrado)}</div></div><details class="ahorro-details"><summary>Ver detalle por categoría</summary><div style="padding-top:6px">${detalle}</div></details></div>`;
+  const otrosRow=otrosInicial>0?`<div class="row-item"><span class="row-cat">Otros ahorros<div style="font-size:10px;color:#888;margin-top:2px">saldo inicial</div></span><div class="row-right"><span style="font-size:13px;font-weight:700">${fmt(otrosInicial)}</span></div></div>`:'';
+  return`<div class="card"><div class="card-title">${titulo}</div><div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:10px;border-bottom:0.5px solid #f3f3f0;margin-bottom:8px"><div><div style="font-size:13px;font-weight:700">Total ahorrado</div>${vsLabel}</div><div style="font-size:22px;font-weight:700;color:#16a34a">${fmt(totalMostrado)}</div></div><details class="ahorro-details"><summary>Ver detalle por categoría</summary><div style="padding-top:6px">${detalle}${otrosRow}</div></details></div>`;
 }
 
 // ── FEATURE 3: CARGA EN CUOTAS ──
@@ -2203,6 +2281,16 @@ function renderPrefSubpage(){
       <button onclick="eliminarPagador(${i})" style="background:none;border:none;color:#f87171;font-size:18px;cursor:pointer;padding:2px 6px">×</button>
     </div>`).join('');
   document.getElementById('pref-content').innerHTML=`
+    <div class="card" style="margin-bottom:12px">
+      <div class="card-title">💰 Ahorros iniciales</div>
+      <div style="font-size:11px;color:#888;margin-bottom:12px">Saldo de ahorros al empezar a usar la app. Se suman al total mostrado en Resumen.</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px">
+        <div><div style="font-size:11px;font-weight:600;color:#888;margin-bottom:5px">💵 USD</div><input id="pref-ai-usd" type="number" value="${ahorrosIniciales.usd||0}" min="0" style="width:100%;padding:8px 10px;border:0.5px solid #d1d5db;border-radius:9px;font-size:13px;text-align:right"></div>
+        <div><div style="font-size:11px;font-weight:600;color:#888;margin-bottom:5px">📈 Inv. ARS</div><input id="pref-ai-inv" type="number" value="${ahorrosIniciales.inversiones||0}" min="0" style="width:100%;padding:8px 10px;border:0.5px solid #d1d5db;border-radius:9px;font-size:13px;text-align:right"></div>
+        <div><div style="font-size:11px;font-weight:600;color:#888;margin-bottom:5px">🏦 Otros ARS</div><input id="pref-ai-otros" type="number" value="${ahorrosIniciales.otros||0}" min="0" style="width:100%;padding:8px 10px;border:0.5px solid #d1d5db;border-radius:9px;font-size:13px;text-align:right"></div>
+      </div>
+      <button onclick="guardarAhorrosIniciales(parseFloat(document.getElementById('pref-ai-usd').value)||0,parseFloat(document.getElementById('pref-ai-inv').value)||0,parseFloat(document.getElementById('pref-ai-otros').value)||0).then(()=>{window.toast?.('✓ Ahorros actualizados','ok',2000);renderResumen?.()})" style="width:100%;padding:10px;background:#1a1a1a;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer">Guardar ahorros</button>
+    </div>
     <div class="card" style="margin-bottom:12px">
       <div class="card-title">💳 Formas de pago</div>
       <div style="font-size:11px;color:#888;margin-bottom:10px">"Tatjeta Credito CUOTAS" siempre está disponible y no se puede eliminar.</div>
@@ -2791,7 +2879,7 @@ function iniciarOnboarding(){
 function renderObDots(){
   const dots=document.getElementById('ob-dots');
   if(!dots)return;
-  dots.innerHTML=[1,2,3,4,5,6,7].map(i=>`<div style="width:${_obStep===i?20:8}px;height:8px;border-radius:99px;background:${_obStep===i?'#1a1a1a':'#d1d5db'};transition:all .2s"></div>`).join('');
+  dots.innerHTML=[1,2,3,4,5,6,7,8].map(i=>`<div style="width:${_obStep===i?20:8}px;height:8px;border-radius:99px;background:${_obStep===i?'#1a1a1a':'#d1d5db'};transition:all .2s"></div>`).join('');
 }
 
 function renderObCats(){
@@ -2844,14 +2932,14 @@ window.obNext=async(paso)=>{
   }
   if(paso===5){renderObPagadores();}
   _obStep=paso+1;
-  [1,2,3,4,5,6,7].forEach(i=>{const el=document.getElementById(`ob-step-${i}`);if(el)el.style.display=i===_obStep?'block':'none';});
+  [1,2,3,4,5,6,7,8].forEach(i=>{const el=document.getElementById(`ob-step-${i}`);if(el)el.style.display=i===_obStep?'block':'none';});
   renderObDots();
-  if(_obStep===7)mostrarObResumen();
+  if(_obStep===8)mostrarObResumen();
 };
 
 window.obBack=(paso)=>{
   _obStep=paso-1;
-  [1,2,3,4,5,6,7].forEach(i=>{const el=document.getElementById(`ob-step-${i}`);if(el)el.style.display=i===_obStep?'block':'none';});
+  [1,2,3,4,5,6,7,8].forEach(i=>{const el=document.getElementById(`ob-step-${i}`);if(el)el.style.display=i===_obStep?'block':'none';});
   renderObDots();
 };
 
@@ -2885,8 +2973,12 @@ function mostrarObResumen(){
   const hogar=document.getElementById('ob-hogar')?.value.trim()||'';
   const ahorro=document.getElementById('ob-ahorro')?.value||20;
   const email=document.getElementById('ob-email-coinquilino')?.value.trim()||'';
+  const usd=parseFloat(document.getElementById('ob-ahorro-usd')?.value)||0;
+  const inv=parseFloat(document.getElementById('ob-ahorro-inv')?.value)||0;
+  const otros=parseFloat(document.getElementById('ob-ahorro-otros')?.value)||0;
   const r=document.getElementById('ob-resumen');
-  if(r)r.innerHTML=`🏠 <strong>${hogar}</strong><br>👤 ${nombre}<br>🎯 Objetivo de ahorro: <strong>${ahorro}%</strong>${_obInviteLink?`<br>🔗 Link de invitación generado`:(email?`<br>📧 Co-usuario: ${email}`:'')}<br>🗂️ ${_obCatsSeleccionadas.size} categorías seleccionadas<br>👥 ${_obPagadores.join(', ')}`;
+  const ahorrosStr=usd>0||inv>0||otros>0?`<br>💰 Ahorros: ${usd>0?`U$S ${usd.toLocaleString('es-AR')} `:''} ${inv>0?`$${Math.round(inv).toLocaleString('es-AR')} inv. `:''}${otros>0?`$${Math.round(otros).toLocaleString('es-AR')} otros`:''}`.trim():'';
+  if(r)r.innerHTML=`🏠 <strong>${hogar}</strong><br>👤 ${nombre}<br>🎯 Objetivo de ahorro: <strong>${ahorro}%</strong>${_obInviteLink?`<br>🔗 Link de invitación generado`:(email?`<br>📧 Co-usuario: ${email}`:'')}<br>🗂️ ${_obCatsSeleccionadas.size} categorías seleccionadas<br>👥 ${_obPagadores.join(', ')}${ahorrosStr}`;
 }
 
 window.generarLinkInvitacion=async()=>{
@@ -2945,6 +3037,13 @@ window.finalizarOnboarding=async()=>{
     formasDePago=[..._obFormasPago];
     quienesPagan=[..._obPagadores];
     await guardarPreferencias();
+    // Guardar ahorros iniciales
+    const usd=parseFloat(document.getElementById('ob-ahorro-usd')?.value)||0;
+    const inv=parseFloat(document.getElementById('ob-ahorro-inv')?.value)||0;
+    const otros=parseFloat(document.getElementById('ob-ahorro-otros')?.value)||0;
+    if(usd>0||inv>0||otros>0){
+      await window._setDoc(window._doc('hogares',newHogarId,'config','ahorros_iniciales'),{usd,inversiones:inv,otros,actualizadoEn:window._serverTimestamp()});
+    }
     await window._iniciarApp(user);
   }catch(e){window.toast?.('Error al guardar: '+e.message,'err',3000);console.error(e);}
 };
