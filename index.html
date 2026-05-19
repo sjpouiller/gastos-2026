@@ -1261,8 +1261,8 @@ async function iniciarApp(user){
   await cargarPreferencias();
   await cargarAhorrosIniciales();
   fetchDolarBlue();
-  limpiarCuotasAjenas();
-  sembrarCuotasResumen();
+  await limpiarCuotasAjenas();
+  await sembrarCuotasResumen();
   await cargarInflacion();
   unsub=onSnapshot(query(collection(db,'hogares',hogarId,'gastos'),orderBy('fecha','desc')),snap=>{
     gastos=snap.docs.map(d=>({id:d.id,...d.data()}));
@@ -2350,6 +2350,11 @@ window.eliminarPagador=async(i)=>{
   quienesPagan.splice(i,1);
   await guardarPreferencias();actualizarSelectsFormulario();renderPrefSubpage();
 };
+window.renderPrefSubpage=renderPrefSubpage;
+window.renderConfigProyectados=(...a)=>renderConfigProyectados(...a);
+window.renderCatListNew=(...a)=>renderCatListNew(...a);
+window.renderIngresosSubpage=(...a)=>renderIngresosSubpage(...a);
+window.renderPerfilSubpage=(...a)=>renderPerfilSubpage(...a);
 async function cargarIngresosProyectados(){try{const s=await getDoc(cfgDoc('ingresos_proyectados'));if(s.exists()){ingresosProyectados=s.data();window.ingresosProyectados=ingresosProyectados;}}catch(e){console.error(e);}}
 async function guardarIngresosProyectados(){try{await setDoc(cfgDoc('ingresos_proyectados'),ingresosProyectados);}catch(e){console.error(e);}}
 window.guardarIngresosProyectados=guardarIngresosProyectados;
