@@ -1310,9 +1310,10 @@ onAuthStateChanged(auth,async user=>{
       _pendingInviteToken=null;
       if(ok){await iniciarApp(user);return;}
     }
-    // 2. Param ?onboarding=1 fuerza mostrar el onboarding (solo para testing)
+    // 2. Param ?onboarding=1 fuerza mostrar el onboarding (solo preview, no guarda en Firestore)
     const _forceOnboarding=new URLSearchParams(window.location.search).get('onboarding')==='1';
     if(_forceOnboarding){
+      window._onboardingPreview=true;
       window._authUser=user;
       document.getElementById('login-screen').style.display='none';
       document.getElementById('invite-screen').style.display='none';
@@ -1324,14 +1325,25 @@ onAuthStateChanged(auth,async user=>{
       iniciarOnboarding();
       return;
     }
-    // 3. Buscar documento de usuario en Firestore
+    // 3. Usuarios legacy siempre van a sjpouiller, sin importar lo que haya en Firestore
+    if(USUARIOS_LEGACY[user.email]){
+      hogarId=USUARIOS_LEGACY[user.email];
+      window.hogarId=hogarId;
+      await setDoc(doc(db,'usuarios',user.uid),{
+        hogarId,nombre:user.displayName||user.email,
+        email:user.email,rol:'owner',creadoEn:serverTimestamp()
+      },{merge:true});
+      await iniciarApp(user);
+      return;
+    }
+    // 4. Buscar documento de usuario en Firestore
     const usuarioSnap=await getDoc(doc(db,'usuarios',user.uid));
     if(usuarioSnap.exists()){
       hogarId=usuarioSnap.data().hogarId;
       window.hogarId=hogarId;
       await iniciarApp(user);
-    } else if(USUARIOS_LEGACY[user.email]){
-      // 3. Usuario legacy (Sebas o Male) — crear doc automáticamente sin onboarding
+    } else if(false){
+      // (legacy handled above)
       hogarId=USUARIOS_LEGACY[user.email];
       window.hogarId=hogarId;
       await setDoc(doc(db,'usuarios',user.uid),{
@@ -3062,6 +3074,13 @@ window.copiarLinkInvitacion=()=>{
 };
 
 window.finalizarOnboarding=async()=>{
+  // Modo preview (?onboarding=1): no guarda nada, vuelve a la app normal
+  if(window._onboardingPreview){
+    window._onboardingPreview=false;
+    window.history.replaceState({},'','/');
+    window.location.reload();
+    return;
+  }
   const user=window._authUser;
   if(!user)return;
   const nombre=document.getElementById('ob-nombre')?.value.trim()||user.displayName||'';
