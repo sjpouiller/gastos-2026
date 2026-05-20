@@ -1305,7 +1305,21 @@ onAuthStateChanged(auth,async user=>{
       _pendingInviteToken=null;
       if(ok){await iniciarApp(user);return;}
     }
-    // 2. Buscar documento de usuario en Firestore
+    // 2. Param ?onboarding=1 fuerza mostrar el onboarding (solo para testing)
+    const _forceOnboarding=new URLSearchParams(window.location.search).get('onboarding')==='1';
+    if(_forceOnboarding){
+      window._authUser=user;
+      document.getElementById('login-screen').style.display='none';
+      document.getElementById('invite-screen').style.display='none';
+      document.getElementById('onboarding-screen').style.display='block';
+      const saludo=document.getElementById('ob-saludo');
+      if(saludo)saludo.textContent=`¡Hola, ${user.displayName?.split(' ')[0]||''}!`;
+      const obNombre=document.getElementById('ob-nombre');
+      if(obNombre&&user.displayName)obNombre.value=user.displayName.split(' ')[0];
+      iniciarOnboarding();
+      return;
+    }
+    // 3. Buscar documento de usuario en Firestore
     const usuarioSnap=await getDoc(doc(db,'usuarios',user.uid));
     if(usuarioSnap.exists()){
       hogarId=usuarioSnap.data().hogarId;
