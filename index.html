@@ -439,7 +439,7 @@ select,input[type=text],input[type=number],input[type=date],input[type=month]{pa
         <div style="font-size:12px;font-weight:600;color:#16a34a;margin-bottom:6px">🔗 Link de invitación</div>
         <div id="ob-invite-link-text" style="font-size:12px;color:#333;word-break:break-all;margin-bottom:8px"></div>
         <button onclick="copiarLinkInvitacion()" style="width:100%;padding:8px;background:#16a34a;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer">📋 Copiar link</button>
-        <div style="font-size:11px;color:#666;margin-top:6px;text-align:center">📧 Pronto se va a mandar por email automáticamente</div>
+        <div id="ob-invite-email-status" style="font-size:11px;color:#666;margin-top:6px;text-align:center">📧 Si cargaste un email, ya se lo mandamos automáticamente</div>
       </div>
       <button onclick="generarLinkInvitacion()" id="ob-btn-generar-link" style="width:100%;padding:12px;background:#f0f0ee;color:#1a1a1a;border:none;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;margin-bottom:10px">🔗 Generar link de invitación</button>
       <div style="display:flex;gap:10px;margin-top:8px">
@@ -3046,7 +3046,14 @@ window.generarLinkInvitacion=async()=>{
     if(linkDiv)linkDiv.style.display='block';
     if(linkText)linkText.textContent=link;
     document.getElementById('ob-btn-generar-link').style.display='none';
-    toast('✓ Link generado','ok',2500);
+    // Enviar email de invitación si hay email cargado
+    if(email){
+      fetch('/.netlify/functions/invitacion',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({emailInvitado:email,nombreInvitante:nombre||user.displayName||user.email,nombreHogar:hogar,link})})
+        .then(r=>r.ok?toast('✓ Link generado y email enviado a '+email,'ok',3000):toast('✓ Link generado (email no pudo enviarse)','ok',2500))
+        .catch(()=>toast('✓ Link generado (email no pudo enviarse)','ok',2500));
+    } else {
+      toast('✓ Link generado','ok',2500);
+    }
   }catch(e){toast('Error al generar link: '+e.message,'err',3000);}
 };
 
