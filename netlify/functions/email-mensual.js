@@ -102,7 +102,7 @@ async function enviarEmail(asunto, cuerpo) {
     </div>
     <div style="padding:28px;font-size:14px;line-height:1.9;color:#333;white-space:pre-wrap">${cuerpo.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')}</div>
     <div style="padding:16px 28px;border-top:1px solid #e5e5e0;font-size:11px;color:#aaa;text-align:center">
-      Plata Clara · Sebas & Male · <a href="https://plataclara.netlify.app" style="color:#aaa">Abrir app</a>
+      Fina · Sebas & Male · <a href="https://usefina.netlify.app" style="color:#aaa">Abrir app</a>
     </div>
   </div>
 </body>

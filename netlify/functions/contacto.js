@@ -18,7 +18,7 @@ exports.handler = async function(event) {
       <div style="background:#f9f9f7;border-radius:10px;padding:16px;white-space:pre-wrap">${mensaje}</div>
     </div>
     <div style="padding:16px 28px;border-top:1px solid #e5e5e0;font-size:11px;color:#aaa;text-align:center">
-      Plata Clara · <a href="https://plataclara.netlify.app" style="color:#aaa">Abrir app</a>
+      Fina · <a href="https://usefina.netlify.app" style="color:#aaa">Abrir app</a>
     </div>
   </div>
 </body></html>`;

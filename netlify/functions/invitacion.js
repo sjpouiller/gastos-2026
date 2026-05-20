@@ -18,7 +18,7 @@ exports.handler = async function(event) {
       <p style="font-size:12px;color:#aaa;margin:0">Este link expira en 7 días. Si no esperabas esta invitación, podés ignorar este email.</p>
     </div>
     <div style="padding:16px 28px;border-top:1px solid #e5e5e0;font-size:11px;color:#aaa;text-align:center">
-      Fina · <a href="https://plataclara.netlify.app" style="color:#aaa">plataclara.netlify.app</a>
+      Fina · <a href="https://usefina.netlify.app" style="color:#aaa">usefina.netlify.app</a>
     </div>
   </div>
 </body></html>`;
