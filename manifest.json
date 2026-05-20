@@ -1,7 +1,7 @@
 {
-  "name": "Plata Clara — Finanzas familiares",
-  "short_name": "Plata Clara",
-  "description": "Manejá tus finanzas personales y familiares de forma clara y simple.",
+  "name": "Fina — Tus finanzas en claro, con IA.",
+  "short_name": "Fina",
+  "description": "Tus finanzas en claro, con IA.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#f5f5f3",
