@@ -570,7 +570,7 @@ select,input[type=text],input[type=number],input[type=date],input[type=month]{pa
         <div class="config-main-card">
           <div class="config-card-title" data-t="cfg-finanzas">APP</div>
           <div class="config-row" onclick="abrirSubConfig('categorias')"><span data-t="cfg-cats">Categorías</span><span class="config-row-right">›</span></div>
-          <div class="config-row" onclick="abrirSubConfig('preferencias')"><span>Formas de pago y pagadores</span><span class="config-row-right">›</span></div>
+          <div class="config-row" onclick="abrirSubConfig('preferencias')"><span>Pagos, pagadores y ahorros iniciales</span><span class="config-row-right">›</span></div>
           <div class="config-row" onclick="abrirSubConfig('inflacion')"><span data-t="cfg-inflacion">Tasa de inflación</span><span><span class="config-row-val">3.2%</span><span class="config-row-right">›</span></span></div>
           <div class="config-row" style="cursor:default"><span data-t="cfg-notificaciones">Notificaciones</span><div id="toggle-notif" onclick="toggleNotif()" style="width:40px;height:22px;border-radius:99px;background:#e5e5e0;position:relative;cursor:pointer;flex-shrink:0;transition:background .2s"><div id="toggle-notif-dot" style="position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)"></div></div></div>
           <div class="config-row" style="cursor:default"><span data-t="cfg-idioma">Idioma</span><div style="display:flex;border-radius:99px;border:0.5px solid #e0e0dc;overflow:hidden;flex-shrink:0"><div id="lang-es" style="font-size:12px;padding:3px 10px;background:#1a1a1a;color:#fff;cursor:pointer" onclick="setLang('es')">ES</div><div id="lang-en" style="font-size:12px;padding:3px 10px;background:#fff;color:#aaa;cursor:pointer" onclick="setLang('en')">EN</div></div></div>
@@ -717,7 +717,7 @@ select,input[type=text],input[type=number],input[type=date],input[type=month]{pa
       </div>
       <!-- Sub: Exportar -->
       <div id="config-preferencias" class="subpage">
-        <div class="subpage-header"><button class="subpage-back" onclick="volverConfigMain()">‹</button><div class="subpage-title">Formas de pago y pagadores</div></div>
+        <div class="subpage-header"><button class="subpage-back" onclick="volverConfigMain()">‹</button><div class="subpage-title">Pagos, pagadores y ahorros iniciales</div></div>
         <div id="pref-content"></div>
       </div>
       <div id="config-exportar" class="subpage">
@@ -1557,7 +1557,17 @@ window.renderResumen=()=>{
     document.getElementById('mes-tabs').innerHTML='';
     document.getElementById('ahorro-resumen').innerHTML='';
     document.getElementById('usd-resumen').innerHTML='';
-    document.getElementById('personas').innerHTML=`<div style="text-align:center;padding:40px 20px;color:#aaa"><div style="font-size:48px;margin-bottom:12px">📊</div><div style="font-size:15px;font-weight:600;color:#888;margin-bottom:8px">Todavía no hay movimientos</div><div style="font-size:13px;color:#bbb">Empezá cargando tu primer gasto o ingreso.</div></div>`;
+    const ai=ahorrosIniciales||{};
+    const tieneAhorros=(ai.usd||0)>0||(ai.inversiones||0)>0||(ai.otros||0)>0;
+    const fmt=n=>n?.toLocaleString('es-AR',{minimumFractionDigits:0,maximumFractionDigits:0})||'0';
+    document.getElementById('personas').innerHTML=`
+      ${tieneAhorros?`<div class="card" style="margin-bottom:12px">
+        <div class="card-title">💰 Saldo inicial</div>
+        ${(ai.usd||0)>0?`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:0.5px solid #f0f0ee;font-size:14px"><span style="color:#888">💵 USD</span><span style="font-weight:600">U$D ${fmt(ai.usd)}</span></div>`:''}
+        ${(ai.inversiones||0)>0?`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:0.5px solid #f0f0ee;font-size:14px"><span style="color:#888">📈 Inversiones</span><span style="font-weight:600">$${fmt(ai.inversiones)}</span></div>`:''}
+        ${(ai.otros||0)>0?`<div style="display:flex;justify-content:space-between;padding:6px 0;font-size:14px"><span style="color:#888">🏦 Otros</span><span style="font-weight:600">$${fmt(ai.otros)}</span></div>`:''}
+      </div>`:''}
+      <div style="text-align:center;padding:32px 20px;color:#aaa"><div style="font-size:48px;margin-bottom:12px">📊</div><div style="font-size:15px;font-weight:600;color:#888;margin-bottom:8px">Todavía no hay movimientos</div><div style="font-size:13px;color:#bbb">Empezá cargando tu primer gasto o ingreso.</div></div>`;
     return;
   }
   if(!anios.includes(anioSel))anioSel=anios[0];
@@ -1977,7 +1987,7 @@ window.cambiarMes=m=>{mesSel=m;renderResumen();renderGastos();const s=document.g
 window.cambiarAnio=a=>{anioSel=a;mesSel=null;renderResumen();renderGastos();renderCashflow();};
 
 // ── CATEGORÍAS ──
-const CATEGORIAS={'Ingreso':['Aguinaldo','Freelance','Lanusses','Otros ingresos','Sueldo','Sueldo USD','Venta USD','Venta activos'],'Gasto fijo':['ABL / ARBA','Agua envasada','Colegio','CUBA','Cuotas préstamos','Cuotas tarjetas de crédito','Empleada doméstica','Expensas','Impuestos','Impuestos Municipales','Internet','Jardinero/Piletero','Obra social / Prepaga','Otros fijos','Psicólogo','Seguro auto','Seguro hogar','Servicios - Agua','Servicios - Gas','Servicios - Luz','Servicios - Movistar','Servicios - Streaming (Netflix, Disney, Spotify, etc)'],'Gasto variable':['Almuerzos','Bienestar','Cafe','Carniceria','Colegios / útiles','Comida con amigos','Cosas casa','Delivery','Estacionamiento','Farmacia','Gimnasio','Kiosco','Librería','Limpieza','Mantenimiento auto','Nafta','Otros','Peajes','Regalos','Ropa','Salidas a comer','Salidas con los chicos','Supermercado','Suscripciones','Uber / Taxi','Vacaciones','Verduleria','Viajes'],'Ahorro':['Ahorro general','Compra USD','Fondo emergencia','Inversiones']};
+const CATEGORIAS={'Ingreso':['Aguinaldo','Freelance','Otros ingresos','Sueldo','Sueldo USD','Venta USD','Venta activos'],'Gasto fijo':['ABL / ARBA','Agua envasada','Colegio','CUBA','Cuotas préstamos','Cuotas tarjetas de crédito','Empleada doméstica','Expensas','Impuestos','Impuestos Municipales','Internet','Jardinero/Piletero','Obra social / Prepaga','Otros fijos','Psicólogo','Seguro auto','Seguro hogar','Servicios - Agua','Servicios - Gas','Servicios - Luz','Servicios - Movistar','Servicios - Streaming (Netflix, Disney, Spotify, etc)'],'Gasto variable':['Almuerzos','Bienestar','Cafe','Carniceria','Colegios / útiles','Comida con amigos','Cosas casa','Delivery','Estacionamiento','Farmacia','Gimnasio','Kiosco','Librería','Limpieza','Mantenimiento auto','Nafta','Otros','Peajes','Regalos','Ropa','Salidas a comer','Salidas con los chicos','Supermercado','Suscripciones','Uber / Taxi','Vacaciones','Verduleria','Viajes'],'Ahorro':['Ahorro general','Compra USD','Fondo emergencia','Inversiones']};
 window.CATEGORIAS=CATEGORIAS;
 const CATS_USD=['Compra USD','Sueldo USD','Venta USD'];
 function getCatsConCustom(tipo){
@@ -2408,7 +2418,7 @@ window.eliminarPagador=async(i)=>{
 };
 window.renderPrefSubpage=renderPrefSubpage;
 window.renderConfigProyectados=(...a)=>renderConfigProyectados(...a);
-window.renderCatListNew=(...a)=>renderCatListNew(...a);
+// renderCatListNew is defined in regular script — already global, no wrapper needed
 window.renderIngresosSubpage=(...a)=>renderIngresosSubpage(...a);
 window.renderPerfilSubpage=(...a)=>renderPerfilSubpage(...a);
 async function cargarIngresosProyectados(){try{const s=await getDoc(cfgDoc('ingresos_proyectados'));if(s.exists()){ingresosProyectados=s.data();window.ingresosProyectados=ingresosProyectados;}}catch(e){console.error(e);}}
@@ -2643,7 +2653,7 @@ window.abrirSubConfig=(id)=>{
   const el=document.getElementById('config-'+id);
   if(el)el.classList.add('active');
   const tt=document.getElementById('topbar-title');
-  const titles={perfil:'👤 Perfil',ingresos:'💵 Ingresos proyectados',inversor:'⚖️ Perfil inversor',categorias:'🗂 Categorías',inflacion:'📉 Inflación',exportar:'📤 Exportar',integraciones:'🔗 Integraciones',preferencias:'💳 Formas de pago y pagadores'};
+  const titles={perfil:'👤 Perfil',ingresos:'💵 Ingresos proyectados',inversor:'⚖️ Perfil inversor',categorias:'🗂 Categorías',inflacion:'📉 Inflación',exportar:'📤 Exportar',integraciones:'🔗 Integraciones',preferencias:'💳 Pagos, pagadores y ahorros'};
   if(id==='preferencias')renderPrefSubpage();
   if(tt)tt.textContent=titles[id]||'⚙️ Configuración';
   if(id==='ingresos')renderIngresosSubpage();
