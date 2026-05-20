@@ -1167,6 +1167,8 @@ window._getDoc=(ref)=>getDoc(ref);
 window._serverTimestamp=()=>serverTimestamp();
 window._iniciarApp=(user)=>iniciarApp(user);
 window._setHogarId=(id)=>{hogarId=id;window.hogarId=id;};
+window._setFormasDePago=(v)=>{formasDePago=[...v];};
+window._setQuienesPagan=(v)=>{quienesPagan=[...v];};
 window.mesSel=mesSel;
 
 async function fetchDolarBlue(){
@@ -1382,6 +1384,7 @@ async function cargarPreferencias(){
 async function guardarPreferencias(){
   try{await setDoc(cfgDoc('preferencias'),{formasDePago,quienesPagan});}catch(e){console.error(e);}
 }
+window.guardarPreferencias=guardarPreferencias;
 async function cargarAhorrosIniciales(){
   try{const s=await getDoc(cfgDoc('ahorros_iniciales'));if(s.exists()){const d=s.data();ahorrosIniciales={usd:d.usd||0,inversiones:d.inversiones||0,otros:d.otros||0};}}catch(e){console.error(e);}
 }
@@ -3067,9 +3070,9 @@ window.finalizarOnboarding=async()=>{
     });
     window._setHogarId(newHogarId);
     // Guardar preferencias de pagadores y formas de pago del onboarding
-    formasDePago=[..._obFormasPago];
-    quienesPagan=[..._obPagadores];
-    await guardarPreferencias();
+    window._setFormasDePago(_obFormasPago);
+    window._setQuienesPagan(_obPagadores);
+    await window.guardarPreferencias();
     // Guardar ahorros iniciales
     const usd=parseFloat(document.getElementById('ob-ahorro-usd')?.value)||0;
     const inv=parseFloat(document.getElementById('ob-ahorro-inv')?.value)||0;
