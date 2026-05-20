@@ -2963,8 +2963,8 @@ window.obBack=(paso)=>{
 };
 
 // Vars temporales onboarding pagadores/fps
-let _obPagadores=[...QUIENES_PAGAN_DEFAULT];
-let _obFormasPago=[...FORMAS_PAGO_DEFAULT];
+let _obPagadores=[...(window.QUIENES_PAGAN_DEFAULT||['Yo'])];
+let _obFormasPago=[...(window.FORMAS_PAGO_DEFAULT||['Transferencia','Efectivo','Tarjeta Débito','Tatjeta Credito CUOTAS'])];
 
 function renderObPagadores(){
   const pList=document.getElementById('ob-pagadores-list');
