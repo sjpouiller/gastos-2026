@@ -3,16 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Plata Clara</title>
+<title>Fina</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💰</text></svg>">
 <meta name="theme-color" content="#1a1a1a">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
-<meta name="apple-mobile-web-app-title" content="Plata Clara">
+<meta name="apple-mobile-web-app-title" content="Fina">
 <meta name="mobile-web-app-capable" content="yes">
-<meta property="og:title" content="Plata Clara — Finanzas familiares"/>
-<meta property="og:description" content="Manejá tus finanzas personales y familiares de forma clara y simple."/>
+<meta property="og:title" content="Fina — Tus finanzas en claro, con IA."/>
+<meta property="og:description" content="Tus finanzas en claro, con IA."/>
 <meta property="og:url" content="https://plataclara.netlify.app"/>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -295,8 +295,8 @@ select,input[type=text],input[type=number],input[type=date],input[type=month]{pa
 <!-- LOGIN -->
 <div id="login-screen">
   <div class="login-icon">💰</div>
-  <div class="login-title">Plata Clara</div>
-  <div class="login-sub">Finanzas familiares</div>
+  <div class="login-title">Fina</div>
+  <div class="login-sub">Tus finanzas en claro, con IA.</div>
   <button class="btn-google" onclick="loginGoogle()">
     <svg class="google-logo" viewBox="0 0 24 24">
       <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -314,7 +314,7 @@ select,input[type=text],input[type=number],input[type=date],input[type=month]{pa
 <div id="invite-screen" style="display:none;min-height:100vh;display:none;flex-direction:column;align-items:center;justify-content:center;padding:2rem;text-align:center;background:#f5f5f3">
   <div style="font-size:64px;margin-bottom:1.5rem">💌</div>
   <h2 style="font-size:22px;font-weight:700;margin-bottom:8px">¡Te invitaron!</h2>
-  <p style="font-size:14px;color:#666;margin-bottom:4px;max-width:280px"><strong id="inv-nombre-invitante">Alguien</strong> te invitó a unirte a <strong id="inv-nombre-hogar">un hogar</strong> en Plata Clara.</p>
+  <p style="font-size:14px;color:#666;margin-bottom:4px;max-width:280px"><strong id="inv-nombre-invitante">Alguien</strong> te invitó a unirte a <strong id="inv-nombre-hogar">un hogar</strong> en Fina.</p>
   <p style="font-size:12px;color:#aaa;margin-bottom:28px">Aceptá con tu cuenta de Google para empezar.</p>
   <button class="btn-google" onclick="loginYAceptar()">
     <svg class="google-logo" viewBox="0 0 24 24">
@@ -988,7 +988,7 @@ select,input[type=text],input[type=number],input[type=date],input[type=month]{pa
     <div class="drawer-user">
       <div class="drawer-av" id="drawer-av">SP</div>
       <div>
-        <div class="drawer-name" id="drawer-nombre-hogar">Plata Clara</div>
+        <div class="drawer-name" id="drawer-nombre-hogar">Fina</div>
         <div class="drawer-sub" id="drawer-sub">cargando...</div>
       </div>
     </div>
@@ -2598,7 +2598,7 @@ function actualizarDrawerHeader(){
   // Nombre del hogar desde Firestore (usar wrapper expuesto por el módulo)
   if(window.hogarId&&window._getDoc&&window._doc){
     window._getDoc(window._doc('hogares',window.hogarId,'metadata','info')).then(s=>{
-      const nombreHogar=s.exists()?s.data().nombre||'Plata Clara':'Plata Clara';
+      const nombreHogar=s.exists()?s.data().nombre||'Fina':'Fina';
       const el=document.getElementById('drawer-nombre-hogar');
       if(el)el.textContent=nombreHogar;
     }).catch(()=>{});
