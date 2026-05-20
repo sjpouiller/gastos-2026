@@ -1341,6 +1341,22 @@ onAuthStateChanged(auth,async user=>{
     if(usuarioSnap.exists()){
       hogarId=usuarioSnap.data().hogarId;
       window.hogarId=hogarId;
+      // Safeguard: si el hogar no tiene metadata (onboarding incompleto), volver al onboarding
+      const metaSnap=await getDoc(doc(db,'hogares',hogarId,'metadata','info'));
+      if(!metaSnap.exists()){
+        // Hogar corrupto/incompleto — limpiar y mostrar onboarding
+        await deleteDoc(doc(db,'usuarios',user.uid)).catch(()=>{});
+        window._authUser=user;
+        document.getElementById('login-screen').style.display='none';
+        document.getElementById('invite-screen').style.display='none';
+        document.getElementById('onboarding-screen').style.display='block';
+        const saludo=document.getElementById('ob-saludo');
+        if(saludo)saludo.textContent=`¡Hola, ${user.displayName?.split(' ')[0]||''}!`;
+        const obNombre=document.getElementById('ob-nombre');
+        if(obNombre&&user.displayName)obNombre.value=user.displayName.split(' ')[0];
+        iniciarOnboarding();
+        return;
+      }
       await iniciarApp(user);
     } else if(false){
       // (legacy handled above)
