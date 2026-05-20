@@ -1551,7 +1551,15 @@ window.chipAgente=q=>{document.getElementById('chat-input').value=q;enviar();};
 // ── RESUMEN ──
 window.renderResumen=()=>{
   const anios=[...new Set(gastos.map(g=>g.mes?.slice(0,4)))].filter(Boolean).sort().reverse();
-  if(!anios.length)return;
+  if(!anios.length){
+    document.getElementById('metrics').innerHTML='';
+    document.getElementById('year-tabs').innerHTML='';
+    document.getElementById('mes-tabs').innerHTML='';
+    document.getElementById('ahorro-resumen').innerHTML='';
+    document.getElementById('usd-resumen').innerHTML='';
+    document.getElementById('personas').innerHTML=`<div style="text-align:center;padding:40px 20px;color:#aaa"><div style="font-size:48px;margin-bottom:12px">📊</div><div style="font-size:15px;font-weight:600;color:#888;margin-bottom:8px">Todavía no hay movimientos</div><div style="font-size:13px;color:#bbb">Empezá cargando tu primer gasto o ingreso.</div></div>`;
+    return;
+  }
   if(!anios.includes(anioSel))anioSel=anios[0];
   document.getElementById('year-tabs').innerHTML=anios.map(a=>`<button class="year-tab ${a===anioSel?'active':''}" onclick="cambiarAnio('${a}')">${a}</button>`).join('');
   const meses=[...new Set(gastos.filter(g=>g.mes?.startsWith(anioSel)).map(g=>g.mes))].filter(Boolean).sort();
@@ -3367,7 +3375,8 @@ function renderObjetivos(){
   const fmtN=window.fmt||(x=>'$'+Math.round(x).toLocaleString('es-AR'));
   html+=`<div class="card" style="margin-bottom:10px"><div class="card-title">Margen disponible · ${mesNombre}</div><div class="row-item"><span class="row-cat" style="color:#888">Ingresos proyectados (prom.)</span><span style="font-weight:700;color:#16a34a">${fmtN(aI)}</span></div><div class="row-item"><span class="row-cat" style="color:#888">− Gastos fijos prom.</span><span>${fmtN(aF)}</span></div><div class="row-item"><span class="row-cat" style="color:#888">− Variables prom.</span><span>${fmtN(aV)}</span></div><div class="row-item"><span class="row-cat" style="color:#888">− Ahorro reservado (20%)</span><span style="color:#7e22ce">${fmtN(aho20)}</span></div><div class="row-item" style="padding-top:8px"><span class="row-cat" style="font-weight:700">= Margen para planificar</span><span style="font-size:15px;font-weight:700;color:${margen>=0?'#16a34a':'#dc2626'}">${fmtN(margen)}/mes</span></div></div>`;
 
-  // cuotas a vencer
+  // cuotas a vencer — solo para sjpouiller (hardcodeadas de resúmenes reales)
+  if(window.hogarId==='sjpouiller')
   html+=`<div class="card" style="margin-bottom:10px"><div class="card-title">Cuotas a vencer · todas las tarjetas</div><div style="font-size:10px;color:#aaa;margin-bottom:10px">VISA Sebas · Master Sebas · VISA Male · Master Male</div>
   <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:0.5px solid #f3f3f0"><div><div style="font-size:13px;font-weight:600">Mayo 2026</div><div style="font-size:10px;color:#aaa;margin-top:2px">VISA Sebas $405.324 · Master Male $137.483 · VISA Male $308.278</div></div><div style="text-align:right"><div style="font-size:14px;font-weight:700;color:#dc2626">$851.085</div><span style="font-size:10px;padding:1px 6px;border-radius:99px;background:#fee2e2;color:#dc2626;font-weight:600">⚠ alto</span></div></div>
   <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:0.5px solid #f3f3f0"><div><div style="font-size:13px;font-weight:600">Junio 2026</div><div style="font-size:10px;color:#aaa;margin-top:2px">VISA Sebas $321.801 · Master Male $33.889 · VISA Male $171.750</div></div><div style="text-align:right"><div style="font-size:14px;font-weight:700;color:#f59e0b">$527.441</div><span style="font-size:10px;padding:1px 6px;border-radius:99px;background:#fef3c7;color:#92400e;font-weight:600">medio</span></div></div>
