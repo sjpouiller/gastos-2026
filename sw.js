@@ -1,4 +1,4 @@
-const CACHE_NAME = 'plataclara-v3';
+const CACHE_NAME = 'fina-v1';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
