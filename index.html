@@ -2048,8 +2048,9 @@ window.cerrarMetricModal=(e)=>{if(!e||e.target===document.getElementById('metric
 // ── FEATURE 2: CARD AHORRO ACCORDION ──
 function renderAhorroCard(mes,mesP){
   const esAnual=!mes;
-  const ga=esAnual?gastos.filter(g=>g.mes?.startsWith(anioSel)&&g.tipo==='Ahorro'):gastos.filter(g=>g.mes===mes&&g.tipo==='Ahorro');
-  const gaP=mesP?gastos.filter(g=>g.mes===mesP&&g.tipo==='Ahorro'):[];
+  // Para vista mensual: acumulado hasta ese mes (ahorro es saldo, no flujo)
+  const ga=esAnual?gastos.filter(g=>g.mes?.startsWith(anioSel)&&g.tipo==='Ahorro'):gastos.filter(g=>g.mes<=mes&&g.tipo==='Ahorro');
+  const gaP=mesP?gastos.filter(g=>g.mes<=mesP&&g.tipo==='Ahorro'):[];
   const ta=ga.reduce((s,g)=>s+(g.monto||0),0),taP=gaP.reduce((s,g)=>s+(g.monto||0),0);
   const amap=ga.reduce((a,g)=>{a[g.categoria]=(a[g.categoria]||0)+(g.monto||0);return a},{});
   const amapP=gaP.reduce((a,g)=>{a[g.categoria]=(a[g.categoria]||0)+(g.monto||0);return a},{});
