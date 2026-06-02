@@ -55,6 +55,19 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#1
 .mes-tab.active{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
 .mes-tab.todo-tab{border-style:dashed}
 .mes-tab.todo-tab.active{border-style:solid}
+.mes-tab{position:relative;padding-bottom:14px}
+.mes-dot{position:absolute;bottom:5px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:#3b82f6;pointer-events:none}
+.mes-tab.active .mes-dot{background:#fff}
+.persona-card .persona-body{overflow:hidden;transition:max-height 0.35s ease,opacity 0.3s ease;max-height:0;opacity:0}
+.persona-card.expanded .persona-body{max-height:2000px;opacity:1}
+.persona-header{cursor:pointer;user-select:none}
+.persona-toggle-icon{font-size:11px;color:#aaa;transition:transform 0.3s ease;display:inline-block;margin-left:auto}
+.persona-card.expanded .persona-toggle-icon{transform:rotate(180deg)}
+@keyframes fadeSlideIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+#fab-wrapper{position:fixed;bottom:72px;right:16px;display:flex;flex-direction:column;align-items:flex-end;gap:8px;z-index:201;display:none}
+#fab-burbuja{background:#fff;border:0.5px solid #e5e5e0;border-radius:12px 12px 2px 12px;padding:10px 12px;max-width:200px;box-shadow:0 4px 16px rgba(0,0,0,.12);font-size:12px;line-height:1.5;color:#1a1a1a;animation:fadeSlideIn .25s ease;cursor:pointer;position:relative}
+#fab-burbuja .burbuja-close{position:absolute;top:4px;right:8px;background:none;border:none;font-size:14px;color:#aaa;cursor:pointer;padding:0;line-height:1}
+#dona-popover{position:fixed;background:#1a1a1a;color:#fff;border-radius:12px;padding:10px 12px;font-size:12px;pointer-events:none;z-index:500;display:none;min-width:160px;line-height:1.7}
 .metric-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
 .metric{background:#fff;border:0.5px solid #e5e5e0;border-radius:12px;padding:14px}
 .metric-label{font-size:11px;color:#888;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em}
@@ -73,7 +86,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#1
 .progress-bar{background:#f0f0ee;border-radius:4px;height:4px;margin-top:2px;margin-bottom:4px;overflow:hidden}
 .progress-fill{height:100%;border-radius:4px}
 .persona-card{background:#fff;border:0.5px solid #e5e5e0;border-radius:12px;padding:16px;margin-bottom:12px}
-.persona-header{display:flex;align-items:center;gap:10px;margin-bottom:12px;padding-bottom:10px;border-bottom:0.5px solid #f3f3f0}
+.persona-header{display:flex;align-items:center;gap:10px;padding-bottom:10px;border-bottom:0.5px solid #f3f3f0}
+.persona-card.expanded .persona-header{margin-bottom:12px}
 .avatar{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0}
 .av-s{background:#dbeafe;color:#1d4ed8}.av-m{background:#fef3c7;color:#92400e}
 .persona-name{font-size:15px;font-weight:700}
@@ -507,6 +521,7 @@ select,input[type=text],input[type=number],input[type=date],input[type=month]{pa
         <div class="mes-tabs" id="mes-tabs"></div>
       </div>
       <div class="metric-grid" id="metrics"></div>
+      <div id="dona-resumen"></div>
       <div id="ahorro-resumen"></div>
       <div id="usd-resumen"></div>
       <div id="personas"></div>
@@ -1065,7 +1080,11 @@ select,input[type=text],input[type=number],input[type=date],input[type=month]{pa
 </div>
 <div id="contacto-overlay" onclick="cerrarContacto()" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.4);z-index:295"></div>
 <!-- FAB AGENTE -->
-<button id="fab-agente" onclick="toggleAgente()" style="display:none;position:fixed;bottom:72px;right:16px;width:52px;height:52px;border-radius:50%;background:#1a1a1a;color:#fff;border:none;font-size:22px;cursor:pointer;align-items:center;justify-content:center;z-index:200;box-shadow:0 4px 16px rgba(0,0,0,.25)">🤖</button>
+<div id="fab-wrapper" style="display:none">
+  <div id="fab-burbuja" style="display:none" onclick="onBurbujaClick(event)"><button class="burbuja-close" onclick="cerrarBurbuja(event)">✕</button><span id="fab-burbuja-txt"></span></div>
+  <button id="fab-agente" onclick="toggleAgente()" style="width:52px;height:52px;border-radius:50%;background:#1a1a1a;color:#fff;border:none;font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(0,0,0,.25)">🤖</button>
+</div>
+<div id="dona-popover"></div>
 <!-- AGENT SHEET -->
 <div id="agent-sheet" style="position:fixed;bottom:0;left:0;right:0;background:#fff;border-radius:16px 16px 0 0;border-top:0.5px solid #e5e5e0;z-index:300;transform:translateY(100%);transition:transform .3s ease;max-height:78vh;display:flex;flex-direction:column">
   <div style="width:36px;height:4px;background:#e5e5e0;border-radius:2px;margin:10px auto 0"></div>
@@ -1248,7 +1267,7 @@ function mostrarApp(user){
   document.getElementById('onboarding-screen').style.display='none';
   document.getElementById('app-screen').style.display='block';
   document.getElementById('bottom-nav').style.display='flex';
-  document.getElementById('fab-agente').style.display='flex';
+  document.getElementById('fab-wrapper').style.display='flex';
   const wrap=document.getElementById('user-avatar-wrap');
   wrap.innerHTML=user.photoURL?`<img src="${user.photoURL}" class="user-avatar">`:`<div class="user-initials">${(user.displayName||'?')[0]}</div>`;
   window._authUser=user;
@@ -1384,7 +1403,7 @@ onAuthStateChanged(auth,async user=>{
     document.getElementById('app-screen').style.display='none';
     document.getElementById('onboarding-screen').style.display='none';
     document.getElementById('bottom-nav').style.display='none';
-    document.getElementById('fab-agente').style.display='none';
+    document.getElementById('fab-wrapper').style.display='none';
     gastos=[];mesSel=null;hogarId=null;
   }
 });
@@ -1548,6 +1567,87 @@ let _agenteOpen=false;
 window.toggleAgente=()=>{_agenteOpen=!_agenteOpen;document.getElementById('agent-sheet').style.transform=_agenteOpen?'translateY(0)':'translateY(100%)';document.getElementById('fab-agente').textContent=_agenteOpen?'✕':'🤖';};
 window.chipAgente=q=>{document.getElementById('chat-input').value=q;enviar();};
 
+// ── DONA CHART ──
+const DONA_COLORS=['#3b82f6','#f59e0b','#10b981','#ef4444','#8b5cf6','#f97316','#6b7280'];
+function renderDonaCard(mes,prev){
+  const el=document.getElementById('dona-resumen');
+  if(!el)return;
+  if(window._donaChart){window._donaChart.destroy();window._donaChart=null;}
+  const gastosM=gastos.filter(g=>g.mes===mes&&(g.tipo==='Gasto variable'||g.tipo==='Gasto fijo'));
+  if(!gastosM.length){el.innerHTML='';return;}
+  const bycat=gastosM.reduce((a,g)=>{const k=g.categoria||'Otros';a[k]=(a[k]||0)+(g.monto||0);return a},{});
+  const sorted=Object.entries(bycat).sort((a,b)=>b[1]-a[1]);
+  const top6=sorted.slice(0,6);
+  const rest=sorted.slice(6);
+  const otrosTotal=rest.reduce((s,[,v])=>s+v,0);
+  const labels=top6.map(([k])=>k);
+  const values=top6.map(([,v])=>v);
+  if(otrosTotal>0){labels.push('Otros');values.push(otrosTotal);}
+  const total=values.reduce((s,v)=>s+v,0);
+  el.innerHTML=`<div class="card" style="margin-bottom:12px"><div class="card-title">Distribución de gastos · ${nombreMes(mes)}</div><div style="display:flex;align-items:center;gap:16px"><canvas id="dona-canvas" width="120" height="120" style="flex-shrink:0"></canvas><div id="dona-legend" style="flex:1;font-size:12px;display:flex;flex-direction:column;gap:5px"></div></div></div>`;
+  const legend=document.getElementById('dona-legend');
+  legend.innerHTML=labels.map((l,i)=>{
+    const pct=Math.round(values[i]/total*100);
+    const isOtros=l==='Otros';
+    const infoIcon=isOtros?`<span class="dona-otros-info" style="color:#3b82f6;font-size:12px;opacity:.8;cursor:pointer;margin:0 3px" data-rest='${JSON.stringify(rest.map(([k,v])=>({k,v})))}'>ⓘ</span>`:'';
+    return`<div style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:${DONA_COLORS[i%DONA_COLORS.length]};flex-shrink:0"></span><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${l}</span>${infoIcon}<span style="font-weight:600;color:#444">${pct}%</span></div>`;
+  }).join('');
+  // Popover para "Otros"
+  const pop=document.getElementById('dona-popover');
+  document.querySelectorAll('.dona-otros-info').forEach(icon=>{
+    icon.addEventListener('mousemove',e=>{
+      const items=JSON.parse(icon.dataset.rest||'[]');
+      pop.innerHTML=`<div style="font-size:10px;color:#888;margin-bottom:6px;font-weight:600">INCLUIDO EN 'OTROS'</div>`+items.map(({k,v})=>`<div style="display:flex;justify-content:space-between;gap:16px"><span>${k}</span><span style="font-weight:600">${fmt(v)}</span></div>`).join('');
+      pop.style.display='block';
+      pop.style.left=Math.min(e.clientX+12,window.innerWidth-180)+'px';
+      pop.style.top=Math.max(e.clientY-60,8)+'px';
+    });
+    icon.addEventListener('mouseleave',()=>{pop.style.display='none';});
+  });
+  // Cargar Chart.js si no está
+  const drawDona=()=>{
+    const ctx=document.getElementById('dona-canvas')?.getContext('2d');
+    if(!ctx)return;
+    window._donaChart=new Chart(ctx,{type:'doughnut',data:{labels,datasets:[{data:values,backgroundColor:labels.map((_,i)=>DONA_COLORS[i%DONA_COLORS.length]),borderWidth:2,borderColor:'#fff'}]},options:{cutout:'68%',plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.label}: ${fmt(c.raw)} (${Math.round(c.raw/total*100)}%)`}}},animation:{duration:400}}});
+  };
+  if(window.Chart){drawDona();}
+  else{const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js';s.onload=drawDona;document.head.appendChild(s);}
+}
+
+// ── BURBUJA PROACTIVA ──
+function mostrarBurbujaProactiva(mes,prev){
+  const wrapper=document.getElementById('fab-wrapper');
+  const burbuja=document.getElementById('fab-burbuja');
+  const txt=document.getElementById('fab-burbuja-txt');
+  if(!wrapper||!burbuja||!txt)return;
+  if(sessionStorage.getItem('burbuja-cerrada-'+mes))return;
+  // Encontrar categoría variable con mayor incremento %
+  const gM=gastos.filter(g=>g.mes===mes&&g.tipo==='Gasto variable');
+  const gP=gastos.filter(g=>g.mes===prev&&g.tipo==='Gasto variable');
+  const cmM=gM.reduce((a,g)=>{a[g.categoria]=(a[g.categoria]||0)+(g.monto||0);return a},{});
+  const cmP=gP.reduce((a,g)=>{a[g.categoria]=(a[g.categoria]||0)+(g.monto||0);return a},{});
+  let bestCat='',bestPct=0;
+  for(const [cat,monto] of Object.entries(cmM)){
+    const prev_val=cmP[cat]||0;
+    if(prev_val>0){const pct=Math.round((monto-prev_val)/prev_val*100);if(pct>50&&pct>bestPct){bestPct=pct;bestCat=cat;}}
+  }
+  if(!bestCat)return;
+  txt.textContent=`${bestCat} subió ${bestPct}% este mes. ¿Querés analizarlo?`;
+  burbuja._catMsg=`¿Por qué subió tanto ${bestCat} este mes comparado con ${mesCorto(prev)}? Dame el detalle.`;
+  burbuja.style.display='block';
+  setTimeout(()=>{if(burbuja.style.display!=='none'&&!sessionStorage.getItem('burbuja-cerrada-'+mes)){burbuja.style.display='none';}},8000);
+}
+window.cerrarBurbuja=e=>{e.stopPropagation();const m=mesSel||'';sessionStorage.setItem('burbuja-cerrada-'+m,'1');document.getElementById('fab-burbuja').style.display='none';};
+window.onBurbujaClick=e=>{
+  if(e.target.classList.contains('burbuja-close'))return;
+  const burbuja=document.getElementById('fab-burbuja');
+  const msg=burbuja._catMsg||'';
+  const m=mesSel||'';sessionStorage.setItem('burbuja-cerrada-'+m,'1');
+  burbuja.style.display='none';
+  if(!_agenteOpen)toggleAgente();
+  setTimeout(()=>{if(msg)chipAgente(msg);},400);
+};
+
 // ── RESUMEN ──
 window.renderResumen=()=>{
   const anios=[...new Set(gastos.map(g=>g.mes?.slice(0,4)))].filter(Boolean).sort().reverse();
@@ -1575,8 +1675,9 @@ window.renderResumen=()=>{
   const meses=[...new Set(gastos.filter(g=>g.mes?.startsWith(anioSel)).map(g=>g.mes))].filter(Boolean).sort();
   if(!meses.length){document.getElementById('mes-tabs').innerHTML='';return;}
   if(mesSel!=='todo'&&!meses.includes(mesSel))mesSel=meses[meses.length-1];
+  const mesesConMov=new Set(gastos.map(g=>g.mes).filter(Boolean));
   const todoBtn=`<button class="mes-tab todo-tab ${mesSel==='todo'?'active':''}" onclick="cambiarMes('todo')">Todo el año</button>`;
-  document.getElementById('mes-tabs').innerHTML=todoBtn+meses.map(m=>`<button class="mes-tab ${m===mesSel?'active':''}" onclick="cambiarMes('${m}')">${nombreMes(m)}</button>`).join('');
+  document.getElementById('mes-tabs').innerHTML=todoBtn+meses.map(m=>`<button class="mes-tab ${m===mesSel?'active':''}" onclick="cambiarMes('${m}')">${nombreMes(m)}${mesesConMov.has(m)?'<span class="mes-dot"></span>':''}</button>`).join('');
   if(mesSel==='todo')renderResumenAnual(anioSel);else renderResumenMes(mesSel);
 };
 
@@ -1587,6 +1688,8 @@ function renderResumenAnual(anio){
   const vrs=ga.filter(g=>g.tipo==='Gasto variable').reduce((s,g)=>s+(g.monto||0),0);
   const sal=ing-fij-vrs;const ahP=ing>0?Math.round(sal/ing*100):0;
   document.getElementById('metrics').innerHTML=`<div class="metric" onclick="abrirMetricModal('Ingreso','${anio}',null)"><div class="metric-label">Ingresos</div><div class="metric-value pos">${fmtK(ing)}</div><div class="metric-var"><span style="font-size:11px;color:#888">acumulado ${anio} · ver top ▸</span></div></div><div class="metric" onclick="abrirMetricModal('Gasto fijo','${anio}',null)"><div class="metric-label">Gastos fijos</div><div class="metric-value">${fmtK(fij)}</div><div class="metric-var"><span style="font-size:11px;color:#888">acumulado ${anio} · ver top ▸</span></div></div><div class="metric" onclick="abrirMetricModal('Gasto variable','${anio}',null)"><div class="metric-label">Variables</div><div class="metric-value">${fmtK(vrs)}</div><div class="metric-var"><span style="font-size:11px;color:#888">acumulado ${anio} · ver top ▸</span></div></div><div class="metric" onclick="abrirMetricModal('saldo','${anio}',null)"><div class="metric-label">Saldo neto</div><div class="metric-value ${sal>=0?'pos':'neg'}">${fmtK(sal)}</div><div class="metric-var"><span style="font-size:11px;color:#888">ahorro ${ahP}% · ver ▸</span></div></div>`;
+  document.getElementById('dona-resumen').innerHTML='';
+  if(window._donaChart){window._donaChart.destroy();window._donaChart=null;}
   document.getElementById('ahorro-resumen').innerHTML=renderAhorroCard(null,null);
   const sUSD=calcSaldoUSD();
   const uAnioC=gastos.filter(g=>g.mes?.startsWith(anio)&&(g.categoria==='Compra USD'||g.tipoIngreso==='Sueldo USD')).reduce((s,g)=>s+(g.montoDolar||0),0);
@@ -1604,6 +1707,8 @@ function renderResumenMes(mes){
   const sal=ing-fij-vrs;const ahP=ing>0?Math.round(sal/ing*100):0;
   document.getElementById('metrics').innerHTML=`<div class="metric" onclick="abrirMetricModal('Ingreso','${mes}','${prev}')"><div class="metric-label">Ingresos</div><div class="metric-value pos">${fmt(ing)}</div><div class="metric-var">${varBadge(ing,ingP,false)}<span style="font-size:11px;color:#888">vs ${mesCorto(prev)} · ver ▸</span></div></div><div class="metric" onclick="abrirMetricModal('Gasto fijo','${mes}','${prev}')"><div class="metric-label">Gastos fijos</div><div class="metric-value">${fmt(fij)}</div><div class="metric-var">${varBadge(fij,fijP,true)}<span style="font-size:11px;color:#888">vs ${mesCorto(prev)} · ver ▸</span></div></div><div class="metric" onclick="abrirMetricModal('Gasto variable','${mes}','${prev}')"><div class="metric-label">Variables</div><div class="metric-value">${fmt(vrs)}</div><div class="metric-var">${varBadge(vrs,vrsP,true)}<span style="font-size:11px;color:#888">vs ${mesCorto(prev)} · ver ▸</span></div></div><div class="metric" onclick="abrirMetricModal('saldo','${mes}','${prev}')"><div class="metric-label">Saldo neto</div><div class="metric-value ${sal>=0?'pos':'neg'}">${fmt(sal)}</div><div class="metric-var">${varBadge(sal,sumarMes(prev,'Ingreso')-sumarMes(prev,'Gasto fijo')-sumarMes(prev,'Gasto variable'),false)}<span style="font-size:11px;color:#888">ahorro ${ahP}% · ver ▸</span></div></div>`;
   document.getElementById('ahorro-resumen').innerHTML=renderAhorroCard(mes,prev);
+  renderDonaCard(mes,prev);
+  mostrarBurbujaProactiva(mes,prev);
   const saldoUSD=calcSaldoUSD();
   const uM=gastos.filter(g=>g.mes===mes&&(g.categoria==='Compra USD'||g.tipoIngreso==='Sueldo USD')).reduce((s,g)=>s+(g.montoDolar||0),0)-gastos.filter(g=>g.mes===mes&&g.tipoIngreso==='Venta USD').reduce((s,g)=>s+(g.montoDolar||0),0);
   const uP=gastos.filter(g=>g.mes===prev&&(g.categoria==='Compra USD'||g.tipoIngreso==='Sueldo USD')).reduce((s,g)=>s+(g.montoDolar||0),0)-gastos.filter(g=>g.mes===prev&&g.tipoIngreso==='Venta USD').reduce((s,g)=>s+(g.montoDolar||0),0);
@@ -1621,7 +1726,8 @@ function renderPersonas(gm,gmPrev){
     const cm=pg.reduce((a,g)=>{const k=g.categoria||g.tipoIngreso||'?';a[k]=(a[k]||0)+(g.monto||0);return a},{});
     const top=Object.entries(cm).sort((a,b)=>b[1]-a[1]).slice(0,10);
     const maxV=top[0]?.[1]||1;const col=p==='Sebas'?'#3b82f6':'#f59e0b';
-    ph+=`<div class="persona-card"><div class="persona-header"><div class="avatar ${p==='Sebas'?'av-s':'av-m'}">${p.slice(0,2).toUpperCase()}</div><div style="flex:1"><div class="persona-name">${p}</div><div class="persona-total">${fmt(tot)} ${gmPrev?varBadge(tot,totP,true):''}</div></div></div>${top.map(([cat,monto])=>{const pct=Math.round(monto/maxV*100);const badge=gmPrev&&pmap[cat]>0?varBadge(monto,pmap[cat],true):'';return`<div class="row-item"><span class="row-cat">${cat}</span><div class="row-right"><span style="font-size:13px;font-weight:700">${fmt(monto)}</span>${badge}</div></div><div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${col}"></div></div>`;}).join('')}</div>`;
+    const bodyHtml=top.map(([cat,monto])=>{const pct=Math.round(monto/maxV*100);const badge=gmPrev&&pmap[cat]>0?varBadge(monto,pmap[cat],true):'';return`<div class="row-item"><span class="row-cat">${cat}</span><div class="row-right"><span style="font-size:13px;font-weight:700">${fmt(monto)}</span>${badge}</div></div><div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${col}"></div></div>`;}).join('');
+    ph+=`<div class="persona-card"><div class="persona-header" onclick="this.closest('.persona-card').classList.toggle('expanded')"><div class="avatar ${p==='Sebas'?'av-s':'av-m'}">${p.slice(0,2).toUpperCase()}</div><div style="flex:1"><div class="persona-name">${p}</div><div class="persona-total">${fmt(tot)} ${gmPrev?varBadge(tot,totP,true):''}</div></div><span class="persona-toggle-icon">▼</span></div><div class="persona-body">${bodyHtml}</div></div>`;
   });
   document.getElementById('personas').innerHTML=ph;
 }
