@@ -131,6 +131,9 @@ select,input[type=text],input[type=number],input[type=date],input[type=month]{pa
 .cf-table td.proj{color:#94a3b8;font-style:italic}
 .cf-table td.real-val{font-weight:500}
 .cf-table th.proj-head{color:#94a3b8;font-style:italic}
+.cf-table th.cf-mes-actual{color:#f59e0b;font-weight:700}
+.cf-table td.cf-mes-actual{background:#fffbeb}
+.cf-en-curso-badge{display:block;font-size:8px;font-weight:700;color:#f59e0b;background:#fef3c7;border-radius:4px;padding:1px 4px;margin-top:2px;white-space:nowrap}
 .alert{border-radius:10px;padding:10px 14px;font-size:12px;margin-bottom:8px;line-height:1.6;font-weight:500}
 .alert-ok{background:#dcfce7;color:#15803d}
 .alert-warn{background:#fef3c7;color:#92400e}
@@ -311,6 +314,11 @@ select,input[type=text],input[type=number],input[type=date],input[type=month]{pa
   <div class="login-icon">💰</div>
   <div class="login-title">Fina</div>
   <div class="login-sub">Tus finanzas en claro, con IA.</div>
+  <div style="display:flex;flex-direction:column;gap:7px;margin-bottom:2rem;text-align:left;max-width:260px">
+    <div style="font-size:12px;color:#888;display:flex;align-items:center;gap:8px"><span>📊</span><span>Cashflow real vs proyectado</span></div>
+    <div style="font-size:12px;color:#888;display:flex;align-items:center;gap:8px"><span>🤖</span><span>IA que analiza tus gastos</span></div>
+    <div style="font-size:12px;color:#888;display:flex;align-items:center;gap:8px"><span>🇦🇷</span><span>Cuotas, inflación, homebanking</span></div>
+  </div>
   <button class="btn-google" onclick="loginGoogle()">
     <svg class="google-logo" viewBox="0 0 24 24">
       <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -532,6 +540,9 @@ select,input[type=text],input[type=number],input[type=date],input[type=month]{pa
         <div class="year-tabs" id="year-tabs-gastos"></div>
         <div class="mes-tabs" id="mes-tabs-gastos"></div>
       </div>
+      <div style="margin-bottom:10px">
+        <input id="fil-buscar" type="search" placeholder="Buscar por categoría, comentario..." oninput="renderGastos()" style="width:100%;padding:9px 12px;font-size:13px;border:0.5px solid #d1d5db;border-radius:10px;background:#fff;color:#1a1a1a;box-sizing:border-box">
+      </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
         <select id="fil-tipo" onchange="renderGastos()" style="padding:9px 10px;font-size:12px;border:0.5px solid #d1d5db;border-radius:10px;background:#fff;color:#1a1a1a;appearance:none;-webkit-appearance:none">
           <option value="">Todos los tipos</option><option value="Gasto fijo">Fijos</option>
@@ -565,6 +576,10 @@ select,input[type=text],input[type=number],input[type=date],input[type=month]{pa
           <span><span class="cf-dot-proj"></span> Proyectado* (prom. 3 meses)</span>
         </div>
         <div style="overflow-x:auto"><table class="cf-table" id="cf-table"></table></div>
+      </div>
+      <div class="card" style="margin-bottom:12px">
+        <div class="card-title">Evolución mensual</div>
+        <div style="height:230px;position:relative"><canvas id="cf-chart"></canvas></div>
       </div>
       <div id="alertas-cf"></div>
     </div>
@@ -932,7 +947,7 @@ select,input[type=text],input[type=number],input[type=date],input[type=month]{pa
         <option>Transferencia</option><option>Efectivo</option>
         <option>Tarjeta Credito - VISA Sebas</option><option>Tarjeta Credito - MASTER Sebas</option>
         <option>Tarjeta Credito - VISA Male</option><option>Tarjeta Credito - MASTER Male</option>
-        <option>Tarjeta Debito</option><option>Tatjeta Credito CUOTAS</option>
+        <option>Tarjeta Debito</option><option>Tarjeta Credito CUOTAS</option>
       </select>
     </div>
     <div class="cuotas-box-new" id="cuotas-panel">
@@ -1135,7 +1150,7 @@ select,input[type=text],input[type=number],input[type=date],input[type=month]{pa
         <option>Transferencia</option><option>Efectivo</option>
         <option>Tarjeta Credito - VISA Sebas</option><option>Tarjeta Credito - MASTER Sebas</option>
         <option>Tarjeta Credito - VISA Male</option><option>Tarjeta Credito - MASTER Male</option>
-        <option>Tarjeta Debito</option><option>Tatjeta Credito CUOTAS</option>
+        <option>Tarjeta Debito</option><option>Tarjeta Credito CUOTAS</option>
       </select>
     </div>
     <div class="form-group"><label data-t="lbl-quien">¿Quién pagó?</label>
@@ -1160,9 +1175,9 @@ const provider=new GoogleAuthProvider();
 // Usuarios legacy — entran directo sin onboarding, apuntan al hogar 'sjpouiller'
 const USUARIOS_LEGACY={"sjpouiller@gmail.com":"sjpouiller","malelanusse@odiseaswimwear.com.ar":"sjpouiller"};
 let hogarId=null; // se setea después del login
-let formasDePago=['Transferencia','Efectivo','Tarjeta Débito','Tatjeta Credito CUOTAS'];
+let formasDePago=['Transferencia','Efectivo','Tarjeta Débito','Tarjeta Credito CUOTAS'];
 let quienesPagan=['Yo'];
-const FORMAS_PAGO_DEFAULT=['Transferencia','Efectivo','Tarjeta Débito','Tatjeta Credito CUOTAS'];
+const FORMAS_PAGO_DEFAULT=['Transferencia','Efectivo','Tarjeta Débito','Tarjeta Credito CUOTAS'];
 const QUIENES_PAGAN_DEFAULT=['Yo'];
 window.FORMAS_PAGO_DEFAULT=FORMAS_PAGO_DEFAULT;
 window.QUIENES_PAGAN_DEFAULT=QUIENES_PAGAN_DEFAULT;
@@ -1424,7 +1439,7 @@ async function cargarPreferencias(){
       if(d.quienesPagan?.length)quienesPagan=d.quienesPagan;
     } else if(hogarId==='sjpouiller'){
       // Sembrar preferencias reales de Sebas & Male
-      formasDePago=['Transferencia','Efectivo','Tarjeta Credito - VISA Sebas','Tarjeta Credito - MASTER Sebas','Tarjeta Credito - VISA Male','Tarjeta Credito - MASTER Male','Tarjeta Debito','Tatjeta Credito CUOTAS'];
+      formasDePago=['Transferencia','Efectivo','Tarjeta Credito - VISA Sebas','Tarjeta Credito - MASTER Sebas','Tarjeta Credito - VISA Male','Tarjeta Credito - MASTER Male','Tarjeta Debito','Tarjeta Credito CUOTAS'];
       quienesPagan=['Sebas','Male'];
       await guardarPreferencias();
     }
@@ -1441,8 +1456,8 @@ async function cargarAhorrosIniciales(){
 window.cargarAhorrosIniciales=cargarAhorrosIniciales;
 window.guardarAhorrosIniciales=async(usd,inv,otros)=>{ahorrosIniciales={usd,inversiones:inv,otros};try{await setDoc(cfgDoc('ahorros_iniciales'),{usd,inversiones:inv,otros,actualizadoEn:serverTimestamp()});}catch(e){console.error(e);}}
 function actualizarSelectsFormulario(){
-  // Formas de pago — siempre incluir Tatjeta Credito CUOTAS al final
-  const fps=[...formasDePago.filter(f=>f!=='Tatjeta Credito CUOTAS'),'Tatjeta Credito CUOTAS'];
+  // Formas de pago — siempre incluir Tarjeta Credito CUOTAS al final
+  const fps=[...formasDePago.filter(f=>f!=='Tarjeta Credito CUOTAS'),'Tarjeta Credito CUOTAS'];
   const fpOpts=fps.map(f=>`<option>${f}</option>`).join('');
   ['inp-pago','edit-pago'].forEach(id=>{
     const el=document.getElementById(id);
@@ -1761,15 +1776,17 @@ window.renderGastos=()=>{
   const quien=document.getElementById('fil-quien')?.value||'';
   const oF=document.getElementById('fil-fecha')?.value||'desc';
   const oM=document.getElementById('fil-monto')?.value||'';
+  const buscar=(document.getElementById('fil-buscar')?.value||'').toLowerCase().trim();
   const mF=mesSel==='todo'?null:mesSel;
   let d;
   if(mF){
-    d=gastos.filter(g=>g.mes===mF); // solo el mes seleccionado
+    d=gastos.filter(g=>g.mes===mF);
   } else {
     d=gastos.filter(g=>g.mes?.startsWith(anioSel));
   }
   if(tipo)d=d.filter(g=>g.tipo===tipo);
   if(quien)d=d.filter(g=>g.pago===quien);
+  if(buscar)d=d.filter(g=>(g.categoria||'').toLowerCase().includes(buscar)||(g.comentario||'').toLowerCase().includes(buscar)||(g.formaPago||g.pago||'').toLowerCase().includes(buscar));
   if(oM==='desc')d=[...d].sort((a,b)=>(b.monto||0)-(a.monto||0));
   else if(oM==='asc')d=[...d].sort((a,b)=>(a.monto||0)-(b.monto||0));
   else if(oF==='asc')d=[...d].sort((a,b)=>{const fc=(a.fecha||'').localeCompare(b.fecha||'');if(fc!==0)return fc;return(a.creadoEn?.toMillis?.()??0)-(b.creadoEn?.toMillis?.()??0);});
@@ -1805,20 +1822,36 @@ window.renderCashflow=()=>{
     {l:currentLang==='en'?'Savings':'Ahorro',fn:m=>sumarMes(m,'Ahorro'),pFn:i=>proyF(aA,i),pos:true},
     {l:currentLang==='en'?'Result':'Resultado',fn:m=>sumarMes(m,'Ingreso')-sumarMes(m,'Gasto fijo')-sumarMes(m,'Gasto variable'),pFn:i=>proyF(aI,i)-proyF(aF,i)-proyF(aV,i),tot:true}
   ];
-  const th=`<thead><tr><th style="min-width:70px"></th>${mR.map(m=>`<th>${mesCorto(m)}</th>`).join('')}${mP.map(m=>`<th class="proj-head">${mesCorto(m)}*</th>`).join('')}</tr></thead>`;
-  const tb=filas.map(f=>`<tr class="${f.tot?'cf-total':''}"><td>${f.l}</td>${mR.map(m=>{const v=f.fn(m);return`<td class="real-val ${f.tot?(v>=0?'pos':'neg'):f.pos?'pos':''}">${fmtK(v)}</td>`;}).join('')}${mP.map((_,i)=>{const v=f.pFn(i+1);return`<td class="proj ${f.tot?(v>=0?'pos':'neg'):''}">${fmtK(v)}</td>`;}).join('')}</tr>`).join('');
+  const diasHoy=hoy.getDate();const diasMes=new Date(hoy.getFullYear(),hoy.getMonth()+1,0).getDate();
+  const th=`<thead><tr><th style="min-width:70px"></th>${mR.map(m=>`<th class="${m===mA?'cf-mes-actual':''}">${mesCorto(m)}${m===mA?`<span class="cf-en-curso-badge">en curso</span>`:''}</th>`).join('')}${mP.map(m=>`<th class="proj-head">${mesCorto(m)}*</th>`).join('')}</tr></thead>`;
+  const tb=filas.map(f=>`<tr class="${f.tot?'cf-total':''}"><td>${f.l}</td>${mR.map(m=>{const v=f.fn(m);return`<td class="real-val ${m===mA?'cf-mes-actual':''} ${f.tot?(v>=0?'pos':'neg'):f.pos?'pos':''}">${fmtK(v)}</td>`;}).join('')}${mP.map((_,i)=>{const v=f.pFn(i+1);return`<td class="proj ${f.tot?(v>=0?'pos':'neg'):''}">${fmtK(v)}</td>`;}).join('')}</tr>`).join('');
   document.getElementById('cf-table').innerHTML=th+`<tbody>${tb}</tbody>`;
   const tasaLabel=tasa>0?` · inflación +${(tasa*100).toFixed(1)}%/mes`:'';
-  const als=mR.map(m=>{const s=sumarMes(m,'Ingreso')-sumarMes(m,'Gasto fijo')-sumarMes(m,'Gasto variable');const i=sumarMes(m,'Ingreso');const p=i>0?Math.round(s/i*100):0;return`<div class="alert ${s<0?'alert-err':p>=30?'alert-ok':'alert-warn'}">${s>=0?'✓':'⚠'} <strong>${nombreMes(m)}:</strong> ${fmtK(s)} · ahorro ${p}%</div>`;});
+  const als=mR.map(m=>{const s=sumarMes(m,'Ingreso')-sumarMes(m,'Gasto fijo')-sumarMes(m,'Gasto variable');const i=sumarMes(m,'Ingreso');const p=i>0?Math.round(s/i*100):0;const enCurso=m===mA;const diasTag=enCurso?` · <span style="font-size:10px;color:#f59e0b;font-weight:600">${diasHoy}/${diasMes} días</span>`:'';return`<div class="alert ${enCurso?'alert-warn':s<0?'alert-err':p>=30?'alert-ok':'alert-warn'}">${s>=0?'✓':'⚠'} <strong>${nombreMes(m)}:</strong> ${fmtK(s)} · ahorro ${p}%${diasTag}${enCurso?' <span style="font-size:10px;color:#f59e0b">(mes en curso)</span>':''}</div>`;});
   als.push(`<div class="alert alert-info">📊 Proyección* = promedio ${u3.map(m=>mesCorto(m)).join('+')}${tasaLabel}: Ing ${fmtK(aI)} · Fijos ${fmtK(aF)} · Vars ${fmtK(aV)} · Resultado ${fmtK(aS)} (~${aAP}%)</div>`);
   document.getElementById('alertas-cf').innerHTML=als.join('');
+  // Gráfico cashflow
+  const todosM=[...mR,...mP];
+  const labelsG=todosM.map((m,i)=>mesCorto(m)+(i>=mR.length?'*':''));
+  const mkAlpha=(color,alpha)=>color+Math.round(alpha*255).toString(16).padStart(2,'0');
+  const dsIng={label:'Ingresos',data:todosM.map((m,i)=>i<mR.length?sumarMes(m,'Ingreso'):filas[0].pFn(i-mR.length+1)),backgroundColor:todosM.map((_,i)=>i<mR.length?'#3b82f6':'#3b82f640'),borderColor:todosM.map((_,i)=>i<mR.length?'#3b82f6':'#3b82f680'),borderWidth:1};
+  const dsFij={label:'Fijos',data:todosM.map((m,i)=>i<mR.length?sumarMes(m,'Gasto fijo'):filas[1].pFn(i-mR.length+1)),backgroundColor:todosM.map((_,i)=>i<mR.length?'#ef4444':'#ef444440'),borderColor:todosM.map((_,i)=>i<mR.length?'#ef4444':'#ef444480'),borderWidth:1};
+  const dsVar={label:'Variables',data:todosM.map((m,i)=>i<mR.length?sumarMes(m,'Gasto variable'):filas[2].pFn(i-mR.length+1)),backgroundColor:todosM.map((_,i)=>i<mR.length?'#f59e0b':'#f59e0b40'),borderColor:todosM.map((_,i)=>i<mR.length?'#f59e0b':'#f59e0b80'),borderWidth:1};
+  const drawCfChart=()=>{
+    if(window._cfChart){window._cfChart.destroy();window._cfChart=null;}
+    const ctx=document.getElementById('cf-chart')?.getContext('2d');
+    if(!ctx)return;
+    window._cfChart=new Chart(ctx,{type:'bar',data:{labels:labelsG,datasets:[dsIng,dsFij,dsVar]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:10,padding:8}},tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${fmtK(c.raw)}`}}},scales:{x:{grid:{display:false},ticks:{font:{size:10}}},y:{ticks:{font:{size:10},callback:v=>fmtK(v)},grid:{color:'#f0f0ee'}}}}});
+  };
+  if(window.Chart)drawCfChart();
+  else{const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js';s.onload=drawCfChart;document.head.appendChild(s);}
 };
 // ── CUOTAS PANEL TOGGLE ──
 window.toggleCuotasPanel=()=>{
   const pago=document.getElementById('inp-pago')?.value||'';
   const panel=document.getElementById('cuotas-panel');
   if(!panel)return;
-  if(pago==='Tatjeta Credito CUOTAS'){
+  if(pago==='Tarjeta Credito CUOTAS'){
     panel.classList.add('open');
     const hoy=new Date();
     const mc=document.getElementById('inp-mes-cuota');
@@ -1840,7 +1873,7 @@ window.guardar=async()=>{
   if(!fecha||!monto){msgEl.innerHTML='<div class="alert alert-err">Completá fecha y monto</div>';return;}
   const mes=fecha.slice(0,7),prev=mesAnterior(mes);
   // ── Cuotas mode ──
-  if(pago==='Tatjeta Credito CUOTAS'){
+  if(pago==='Tarjeta Credito CUOTAS'){
     const nCuotas=parseInt(document.getElementById('inp-ncuotas')?.value)||2;
     const mesInicioCuota=document.getElementById('inp-mes-cuota')?.value||mes;
     if(!mesInicioCuota){msgEl.innerHTML='<div class="alert alert-err">Indicá el mes de inicio de las cuotas</div>';return;}
@@ -2206,7 +2239,7 @@ window.prevCuotaCarga=()=>{
   if(monto>0)el.textContent=`${n} cuotas de ${fmt(Math.round(monto/n))}/mes`;
   else el.textContent='Ingresá monto para ver preview';
 };
-document.getElementById('inp-monto')?.addEventListener('input',()=>{if(document.getElementById('inp-pago')?.value==='Tatjeta Credito CUOTAS')prevCuotaCarga();});
+document.getElementById('inp-monto')?.addEventListener('input',()=>{if(document.getElementById('inp-pago')?.value==='Tarjeta Credito CUOTAS')prevCuotaCarga();});
 
 // ── FEATURE 4: EXPORTAR CSV ──
 window.exportarCSV=()=>{
@@ -2297,7 +2330,7 @@ const T_ES={
   // Tipos
   'tipo-gasto-fijo':'Gasto fijo','tipo-gasto-variable':'Gasto variable','tipo-ingreso':'Ingreso','tipo-ahorro':'Ahorro',
   // Formas de pago
-  'fpago-transferencia':'Transferencia','fpago-efectivo':'Efectivo','fpago-debito':'Tarjeta Débito','fpago-cuotas':'Tatjeta Credito CUOTAS',
+  'fpago-transferencia':'Transferencia','fpago-efectivo':'Efectivo','fpago-debito':'Tarjeta Débito','fpago-cuotas':'Tarjeta Credito CUOTAS',
   // Resumen
   'sec-resumen-title':'📊 Resumen','card-ingresos':'Ingresos','card-gastos-fijos':'Gastos fijos',
   'card-gastos-var':'Gastos variables','card-ahorro':'Ahorro','card-resultado':'Resultado neto',
@@ -2462,7 +2495,7 @@ async function guardarCatCustom(){try{await setDoc(cfgDoc('categorias'),window.c
 window.guardarCatCustom=guardarCatCustom;
 
 function renderPrefSubpage(){
-  const fpHtml=formasDePago.filter(f=>f!=='Tatjeta Credito CUOTAS').map((f,i)=>`
+  const fpHtml=formasDePago.filter(f=>f!=='Tarjeta Credito CUOTAS').map((f,i)=>`
     <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:0.5px solid #f0f0ee">
       <span style="flex:1;font-size:14px">${f}</span>
       <button onclick="eliminarFormaPago(${i})" style="background:none;border:none;color:#f87171;font-size:18px;cursor:pointer;padding:2px 6px">×</button>
@@ -2485,7 +2518,7 @@ function renderPrefSubpage(){
     </div>
     <div class="card" style="margin-bottom:12px">
       <div class="card-title">💳 Formas de pago</div>
-      <div style="font-size:11px;color:#888;margin-bottom:10px">"Tatjeta Credito CUOTAS" siempre está disponible y no se puede eliminar.</div>
+      <div style="font-size:11px;color:#888;margin-bottom:10px">"Tarjeta Credito CUOTAS" siempre está disponible y no se puede eliminar.</div>
       ${fpHtml}
       <div style="display:flex;gap:8px;margin-top:10px">
         <input id="new-fp" type="text" placeholder="Nueva forma de pago..." style="flex:1;padding:9px 12px;font-size:13px;border:0.5px solid #d1d5db;border-radius:10px">
@@ -3142,13 +3175,13 @@ window.obBack=(paso)=>{
 
 // Vars temporales onboarding pagadores/fps
 let _obPagadores=[...(window.QUIENES_PAGAN_DEFAULT||['Yo'])];
-let _obFormasPago=[...(window.FORMAS_PAGO_DEFAULT||['Transferencia','Efectivo','Tarjeta Débito','Tatjeta Credito CUOTAS'])];
+let _obFormasPago=[...(window.FORMAS_PAGO_DEFAULT||['Transferencia','Efectivo','Tarjeta Débito','Tarjeta Credito CUOTAS'])];
 
 function renderObPagadores(){
   const pList=document.getElementById('ob-pagadores-list');
   const fpList=document.getElementById('ob-fps-list');
   if(pList)pList.innerHTML=_obPagadores.map((p,i)=>`<div style="display:flex;align-items:center;padding:6px 0;border-bottom:0.5px solid #f0f0ee"><span style="flex:1;font-size:14px">${p}</span><button onclick="_obPagadores.splice(${i},1);renderObPagadores()" style="background:none;border:none;color:#f87171;font-size:16px;cursor:pointer">×</button></div>`).join('');
-  if(fpList)fpList.innerHTML=_obFormasPago.filter(f=>f!=='Tatjeta Credito CUOTAS').map((f,i)=>`<div style="display:flex;align-items:center;padding:6px 0;border-bottom:0.5px solid #f0f0ee"><span style="flex:1;font-size:14px">${f}</span><button onclick="_obFormasPago.splice(${i},1);renderObPagadores()" style="background:none;border:none;color:#f87171;font-size:16px;cursor:pointer">×</button></div>`).join('');
+  if(fpList)fpList.innerHTML=_obFormasPago.filter(f=>f!=='Tarjeta Credito CUOTAS').map((f,i)=>`<div style="display:flex;align-items:center;padding:6px 0;border-bottom:0.5px solid #f0f0ee"><span style="flex:1;font-size:14px">${f}</span><button onclick="_obFormasPago.splice(${i},1);renderObPagadores()" style="background:none;border:none;color:#f87171;font-size:16px;cursor:pointer">×</button></div>`).join('');
 }
 window.obAgregarPagador=()=>{
   const inp=document.getElementById('ob-new-pagador');
