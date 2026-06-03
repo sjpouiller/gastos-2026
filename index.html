@@ -589,47 +589,28 @@ select,input[type=text],input[type=number],input[type=date],input[type=month]{pa
     </div>
     <!-- CONFIG -->
     <div id="sec-config" class="section">
-      <!-- Página principal -->
-      <div id="config-main" class="subpage active">
-        <div class="config-main-card">
-          <div class="config-card-title" data-t="cfg-cuenta">CUENTA</div>
-          <div class="config-row" onclick="abrirSubConfig('perfil')"><span data-t="cfg-perfil">Perfil</span><span class="config-row-right">›</span></div>
-          <div class="config-row" onclick="abrirSubConfig('ingresos')"><span data-t="cfg-ingresos-proy">Ingresos proyectados</span><span class="config-row-right">›</span></div>
-          <div class="config-row" onclick="abrirSubConfig('inversor')"><span data-t="cfg-inversor">Perfil de inversor</span><span class="config-row-right">›</span></div>
-        </div>
-        <div class="config-main-card">
-          <div class="config-card-title" data-t="cfg-finanzas">APP</div>
-          <div class="config-row" onclick="abrirSubConfig('categorias')"><span data-t="cfg-cats">Categorías</span><span class="config-row-right">›</span></div>
-          <div class="config-row" onclick="abrirSubConfig('preferencias')"><span>Pagos, pagadores y ahorros iniciales</span><span class="config-row-right">›</span></div>
-          <div class="config-row" onclick="abrirSubConfig('inflacion')"><span data-t="cfg-inflacion">Tasa de inflación</span><span><span class="config-row-val">3.2%</span><span class="config-row-right">›</span></span></div>
-          <div class="config-row" style="cursor:default"><span data-t="cfg-notificaciones">Notificaciones</span><div id="toggle-notif" onclick="toggleNotif()" style="width:40px;height:22px;border-radius:99px;background:#e5e5e0;position:relative;cursor:pointer;flex-shrink:0;transition:background .2s"><div id="toggle-notif-dot" style="position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)"></div></div></div>
-          <div class="config-row" style="cursor:default"><span data-t="cfg-idioma">Idioma</span><div style="display:flex;border-radius:99px;border:0.5px solid #e0e0dc;overflow:hidden;flex-shrink:0"><div id="lang-es" style="font-size:12px;padding:3px 10px;background:#1a1a1a;color:#fff;cursor:pointer" onclick="setLang('es')">ES</div><div id="lang-en" style="font-size:12px;padding:3px 10px;background:#fff;color:#aaa;cursor:pointer" onclick="setLang('en')">EN</div></div></div>
-        </div>
-        <div class="config-main-card" style="opacity:0.35;pointer-events:none">
-          <div class="config-card-title" data-t="cfg-integraciones">INTEGRACIONES</div>
-          <div class="config-row"><span data-t="cfg-bancos">Bancos y billeteras</span><span class="config-row-right" style="font-size:10px;color:#aaa">Próximamente</span></div>
-        </div>
-        <div class="config-main-card">
-          <div class="config-card-title" data-t="cfg-datos">DATOS</div>
-          <div class="config-row" onclick="abrirSubConfig('exportar')"><span data-t="cfg-exportar">Exportar (PDF / CSV / Excel)</span><span class="config-row-right">›</span></div>
-        </div>
+      <!-- 3 tabs horizontales -->
+      <div class="config-tabs">
+        <button id="cfg-btn-cuenta" class="config-tab active" onclick="configTab('cuenta')">👤 Mi cuenta</button>
+        <button id="cfg-btn-app" class="config-tab" onclick="configTab('app')">⚙️ La app</button>
+        <button id="cfg-btn-datos" class="config-tab" onclick="configTab('datos')">📦 Datos</button>
       </div>
-      <!-- Sub: Perfil -->
-      <div id="config-perfil" class="subpage">
-        <div class="subpage-header"><button class="subpage-back" onclick="volverConfigMain()">‹</button><div class="subpage-title">Perfil</div></div>
+
+      <!-- Tab: Mi cuenta -->
+      <div id="cfg-tab-cuenta">
         <!-- Foto de perfil -->
-        <div style="display:flex;flex-direction:column;align-items:center;margin-bottom:24px">
-          <div style="position:relative;margin-bottom:12px">
-            <div id="perfil-foto-wrap" style="width:80px;height:80px;border-radius:50%;background:#dbeafe;color:#1d4ed8;font-size:28px;font-weight:700;display:flex;align-items:center;justify-content:center;overflow:hidden;cursor:pointer" onclick="document.getElementById('perfil-foto-input').click()">
+        <div style="display:flex;flex-direction:column;align-items:center;margin-bottom:20px">
+          <div style="position:relative;margin-bottom:8px">
+            <div id="perfil-foto-wrap" style="width:72px;height:72px;border-radius:50%;background:#dbeafe;color:#1d4ed8;font-size:26px;font-weight:700;display:flex;align-items:center;justify-content:center;overflow:hidden;cursor:pointer" onclick="document.getElementById('perfil-foto-input').click()">
               <img id="perfil-foto-img" src="" style="width:100%;height:100%;object-fit:cover;display:none">
               <span id="perfil-foto-initials">SP</span>
             </div>
-            <div onclick="document.getElementById('perfil-foto-input').click()" style="position:absolute;bottom:0;right:0;width:24px;height:24px;border-radius:50%;background:#1a1a1a;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;cursor:pointer;border:2px solid #f5f5f3">✏️</div>
+            <div onclick="document.getElementById('perfil-foto-input').click()" style="position:absolute;bottom:0;right:0;width:22px;height:22px;border-radius:50%;background:#1a1a1a;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;cursor:pointer;border:2px solid #f5f5f3">✏️</div>
             <input type="file" id="perfil-foto-input" accept="image/*" style="display:none" onchange="cargarFotoPerfil(this)">
           </div>
           <div style="font-size:11px;color:#bbb">Tocá para cambiar la foto</div>
         </div>
-        <!-- Campos editables -->
+        <!-- Datos personales -->
         <div class="card" style="margin-bottom:12px">
           <div class="card-title">Datos personales</div>
           <div class="form-group" style="margin-bottom:10px">
@@ -655,197 +636,126 @@ select,input[type=text],input[type=number],input[type=date],input[type=month]{pa
         </div>
         <button class="btn-secondary" onclick="logout()" style="color:#dc2626;border-color:#fca5a5;margin-top:8px">Cerrar sesión</button>
       </div>
-      <!-- Sub: Ingresos proyectados -->
-      <div id="config-ingresos" class="subpage">
-        <div class="subpage-header"><button class="subpage-back" onclick="volverConfigMain()">‹</button><div class="subpage-title">Ingresos proyectados</div></div>
-        <div class="alert alert-info" style="margin-bottom:14px">El agente y el planificador usan tus ingresos proyectados para darte recomendaciones más certeras. Si no los cargás, usa el promedio de los últimos 3 meses.</div>
-        <div class="card"><div class="card-title">Sebas</div><div id="ing-sebas-rows-new"></div></div>
-        <div class="card"><div class="card-title">Male</div><div id="ing-male-rows-new"></div></div>
-        <button class="btn-primary" onclick="guardarIngresosProyectadosNew()">Guardar</button>
-      </div>
-      <!-- Sub: Perfil de inversor -->
-      <div id="config-inversor" class="subpage">
-        <div class="subpage-header"><button class="subpage-back" onclick="volverConfigMain()">‹</button><div class="subpage-title">Perfil de inversor</div></div>
-        <div class="alert alert-info" style="margin-bottom:14px">Tu perfil de inversor le dice al agente cómo recomendarte usar tu plata. Si tiene $4M libres este mes, no es lo mismo sugerirle algo a alguien conservador que a alguien que tolera más riesgo.</div>
+
+      <!-- Tab: La app -->
+      <div id="cfg-tab-app" style="display:none">
+        <!-- Categorías -->
+        <div class="card" style="margin-bottom:14px">
+          <div class="card-title">Categorías</div>
+          <div style="display:flex;gap:6px;margin-bottom:14px;overflow-x:auto;scrollbar-width:none">
+            <button class="cat-tab active" onclick="setCatTabNew('fijo',this)">Fijos</button>
+            <button class="cat-tab" onclick="setCatTabNew('variable',this)">Variables</button>
+            <button class="cat-tab" onclick="setCatTabNew('ingreso',this)">Ingresos</button>
+            <button class="cat-tab" onclick="setCatTabNew('ahorro',this)">Ahorro</button>
+          </div>
+          <div style="display:flex;gap:8px;margin-bottom:12px">
+            <input type="text" id="nueva-cat-new" placeholder="Nueva categoría..." style="flex:1;padding:10px 12px;font-size:13px;border:0.5px solid #d1d5db;border-radius:10px;background:#fff">
+            <button onclick="agregarCatNew()" style="padding:10px 16px;background:#1a1a1a;color:#fff;border:none;border-radius:10px;font-size:13px;cursor:pointer;font-weight:700">+ Agregar</button>
+          </div>
+          <div id="cat-list-new"></div>
+        </div>
+        <!-- Pagos, pagadores y ahorros -->
+        <div class="card" style="margin-bottom:14px">
+          <div class="card-title">Pagos, pagadores y ahorros iniciales</div>
+          <div id="pref-content"></div>
+        </div>
+        <!-- Ingresos proyectados -->
+        <div class="card" style="margin-bottom:14px">
+          <div class="card-title">Ingresos proyectados</div>
+          <div class="alert alert-info" style="margin-bottom:14px">El agente y el planificador usan tus ingresos proyectados para darte recomendaciones más certeras. Si no los cargás, usa el promedio de los últimos 3 meses.</div>
+          <div style="font-size:11px;font-weight:700;color:#aaa;letter-spacing:.06em;margin-bottom:6px">SEBAS</div>
+          <div id="ing-sebas-rows-new"></div>
+          <div style="font-size:11px;font-weight:700;color:#aaa;letter-spacing:.06em;margin:12px 0 6px">MALE</div>
+          <div id="ing-male-rows-new"></div>
+          <button class="btn-primary" style="margin-top:12px" onclick="guardarIngresosProyectadosNew()">Guardar</button>
+        </div>
+        <!-- Inflación -->
+        <div class="card" style="margin-bottom:14px">
+          <div class="card-title">Tasa de inflación</div>
+          <div class="alert alert-warn" style="margin-bottom:14px">Cashflow y Planificador usan esta tasa para proyectar cómo van a subir tus gastos. Usamos el promedio INDEC de los últimos 3 meses por defecto.</div>
+          <div class="row-item"><span class="row-cat" style="color:#888">Feb 2025</span><span style="font-weight:700">2.4%</span></div>
+          <div class="row-item"><span class="row-cat" style="color:#888">Mar 2025</span><span style="font-weight:700">3.7%</span></div>
+          <div class="row-item"><span class="row-cat" style="color:#888">Abr 2025</span><span style="font-weight:700">3.2%</span></div>
+          <div class="row-item" style="padding-top:10px;border-top:0.5px solid #f3f3f0;margin-top:6px"><span class="row-cat" style="font-weight:600">Promedio 3 meses</span><span style="font-weight:700;color:#16a34a;font-size:15px">3.1%</span></div>
+          <div style="margin-top:12px;padding-top:12px;border-top:0.5px solid #f3f3f0">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+              <div class="inf-toggle-box" id="inf-toggle" onclick="toggleInflacion()"></div>
+              <span style="font-size:13px;color:#888">Usar mi propia tasa</span>
+            </div>
+            <div id="inf-custom-row" style="display:none;align-items:center;gap:10px;padding-top:8px;border-top:0.5px solid #f3f3f0">
+              <input type="number" id="inf-custom-val" value="3.2" step="0.1" style="width:90px;padding:8px 10px;font-size:15px;border:0.5px solid #d1d5db;border-radius:8px;text-align:center;background:#fff">
+              <span style="font-size:15px;color:#888">%</span>
+              <span style="font-size:11px;color:#aaa;flex:1">mensual</span>
+            </div>
+          </div>
+          <button class="btn-primary" style="margin-top:12px" onclick="guardarInflacion()">Guardar</button>
+        </div>
+        <!-- Idioma y Notificaciones -->
         <div class="card">
-          <div class="card-title">Tolerancia al riesgo</div>
-          <div style="font-size:12px;color:#888;margin-bottom:10px">¿Cómo te sentís si tu inversión baja 20% temporalmente?</div>
+          <div class="card-title">Preferencias</div>
+          <div class="row-item" style="cursor:default"><span data-t="cfg-notificaciones">Notificaciones</span><div id="toggle-notif" onclick="toggleNotif()" style="width:40px;height:22px;border-radius:99px;background:#e5e5e0;position:relative;cursor:pointer;flex-shrink:0;transition:background .2s"><div id="toggle-notif-dot" style="position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)"></div></div></div>
+          <div class="row-item" style="cursor:default"><span data-t="cfg-idioma">Idioma</span><div style="display:flex;border-radius:99px;border:0.5px solid #e0e0dc;overflow:hidden;flex-shrink:0"><div id="lang-es" style="font-size:12px;padding:3px 10px;background:#1a1a1a;color:#fff;cursor:pointer" onclick="setLang('es')">ES</div><div id="lang-en" style="font-size:12px;padding:3px 10px;background:#fff;color:#aaa;cursor:pointer" onclick="setLang('en')">EN</div></div></div>
+        </div>
+      </div>
+
+      <!-- Tab: Datos -->
+      <div id="cfg-tab-datos" style="display:none">
+        <!-- Exportar -->
+        <div class="card" style="margin-bottom:14px">
+          <div class="card-title">Exportar datos</div>
+          <div style="background:#f0f4ff;border:0.5px solid #bfdbfe;border-radius:10px;padding:10px 12px;margin-bottom:12px;font-size:12px;color:#1d4ed8;line-height:1.6">📱 En el celular se abre el menú Compartir del sistema. En la compu descarga directo.</div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;align-items:center;gap:12px;padding:14px;border-radius:12px;border:0.5px solid #e5e5e0;background:#f9f9f7;cursor:pointer" onclick="exportarPDF()">
+              <span style="font-size:22px">📄</span>
+              <div style="flex:1"><div style="font-size:13px;font-weight:600">PDF</div><div style="font-size:11px;color:#aaa;margin-top:1px">Listo para imprimir o compartir</div></div>
+              <span style="font-size:11px;color:#16a34a;font-weight:600">Exportar →</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;padding:14px;border-radius:12px;border:0.5px solid #e5e5e0;background:#f9f9f7;cursor:pointer" onclick="exportarExcel()">
+              <span style="font-size:22px">📊</span>
+              <div style="flex:1"><div style="font-size:13px;font-weight:600">Excel (.xlsx)</div><div style="font-size:11px;color:#aaa;margin-top:1px">Para analizar en planilla</div></div>
+              <span style="font-size:11px;color:#16a34a;font-weight:600">Exportar →</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;padding:14px;border-radius:12px;border:0.5px solid #e5e5e0;background:#f9f9f7;cursor:pointer" onclick="exportarCSV()">
+              <span style="font-size:22px">📋</span>
+              <div style="flex:1"><div style="font-size:13px;font-weight:600">CSV</div><div style="font-size:11px;color:#aaa;margin-top:1px">Compatible con cualquier sistema</div></div>
+              <span style="font-size:11px;color:#16a34a;font-weight:600">Exportar →</span>
+            </div>
+          </div>
+        </div>
+        <!-- Perfil de inversor -->
+        <div class="card" style="margin-bottom:14px">
+          <div class="card-title">Perfil de inversor</div>
+          <div class="alert alert-info" style="margin-bottom:14px">Tu perfil le dice al agente cómo recomendarte usar tu plata libre. No es lo mismo ser conservador que agresivo.</div>
+          <div style="font-size:11px;font-weight:700;color:#aaa;letter-spacing:.06em;margin-bottom:8px">TOLERANCIA AL RIESGO</div>
+          <div style="font-size:12px;color:#888;margin-bottom:8px">¿Cómo te sentís si tu inversión baja 20% temporalmente?</div>
           <div id="riesgo-opts">
             <div class="inv-opt" onclick="selectInvOpt('riesgo',this,'conservador')"><div style="font-size:13px;font-weight:600">🛡 Conservador</div><div style="font-size:11px;color:#888;margin-top:2px">Prefiero no perder aunque gane menos. Plazo fijo, dólares.</div></div>
             <div class="inv-opt selected" onclick="selectInvOpt('riesgo',this,'moderado')"><div style="font-size:13px;font-weight:600">⚖️ Moderado</div><div style="font-size:11px;color:#888;margin-top:2px">Acepto algo de volatilidad a cambio de mejor rendimiento.</div></div>
             <div class="inv-opt" onclick="selectInvOpt('riesgo',this,'agresivo')"><div style="font-size:13px;font-weight:600">🚀 Agresivo</div><div style="font-size:11px;color:#888;margin-top:2px">Busco máximo rendimiento, banco las bajas temporales.</div></div>
           </div>
-        </div>
-        <div class="card">
-          <div class="card-title">Horizonte de inversión</div>
-          <div style="font-size:12px;color:#888;margin-bottom:10px">¿Cuándo podrías necesitar ese dinero?</div>
+          <div style="font-size:11px;font-weight:700;color:#aaa;letter-spacing:.06em;margin:14px 0 8px">HORIZONTE DE INVERSIÓN</div>
+          <div style="font-size:12px;color:#888;margin-bottom:8px">¿Cuándo podrías necesitar ese dinero?</div>
           <div id="horizonte-opts">
             <div class="inv-opt" onclick="selectInvOpt('horizonte',this,'corto')"><div style="font-size:13px;font-weight:600">📅 Corto plazo</div><div style="font-size:11px;color:#888;margin-top:2px">Menos de 1 año. Necesito liquidez.</div></div>
             <div class="inv-opt selected" onclick="selectInvOpt('horizonte',this,'medio')"><div style="font-size:13px;font-weight:600">📆 Mediano plazo</div><div style="font-size:11px;color:#888;margin-top:2px">1 a 3 años. Puedo esperar un poco.</div></div>
             <div class="inv-opt" onclick="selectInvOpt('horizonte',this,'largo')"><div style="font-size:13px;font-weight:600">🗓 Largo plazo</div><div style="font-size:11px;color:#888;margin-top:2px">Más de 3 años. Pienso en el futuro.</div></div>
           </div>
-        </div>
-        <div class="card">
-          <div class="card-title">Instrumentos de interés</div>
-          <div style="font-size:12px;color:#888;margin-bottom:10px">¿Con qué te sentís cómodo? (podés marcar varios)</div>
+          <div style="font-size:11px;font-weight:700;color:#aaa;letter-spacing:.06em;margin:14px 0 8px">INSTRUMENTOS DE INTERÉS</div>
+          <div style="font-size:12px;color:#888;margin-bottom:8px">¿Con qué te sentís cómodo? (podés marcar varios)</div>
           <div class="inv-check selected" onclick="toggleInvCheck(this)"><span>💵 Dólares / ahorro en USD</span><span class="check-icon">✓</span></div>
           <div class="inv-check selected" onclick="toggleInvCheck(this)"><span>🏦 Plazo fijo (ARS / UVA)</span><span class="check-icon">✓</span></div>
           <div class="inv-check" onclick="toggleInvCheck(this)"><span>📈 CEDEARs (acciones internacionales)</span><span class="check-icon">✓</span></div>
           <div class="inv-check" onclick="toggleInvCheck(this)"><span>🇦🇷 Acciones argentinas</span><span class="check-icon">✓</span></div>
           <div class="inv-check" onclick="toggleInvCheck(this)"><span>📊 Fondos comunes de inversión</span><span class="check-icon">✓</span></div>
           <div class="inv-check" onclick="toggleInvCheck(this)"><span>₿ Cripto</span><span class="check-icon">✓</span></div>
-        </div>
-        <div class="card">
-          <div class="card-title">Tu perfil actual</div>
-          <div style="display:flex;align-items:center;gap:12px;padding:8px 0">
-            <div style="width:48px;height:48px;border-radius:50%;background:#dbeafe;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">⚖️</div>
-            <div><div id="inversor-resumen-txt" style="font-size:15px;font-weight:700">Moderado · Mediano plazo</div><div style="font-size:12px;color:#888;margin-top:2px;line-height:1.5">El agente te va a sugerir un mix equilibrado: parte en dólares/plazo fijo para seguridad, y parte en CEDEARs o FCI para crecer.</div></div>
+          <div style="display:flex;align-items:center;gap:12px;padding:12px 0 4px;margin-top:10px;border-top:0.5px solid #f3f3f0">
+            <div style="width:40px;height:40px;border-radius:50%;background:#dbeafe;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">⚖️</div>
+            <div><div id="inversor-resumen-txt" style="font-size:14px;font-weight:700">Moderado · Mediano plazo</div><div style="font-size:11px;color:#888;margin-top:2px;line-height:1.5">El agente te va a sugerir un mix equilibrado: parte en dólares/plazo fijo y parte en CEDEARs o FCI.</div></div>
           </div>
-        </div>
-        <button class="btn-primary" onclick="guardarPerfilInversor()">Guardar perfil</button>
-      </div>
-      <!-- Sub: Categorías -->
-      <div id="config-categorias" class="subpage">
-        <div class="subpage-header"><button class="subpage-back" onclick="volverConfigMain()">‹</button><div class="subpage-title">Categorías</div></div>
-        <div style="display:flex;gap:6px;margin-bottom:14px;overflow-x:auto;scrollbar-width:none">
-          <button class="cat-tab active" onclick="setCatTabNew('fijo',this)">Fijos</button>
-          <button class="cat-tab" onclick="setCatTabNew('variable',this)">Variables</button>
-          <button class="cat-tab" onclick="setCatTabNew('ingreso',this)">Ingresos</button>
-          <button class="cat-tab" onclick="setCatTabNew('ahorro',this)">Ahorro</button>
-        </div>
-        <div style="display:flex;gap:8px;margin-bottom:12px">
-          <input type="text" id="nueva-cat-new" placeholder="Nueva categoría..." style="flex:1;padding:10px 12px;font-size:13px;border:0.5px solid #d1d5db;border-radius:10px;background:#fff">
-          <button onclick="agregarCatNew()" style="padding:10px 16px;background:#1a1a1a;color:#fff;border:none;border-radius:10px;font-size:13px;cursor:pointer;font-weight:700">+ Agregar</button>
-        </div>
-        <div id="cat-list-new"></div>
-      </div>
-      <!-- Sub: Inflación -->
-      <div id="config-inflacion" class="subpage">
-        <div class="subpage-header"><button class="subpage-back" onclick="volverConfigMain()">‹</button><div class="subpage-title">Tasa de inflación</div></div>
-        <div class="alert alert-warn" style="margin-bottom:14px">Cashflow y Planificador usan esta tasa para proyectar cómo van a subir tus gastos en los próximos meses. Usamos el promedio INDEC de los últimos 3 meses como valor por defecto.</div>
-        <div class="card">
-          <div class="card-title">Dato oficial INDEC</div>
-          <div class="row-item"><span class="row-cat" style="color:#888">Enero 2025</span><span style="font-weight:700">2.4%</span></div>
-          <div class="row-item"><span class="row-cat" style="color:#888">Febrero 2025</span><span style="font-weight:700">2.4%</span></div>
-          <div class="row-item"><span class="row-cat" style="color:#888">Marzo 2025</span><span style="font-weight:700">3.7%</span></div>
-          <div class="row-item"><span class="row-cat" style="color:#888">Abril 2025</span><span style="font-weight:700">3.2%</span></div>
-          <div class="row-item" style="padding-top:10px"><span class="row-cat" style="font-weight:600">Promedio 3 meses</span><span style="font-weight:700;color:#16a34a;font-size:15px">2.8%</span></div>
-        </div>
-        <div class="card">
-          <div class="card-title">Tu tasa personalizada</div>
-          <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
-            <div class="inf-toggle-box" id="inf-toggle" onclick="toggleInflacion()"></div>
-            <span style="font-size:13px;color:#888">Usar mi propia tasa</span>
-          </div>
-          <div id="inf-custom-row" style="display:none;align-items:center;gap:10px;padding-top:8px;border-top:0.5px solid #f3f3f0">
-            <input type="number" id="inf-custom-val" value="3.2" step="0.1" style="width:90px;padding:8px 10px;font-size:15px;border:0.5px solid #d1d5db;border-radius:8px;text-align:center;background:#fff">
-            <span style="font-size:15px;color:#888">%</span>
-            <span style="font-size:11px;color:#aaa;flex:1">mensual</span>
-          </div>
-        </div>
-        <button class="btn-primary" onclick="guardarInflacion()">Guardar</button>
-      </div>
-      <!-- Sub: Exportar -->
-      <div id="config-preferencias" class="subpage">
-        <div class="subpage-header"><button class="subpage-back" onclick="volverConfigMain()">‹</button><div class="subpage-title">Pagos, pagadores y ahorros iniciales</div></div>
-        <div id="pref-content"></div>
-      </div>
-      <div id="config-exportar" class="subpage">
-        <div class="subpage-header"><button class="subpage-back" onclick="volverConfigMain()">‹</button><div class="subpage-title">Exportar datos</div></div>
-        <div style="background:#f0f4ff;border:0.5px solid #bfdbfe;border-radius:10px;padding:10px 12px;margin-bottom:12px;font-size:12px;color:#1d4ed8;line-height:1.6">📱 En el celular se abre el menú Compartir del sistema. En la compu descarga directo.</div>
-        <div style="display:flex;flex-direction:column;gap:8px">
-          <div style="display:flex;align-items:center;gap:12px;padding:14px;border-radius:12px;border:0.5px solid #e5e5e0;background:#fff;cursor:pointer" onclick="exportarPDF()">
-            <span style="font-size:22px">📄</span>
-            <div style="flex:1"><div style="font-size:13px;font-weight:600">PDF</div><div style="font-size:11px;color:#aaa;margin-top:1px">Listo para imprimir o compartir</div></div>
-            <span style="font-size:11px;color:#16a34a;font-weight:600">Exportar →</span>
-          </div>
-          <div style="display:flex;align-items:center;gap:12px;padding:14px;border-radius:12px;border:0.5px solid #e5e5e0;background:#fff;cursor:pointer" onclick="exportarExcel()">
-            <span style="font-size:22px">📊</span>
-            <div style="flex:1"><div style="font-size:13px;font-weight:600">Excel (.xlsx)</div><div style="font-size:11px;color:#aaa;margin-top:1px">Para analizar en planilla</div></div>
-            <span style="font-size:11px;color:#16a34a;font-weight:600">Exportar →</span>
-          </div>
-          <div style="display:flex;align-items:center;gap:12px;padding:14px;border-radius:12px;border:0.5px solid #e5e5e0;background:#fff;cursor:pointer" onclick="exportarCSV()">
-            <span style="font-size:22px">📋</span>
-            <div style="flex:1"><div style="font-size:13px;font-weight:600">CSV</div><div style="font-size:11px;color:#aaa;margin-top:1px">Compatible con cualquier sistema</div></div>
-            <span style="font-size:11px;color:#16a34a;font-weight:600">Exportar →</span>
-          </div>
+          <button class="btn-primary" style="margin-top:12px" onclick="guardarPerfilInversor()">Guardar perfil</button>
         </div>
       </div>
-      <!-- Sub: Integraciones -->
-      <div id="config-integraciones" class="subpage">
-        <div class="subpage-header"><button class="subpage-back" onclick="volverConfigMain()">‹</button><div class="subpage-title">Bancos y billeteras</div></div>
 
-        <div style="font-size:10px;font-weight:700;color:#aaa;letter-spacing:.08em;margin-bottom:10px">DISPONIBLES AHORA</div>
-
-        <!-- Mercado Pago -->
-        <div class="card" style="margin-bottom:14px">
-          <div style="display:flex;align-items:center;gap:12px;padding:10px 0">
-            <div style="width:36px;height:36px;border-radius:10px;background:#009ee3;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden"><img src="https://http2.mlstatic.com/frontend-assets/ui-navigation/5.19.5/mercadopago/logo__small@2x.png" style="width:28px;height:28px;object-fit:contain" onerror="this.style.display='none'"></div>
-            <div style="flex:1">
-              <div style="font-size:13px;font-weight:600">Mercado Pago</div>
-              <div style="font-size:11px;color:#888;margin-top:1px">Importar extracto CSV</div>
-            </div>
-            <span style="font-size:10px;font-weight:700;padding:3px 8px;border-radius:999px;background:#f3f4f6;color:#888">Pronto</span>
-          </div>
-        </div>
-
-        <!-- Galicia -->
-        <div class="card" style="margin-bottom:14px">
-          <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:0.5px solid #f3f3f0">
-            <div style="width:36px;height:36px;border-radius:10px;background:#fff;border:0.5px solid #eee;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden"><img src="https://www.galicia.ar/favicon.ico" style="width:28px;height:28px;object-fit:contain" onerror="this.parentElement.style.background='#e30613';this.outerHTML='<span style=\'color:#fff;font-weight:900;font-size:18px\'>G</span>'"></div>
-            <div style="flex:1">
-              <div style="font-size:13px;font-weight:600">Galicia</div>
-              <div style="font-size:11px;color:#888;margin-top:1px">Importar movimientos con IA</div>
-            </div>
-            <button onclick="toggleGaliciaImport()" style="font-size:11px;font-weight:700;padding:5px 12px;border-radius:999px;background:#1a1a1a;color:#fff;border:none;cursor:pointer">Importar</button>
-          </div>
-          <!-- Panel importar -->
-          <div id="galicia-import-panel" style="display:none;padding-top:12px">
-            <!-- Tabs -->
-            <div style="display:flex;gap:6px;margin-bottom:12px">
-              <button id="gtab-paste" onclick="setGaliciaTab('paste')" style="flex:1;padding:7px;border-radius:8px;font-size:12px;font-weight:600;border:0.5px solid #1a1a1a;background:#1a1a1a;color:#fff;cursor:pointer">Pegar texto</button>
-              <button id="gtab-pdf" onclick="setGaliciaTab('pdf')" style="flex:1;padding:7px;border-radius:8px;font-size:12px;font-weight:600;border:0.5px solid #e5e5e0;background:#fff;color:#888;cursor:pointer">Subir PDF</button>
-            </div>
-            <!-- Paste mode -->
-            <div id="galicia-paste-mode">
-              <div style="font-size:11px;color:#888;margin-bottom:6px;line-height:1.5">Andá a Galicia homebanking → Mis cuentas → seleccioná los movimientos → copiá y pegá acá:</div>
-              <textarea id="galicia-texto" placeholder="Pegá los movimientos acá..." style="width:100%;height:120px;padding:10px;font-size:12px;border:0.5px solid #d1d5db;border-radius:10px;resize:vertical;font-family:monospace;box-sizing:border-box"></textarea>
-            </div>
-            <!-- PDF mode -->
-            <div id="galicia-pdf-mode" style="display:none">
-              <div style="font-size:11px;color:#888;margin-bottom:6px;line-height:1.5">Descargá el resumen PDF de Galicia homebanking y subilo acá:</div>
-              <input type="file" id="galicia-pdf-input" accept=".pdf" style="font-size:12px;padding:8px;border:0.5px solid #d1d5db;border-radius:10px;width:100%;box-sizing:border-box;background:#f9f9f7">
-            </div>
-            <button onclick="analizarGalicia()" id="galicia-analizar-btn" style="width:100%;margin-top:10px;padding:11px;background:#1a1a1a;color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer">🤖 Analizar con IA</button>
-            <div id="galicia-status" style="font-size:12px;color:#888;text-align:center;margin-top:8px;min-height:18px"></div>
-            <!-- Preview movimientos -->
-            <div id="galicia-preview" style="display:none;margin-top:12px">
-              <div style="font-size:12px;font-weight:700;margin-bottom:8px" id="galicia-preview-title"></div>
-              <div id="galicia-preview-list"></div>
-              <button onclick="confirmarGalicia()" style="width:100%;margin-top:10px;padding:11px;background:#16a34a;color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer">✓ Cargar seleccionados</button>
-            </div>
-          </div>
-        </div>
-
-        <div style="font-size:10px;font-weight:700;color:#aaa;letter-spacing:.08em;margin-bottom:10px">PRÓXIMAMENTE</div>
-        <div class="card">
-          <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:0.5px solid #f3f3f0">
-            <div style="width:36px;height:36px;border-radius:10px;background:#fff;border:0.5px solid #eee;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden"><img src="https://logo.clearbit.com/uala.com.ar" style="width:32px;height:32px;object-fit:contain" onerror="this.parentElement.style.background='#f5c200';this.outerHTML='<span style=\'font-weight:900;font-size:18px\'>U</span>'"></div>
-            <div style="flex:1"><div style="font-size:13px;font-weight:600;color:#888">Uala</div><div style="font-size:11px;color:#aaa;margin-top:1px">Billetera digital</div></div>
-            <span style="font-size:10px;font-weight:700;padding:3px 8px;border-radius:999px;background:#f3f4f6;color:#888">Pronto</span>
-          </div>
-          <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:0.5px solid #f3f3f0">
-            <div style="width:36px;height:36px;border-radius:10px;background:#fff;border:0.5px solid #eee;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden"><img src="https://logo.clearbit.com/santander.com.ar" style="width:32px;height:32px;object-fit:contain" onerror="this.parentElement.style.background='#ec0000';this.outerHTML='<span style=\'color:#fff;font-weight:900;font-size:13px\'>SAN</span>'"></div>
-            <div style="flex:1"><div style="font-size:13px;font-weight:600;color:#888">Santander</div><div style="font-size:11px;color:#aaa;margin-top:1px">Banco Santander</div></div>
-            <span style="font-size:10px;font-weight:700;padding:3px 8px;border-radius:999px;background:#f3f4f6;color:#888">Pronto</span>
-          </div>
-          <div style="display:flex;align-items:center;gap:12px;padding:10px 0">
-            <div style="width:36px;height:36px;border-radius:10px;background:#fff;border:0.5px solid #eee;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden"><img src="https://logo.clearbit.com/bbva.com" style="width:32px;height:32px;object-fit:contain" onerror="this.parentElement.style.background='#004481';this.outerHTML='<span style=\'color:#fff;font-weight:900;font-size:14px\'>BBVA</span>'"></div>
-            <div style="flex:1"><div style="font-size:13px;font-weight:600;color:#888">BBVA</div><div style="font-size:11px;color:#aaa;margin-top:1px">Banco BBVA</div></div>
-            <span style="font-size:10px;font-weight:700;padding:3px 8px;border-radius:999px;background:#f3f4f6;color:#888">Pronto</span>
-          </div>
-        </div>
-      </div>
       <!-- legacy hidden divs para no romper referencias JS antiguas -->
       <div id="config-cats" style="display:none"></div>
       <div id="config-proyectados" style="display:none"></div>
@@ -2563,9 +2473,7 @@ window.eliminarPagador=async(i)=>{
 };
 window.renderPrefSubpage=renderPrefSubpage;
 window.renderConfigProyectados=(...a)=>renderConfigProyectados(...a);
-// renderCatListNew is defined in regular script — already global, no wrapper needed
-window.renderIngresosSubpage=(...a)=>renderIngresosSubpage(...a);
-window.renderPerfilSubpage=(...a)=>renderPerfilSubpage(...a);
+// renderCatListNew, renderIngresosSubpage, renderPerfilSubpage are in regular script — already global, no wrapper needed
 async function cargarIngresosProyectados(){try{const s=await getDoc(cfgDoc('ingresos_proyectados'));if(s.exists()){ingresosProyectados=s.data();window.ingresosProyectados=ingresosProyectados;}}catch(e){console.error(e);}}
 async function guardarIngresosProyectados(){try{await setDoc(cfgDoc('ingresos_proyectados'),ingresosProyectados);}catch(e){console.error(e);}}
 window.guardarIngresosProyectados=guardarIngresosProyectados;
@@ -2729,7 +2637,7 @@ window.nav=(id,btn)=>{
   if(drnav)drnav.classList.add('active');
   if(id==='gastos'){window.renderGastos?.();window._renderGastos?.();}
   if(id==='presupuesto'){window.renderPresSeg?.();window._renderPresSeg?.();}
-  if(id==='config'){window.renderConfigSection?.();volverConfigMain();}
+  if(id==='config'){window.renderConfigSection?.();configTab('cuenta');}
   if(id==='objetivos')renderObjetivos();
 };
 
@@ -2790,29 +2698,26 @@ window.toggleCarga=()=>{
   document.getElementById('carga-overlay').classList.toggle('open',_cargaOpen);
 };
 
-// ── CONFIG SUB-PÁGINAS ──
+// ── CONFIG TABS ──
 let _catTabActual='fijo';
 
-window.abrirSubConfig=(id)=>{
-  document.querySelectorAll('#sec-config .subpage').forEach(s=>s.classList.remove('active'));
-  const el=document.getElementById('config-'+id);
-  if(el)el.classList.add('active');
-  const tt=document.getElementById('topbar-title');
-  const titles={perfil:'👤 Perfil',ingresos:'💵 Ingresos proyectados',inversor:'⚖️ Perfil inversor',categorias:'🗂 Categorías',inflacion:'📉 Inflación',exportar:'📤 Exportar',integraciones:'🔗 Integraciones',preferencias:'💳 Pagos, pagadores y ahorros'};
-  if(id==='preferencias')renderPrefSubpage();
-  if(tt)tt.textContent=titles[id]||'⚙️ Configuración';
-  if(id==='ingresos')renderIngresosSubpage();
-  if(id==='categorias'){_catTabActual='fijo';renderCatListNew();}
-  if(id==='perfil')renderPerfilSubpage();
-  if(id==='integraciones'){}// próximamente
+window.configTab=(tab)=>{
+  ['cuenta','app','datos'].forEach(t=>{
+    const content=document.getElementById('cfg-tab-'+t);
+    const btn=document.getElementById('cfg-btn-'+t);
+    if(content)content.style.display=t===tab?'':'none';
+    if(btn)btn.classList.toggle('active',t===tab);
+  });
+  if(tab==='cuenta')renderPerfilSubpage?.();
+  if(tab==='app'){_catTabActual='fijo';renderCatListNew?.();renderPrefSubpage?.();renderIngresosSubpage?.();}
 };
 
-window.volverConfigMain=()=>{
-  document.querySelectorAll('#sec-config .subpage').forEach(s=>s.classList.remove('active'));
-  document.getElementById('config-main').classList.add('active');
-  const tt=document.getElementById('topbar-title');
-  if(tt)tt.textContent='⚙️ Configuración';
+window.abrirSubConfig=(id)=>{
+  const map={perfil:'cuenta',ingresos:'app',inversor:'datos',categorias:'app',inflacion:'app',exportar:'datos',integraciones:'app',preferencias:'app'};
+  configTab(map[id]||'cuenta');
 };
+
+window.volverConfigMain=()=>configTab('cuenta');
 
 // ── IMPORTAR DEL BANCO (desde formulario de carga) ──
 let _importTab='paste';
@@ -2952,139 +2857,6 @@ window.confirmarImport=async()=>{
   btn.disabled=false;btn.textContent='✓ Cargar seleccionados';
 };
 
-// ── INTEGRACIONES — GALICIA IMPORT ──
-let _galiciaTab='paste';
-let _galiciaMovimientos=[];
-
-window.toggleGaliciaImport=()=>{
-  const panel=document.getElementById('galicia-import-panel');
-  if(panel)panel.style.display=panel.style.display==='none'?'block':'none';
-};
-
-window.setGaliciaTab=(tab)=>{
-  _galiciaTab=tab;
-  document.getElementById('galicia-paste-mode').style.display=tab==='paste'?'block':'none';
-  document.getElementById('galicia-pdf-mode').style.display=tab==='pdf'?'block':'none';
-  document.getElementById('gtab-paste').style.background=tab==='paste'?'#1a1a1a':'#fff';
-  document.getElementById('gtab-paste').style.color=tab==='paste'?'#fff':'#888';
-  document.getElementById('gtab-paste').style.borderColor=tab==='paste'?'#1a1a1a':'#e5e5e0';
-  document.getElementById('gtab-pdf').style.background=tab==='pdf'?'#1a1a1a':'#fff';
-  document.getElementById('gtab-pdf').style.color=tab==='pdf'?'#fff':'#888';
-  document.getElementById('gtab-pdf').style.borderColor=tab==='pdf'?'#1a1a1a':'#e5e5e0';
-};
-
-window.analizarGalicia=async()=>{
-  const btn=document.getElementById('galicia-analizar-btn');
-  const status=document.getElementById('galicia-status');
-  const preview=document.getElementById('galicia-preview');
-  btn.disabled=true;btn.textContent='🤖 Analizando...';
-  status.textContent='Enviando a Claude...';
-  preview.style.display='none';
-  _galiciaMovimientos=[];
-
-  try{
-    let body={};
-    if(_galiciaTab==='paste'){
-      const texto=document.getElementById('galicia-texto')?.value?.trim();
-      if(!texto){status.textContent='Pegá el texto primero';btn.disabled=false;btn.textContent='🤖 Analizar con IA';return;}
-      body={texto};
-    } else {
-      const file=document.getElementById('galicia-pdf-input')?.files?.[0];
-      if(!file){status.textContent='Seleccioná un PDF primero';btn.disabled=false;btn.textContent='🤖 Analizar con IA';return;}
-      const reader=new FileReader();
-      const base64=await new Promise(res=>{reader.onload=e=>res(e.target.result.split(',')[1]);reader.readAsDataURL(file);});
-      body={pdf_base64:base64,filename:file.name};
-    }
-
-    const res=await fetch('/.netlify/functions/bank-import',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({...body,banco:'Galicia'})
-    });
-    const data=await res.json();
-
-    if(!data.movimientos?.length){
-      status.textContent=data.advertencias?.[0]||'No se encontraron movimientos';
-      btn.disabled=false;btn.textContent='🤖 Analizar con IA';
-      return;
-    }
-
-    _galiciaMovimientos=data.movimientos;
-    renderGaliciaPreview(data.movimientos);
-    status.textContent='';
-  }catch(e){
-    status.textContent='Error: '+e.message;
-  }
-  btn.disabled=false;btn.textContent='🤖 Analizar con IA';
-};
-
-function renderGaliciaPreview(movs){
-  const preview=document.getElementById('galicia-preview');
-  const list=document.getElementById('galicia-preview-list');
-  const title=document.getElementById('galicia-preview-title');
-  title.textContent=`${movs.length} movimientos detectados — revisá y confirmá:`;
-
-  // Construir todas las opciones de categoría agrupadas
-  const todasLasOpts=Object.entries(CATEGORIAS).map(([tipo,cats])=>
-    cats.map(c=>`<option value="${tipo}|${c}">${tipo} · ${c}</option>`).join('')
-  ).join('');
-
-  list.innerHTML=movs.map((m,i)=>{
-    const color=m.es_debito===false?'#16a34a':'#dc2626';
-    const signo=m.es_debito===false?'+':'-';
-    const selVal=`${m.tipo}|${m.categoria}`;
-    // Construir opciones con el de Claude seleccionado
-    const opts=Object.entries(CATEGORIAS).map(([tipo,cats])=>
-      cats.map(c=>`<option value="${tipo}|${c}" ${(`${tipo}|${c}`)===selVal?'selected':''}>${tipo} · ${c}</option>`).join('')
-    ).join('');
-    return`<div style="display:flex;align-items:flex-start;gap:8px;padding:8px 0;border-bottom:0.5px solid #f3f3f0">
-      <input type="checkbox" id="gmov-${i}" checked style="margin-top:3px;flex-shrink:0">
-      <div style="flex:1;min-width:0">
-        <div style="font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${m.descripcion}">${m.descripcion}</div>
-        <div style="font-size:10px;color:#888;margin-top:3px">${m.fecha} · <select id="gcat-${i}" style="font-size:10px;padding:1px 4px;border:0.5px solid #e5e5e0;border-radius:4px;background:#fff;max-width:160px">${opts}</select></div>
-      </div>
-      <div style="font-size:13px;font-weight:700;color:${color};flex-shrink:0">${signo}${fmt(m.monto)}</div>
-    </div>`;
-  }).join('');
-
-  preview.style.display='block';
-}
-
-window.confirmarGalicia=async()=>{
-  const btn=document.querySelector('#galicia-preview button');
-  btn.disabled=true;btn.textContent='Cargando...';
-  let cargados=0;
-  try{
-    for(let i=0;i<_galiciaMovimientos.length;i++){
-      const chk=document.getElementById(`gmov-${i}`);
-      if(!chk?.checked)continue;
-      const m=_galiciaMovimientos[i];
-      const catSel=document.getElementById(`gcat-${i}`)?.value||'Gasto variable|Otros';
-      const[tipo,cat]=catSel.split('|');
-      await addDoc(gastosCol(),{
-        fecha:m.fecha,mes:m.fecha.slice(0,7),
-        tipo,tipoIngreso:tipo==='Ingreso'?cat:'',
-        categoria:tipo!=='Ingreso'?cat:'',
-        monto:m.monto,
-        formaPago:'Tarjeta Credito - VISA Sebas',
-        pago:auth.currentUser?.email?.includes('sjpouiller')?'Sebas':'Male',
-        comentario:m.descripcion,
-        fuente:'galicia_import',
-        creadoEn:serverTimestamp(),
-        usuario:auth.currentUser?.email||''
-      });
-      cargados++;
-    }
-    toast(`✓ ${cargados} movimientos importados de Galicia`,'ok',3000);
-    document.getElementById('galicia-import-panel').style.display='none';
-    document.getElementById('galicia-texto').value='';
-    document.getElementById('galicia-preview').style.display='none';
-    _galiciaMovimientos=[];
-  }catch(e){
-    toast('Error al cargar: '+e.message,'err',3000);
-  }
-  btn.disabled=false;btn.textContent='✓ Cargar seleccionados';
-};
 
 
 // ── ONBOARDING ──
