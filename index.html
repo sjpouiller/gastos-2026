@@ -320,8 +320,9 @@ select,input[type=text],input[type=number],input[type=date],input[type=month]{pa
 /* ── SIDEBAR DESKTOP ── */
 #sidebar{display:none;flex-direction:column;width:240px;min-width:240px;background:#fff;border-right:0.5px solid #e5e5e0;transition:width .2s ease,min-width .2s ease;height:100vh;position:sticky;top:0;overflow:hidden;flex-shrink:0;z-index:10}
 #sidebar.collapsed{width:64px;min-width:64px}
-.sidebar-header{padding:18px 18px 14px;border-bottom:0.5px solid #f0f0ee;display:flex;align-items:center;justify-content:space-between;gap:8px;overflow:hidden;min-height:70px;box-sizing:border-box}
-#sidebar.collapsed .sidebar-header{justify-content:center;padding:18px 0 14px}
+.sidebar-header{padding:18px 18px 14px;border-bottom:0.5px solid #f0f0ee;display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:70px;box-sizing:border-box}
+#sidebar.collapsed .sidebar-header{justify-content:center;padding:14px 0}
+#sidebar.collapsed .sidebar-user{display:none}
 .sidebar-user{display:flex;align-items:center;gap:10px;overflow:hidden;flex:1;min-width:0}
 .sidebar-av{width:34px;height:34px;border-radius:50%;background:#dbeafe;color:#1d4ed8;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .sidebar-name{font-size:14px;font-weight:700;white-space:nowrap}
@@ -330,10 +331,10 @@ select,input[type=text],input[type=number],input[type=date],input[type=month]{pa
 .sidebar-toggle-btn:hover{background:#f0f0ee;color:#555}
 .sidebar-footer-row{padding:14px 18px;border-top:0.5px solid #f0f0ee;display:flex;justify-content:space-between;align-items:center;font-size:12px;color:#aaa;gap:8px}
 #sidebar.collapsed .sidebar-footer-row{justify-content:center;flex-direction:column;gap:14px;padding:14px 0}
-.sidebar-collapsible{opacity:1;transition:opacity .15s ease;overflow:hidden;white-space:nowrap}
-#sidebar.collapsed .sidebar-collapsible{opacity:0}
+.sidebar-collapsible{opacity:1;max-width:200px;transition:opacity .15s ease,max-width .2s ease;overflow:hidden;white-space:nowrap;flex-shrink:1}
+#sidebar.collapsed .sidebar-collapsible{opacity:0;max-width:0;pointer-events:none}
 #sidebar.collapsed .nav-sec{display:none}
-#sidebar.collapsed .nav-item{justify-content:center;padding:11px 0}
+#sidebar.collapsed .nav-item{justify-content:center;padding:11px 0;gap:0}
 #sidebar.collapsed .nav-item .nav-icon-box{margin:0}
 #sidebar.collapsed .nav-badge-nuevo,#sidebar.collapsed .nav-badge,#sidebar.collapsed .nav-badge-muted{display:none}
 #sidebar.collapsed .nav-item.active::before{display:none}
@@ -343,7 +344,7 @@ select,input[type=text],input[type=number],input[type=date],input[type=month]{pa
   #app-screen{flex-direction:row;height:100vh;padding-bottom:0;overflow:hidden}
   #sidebar{display:flex}
   #app-main{flex:1;display:flex;flex-direction:column;overflow-y:auto;min-width:0}
-  #topbar-hamburger{display:none}
+  #topbar-hamburger{display:none!important}
   #bottom-nav{display:none!important}
   #drawer,#drawer-overlay{display:none!important}
 }
