@@ -317,6 +317,36 @@ select,input[type=text],input[type=number],input[type=date],input[type=month]{pa
 .inv-skeleton{background:#e9e9e7;animation:inv-pulse 1.4s ease-in-out infinite}
 .inv-star.active{color:#f59e0b!important}
 .nav-badge-nuevo{margin-left:auto;font-size:9px;padding:2px 6px;border-radius:99px;background:#dcfce7;color:#15803d;font-weight:600}
+/* ── SIDEBAR DESKTOP ── */
+#sidebar{display:none;flex-direction:column;width:240px;min-width:240px;background:#fff;border-right:0.5px solid #e5e5e0;transition:width .2s ease,min-width .2s ease;height:100vh;position:sticky;top:0;overflow:hidden;flex-shrink:0;z-index:10}
+#sidebar.collapsed{width:64px;min-width:64px}
+.sidebar-header{padding:18px 18px 14px;border-bottom:0.5px solid #f0f0ee;display:flex;align-items:center;justify-content:space-between;gap:8px;overflow:hidden;min-height:70px;box-sizing:border-box}
+#sidebar.collapsed .sidebar-header{justify-content:center;padding:18px 0 14px}
+.sidebar-user{display:flex;align-items:center;gap:10px;overflow:hidden;flex:1;min-width:0}
+.sidebar-av{width:34px;height:34px;border-radius:50%;background:#dbeafe;color:#1d4ed8;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.sidebar-name{font-size:14px;font-weight:700;white-space:nowrap}
+.sidebar-sub-text{font-size:11px;color:#aaa;margin-top:2px;white-space:nowrap}
+.sidebar-toggle-btn{background:none;border:none;cursor:pointer;color:#bbb;font-size:13px;padding:4px 8px;border-radius:6px;flex-shrink:0;line-height:1;transition:background .15s,color .15s;font-family:inherit;letter-spacing:-1px}
+.sidebar-toggle-btn:hover{background:#f0f0ee;color:#555}
+.sidebar-footer-row{padding:14px 18px;border-top:0.5px solid #f0f0ee;display:flex;justify-content:space-between;align-items:center;font-size:12px;color:#aaa;gap:8px}
+#sidebar.collapsed .sidebar-footer-row{justify-content:center;flex-direction:column;gap:14px;padding:14px 0}
+.sidebar-collapsible{opacity:1;transition:opacity .15s ease;overflow:hidden;white-space:nowrap}
+#sidebar.collapsed .sidebar-collapsible{opacity:0}
+#sidebar.collapsed .nav-sec{display:none}
+#sidebar.collapsed .nav-item{justify-content:center;padding:11px 0}
+#sidebar.collapsed .nav-item .nav-icon-box{margin:0}
+#sidebar.collapsed .nav-badge-nuevo,#sidebar.collapsed .nav-badge,#sidebar.collapsed .nav-badge-muted{display:none}
+#sidebar.collapsed .nav-item.active::before{display:none}
+.sidebar-tooltip{position:fixed;background:#1a1a1a;color:#fff;font-size:12px;padding:5px 10px;border-radius:6px;pointer-events:none;opacity:0;transform:translateX(-4px);transition:opacity .15s ease,transform .15s ease;z-index:9999;white-space:nowrap}
+.sidebar-tooltip.visible{opacity:1;transform:translateX(0)}
+@media(min-width:768px){
+  #app-screen{flex-direction:row;height:100vh;padding-bottom:0;overflow:hidden}
+  #sidebar{display:flex}
+  #app-main{flex:1;display:flex;flex-direction:column;overflow-y:auto;min-width:0}
+  #topbar-hamburger{display:none}
+  #bottom-nav{display:none!important}
+  #drawer,#drawer-overlay{display:none!important}
+}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
@@ -524,8 +554,62 @@ select,input[type=text],input[type=number],input[type=date],input[type=month]{pa
 
 <!-- APP -->
 <div id="app-screen">
+  <!-- SIDEBAR (desktop only) -->
+  <div id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-user">
+        <div class="sidebar-av" id="sidebar-av">SP</div>
+        <div class="sidebar-collapsible" style="min-width:0">
+          <div class="sidebar-name" id="sidebar-name">Fina</div>
+          <div class="sidebar-sub-text" id="sidebar-sub-desktop">cargando...</div>
+        </div>
+      </div>
+      <button class="sidebar-toggle-btn" id="sidebar-toggle-btn" onclick="toggleSidebar()" title="Colapsar">‹‹</button>
+    </div>
+    <div class="sidebar-nav">
+      <div class="nav-sec sidebar-collapsible">Principal</div>
+      <div class="nav-item active" id="snav-resumen" onclick="drawerNav('resumen')" data-label="Resumen">
+        <div class="nav-icon-box" style="background:#E1F5EE">📊</div>
+        <span class="nav-label sidebar-collapsible">Resumen</span>
+      </div>
+      <div class="nav-item" id="snav-gastos" onclick="drawerNav('gastos')" data-label="Movimientos">
+        <div class="nav-icon-box" style="background:#EAF3DE">📋</div>
+        <span class="nav-label sidebar-collapsible">Movimientos</span>
+      </div>
+      <div class="nav-item" id="snav-presupuesto" onclick="drawerNav('presupuesto')" data-label="Presupuesto">
+        <div class="nav-icon-box" style="background:#EEEDFE">🧐</div>
+        <span class="nav-label sidebar-collapsible">Presupuesto</span>
+      </div>
+      <div class="nav-sec sidebar-collapsible">Análisis</div>
+      <div class="nav-item" id="snav-cashflow" onclick="drawerNav('cashflow')" data-label="Cashflow">
+        <div class="nav-icon-box" style="background:#E6F1FB">📈</div>
+        <span class="nav-label sidebar-collapsible">Cashflow</span>
+      </div>
+      <div class="nav-item" id="snav-objetivos" onclick="drawerNav('objetivos')" data-label="Objetivos de ahorro">
+        <div class="nav-icon-box" style="background:#dcfce7">🎯</div>
+        <span class="nav-label sidebar-collapsible">Objetivos de ahorro</span>
+      </div>
+      <div class="nav-item" id="snav-inversiones" onclick="drawerNav('inversiones')" data-label="Inversiones">
+        <div class="nav-icon-box" style="background:#FCEBEB">💹</div>
+        <span class="nav-label sidebar-collapsible">Inversiones</span>
+        <span class="nav-badge-nuevo sidebar-collapsible">nuevo</span>
+      </div>
+      <div class="nav-sec sidebar-collapsible">Sistema</div>
+      <div class="nav-item" id="snav-config" onclick="drawerNav('config')" data-label="Configuración">
+        <div class="nav-icon-box" style="background:#F1EFE8">⚙️</div>
+        <span class="nav-label sidebar-collapsible">Configuración</span>
+      </div>
+    </div>
+    <div class="sidebar-footer-row">
+      <span class="sidebar-collapsible" style="font-size:11px">v1.0.0</span>
+      <span style="cursor:pointer;display:flex;align-items:center;gap:4px" onclick="abrirContacto()">💬<span class="sidebar-collapsible"> Contacto</span></span>
+      <span style="color:#16a34a;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:4px" onclick="logout()">→<span class="sidebar-collapsible"> Salir</span></span>
+    </div>
+  </div>
+  <!-- MAIN CONTENT -->
+  <div id="app-main">
   <div class="topbar">
-    <button onclick="toggleDrawer()" style="background:none;border:none;cursor:pointer;padding:4px;display:flex;flex-direction:column;gap:5px"><span style="display:block;width:20px;height:2px;background:#1a1a1a;border-radius:2px"></span><span style="display:block;width:20px;height:2px;background:#1a1a1a;border-radius:2px"></span><span style="display:block;width:20px;height:2px;background:#1a1a1a;border-radius:2px"></span></button>
+    <button id="topbar-hamburger" onclick="toggleDrawer()" style="background:none;border:none;cursor:pointer;padding:4px;display:flex;flex-direction:column;gap:5px"><span style="display:block;width:20px;height:2px;background:#1a1a1a;border-radius:2px"></span><span style="display:block;width:20px;height:2px;background:#1a1a1a;border-radius:2px"></span><span style="display:block;width:20px;height:2px;background:#1a1a1a;border-radius:2px"></span></button>
     <div class="topbar-title" id="topbar-title">📊 Resumen</div>
     <div class="topbar-right">
       <span class="sync-dot" id="sync-dot"></span>
@@ -943,6 +1027,7 @@ select,input[type=text],input[type=number],input[type=date],input[type=month]{pa
     </div>
     <div style="height:16px"></div>
   </div>
+  </div><!-- /app-main -->
 </div>
 <!-- DRAWER -->
 <div id="drawer-overlay" onclick="toggleDrawer()" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.4);z-index:250"></div>
@@ -1210,8 +1295,8 @@ function mostrarApp(user){
   document.getElementById('login-screen').style.display='none';
   document.getElementById('invite-screen').style.display='none';
   document.getElementById('onboarding-screen').style.display='none';
-  document.getElementById('app-screen').style.display='block';
-  document.getElementById('bottom-nav').style.display='flex';
+  document.getElementById('app-screen').style.display=window.innerWidth>=768?'flex':'block';
+  document.getElementById('bottom-nav').style.display=window.innerWidth>=768?'none':'flex';
   document.getElementById('fab-wrapper').style.display='flex';
   const wrap=document.getElementById('user-avatar-wrap');
   wrap.innerHTML=user.photoURL?`<img src="${user.photoURL}" class="user-avatar">`:`<div class="user-initials">${(user.displayName||'?')[0]}</div>`;
@@ -2651,10 +2736,12 @@ window.nav=(id,btn)=>{
   // agent ctx
   const ctx=document.getElementById('sheet-ctx');
   if(ctx)ctx.textContent={resumen:'Resumen',gastos:'Movimientos',cashflow:'Cashflow',presupuesto:'Presupuesto',config:'Configuración',objetivos:'Objetivos'}[id]||id;
-  // drawer active
+  // drawer + sidebar active
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   const drnav=document.getElementById('drnav-'+id);
   if(drnav)drnav.classList.add('active');
+  const snav=document.getElementById('snav-'+id);
+  if(snav)snav.classList.add('active');
   if(id==='gastos'){window.renderGastos?.();window._renderGastos?.();}
   if(id==='presupuesto'){window.renderPresSeg?.();window._renderPresSeg?.();}
   if(id==='config'){window.renderConfigSection?.();configTab('cuenta');}
@@ -2702,13 +2789,64 @@ function actualizarDrawerHeader(){
     const ini=(window._authUser.displayName||'SP').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
     av.textContent=ini;
   }
+  // sidebar header sync
+  const sav=document.getElementById('sidebar-av');
+  if(sav&&window._authUser){
+    const ini=(window._authUser.displayName||'SP').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    sav.textContent=ini;
+  }
+  const sname=document.getElementById('sidebar-name');
+  const dsub=document.getElementById('drawer-sub');
+  const ssub=document.getElementById('sidebar-sub-desktop');
+  if(sname){
+    const hname=document.getElementById('drawer-nombre-hogar');
+    if(hname)sname.textContent=hname.textContent;
+  }
+  if(ssub&&dsub)ssub.textContent=dsub.textContent;
 }
 
 window.drawerNav=(id)=>{
-  toggleDrawer();
+  if(window.innerWidth<768)toggleDrawer();
   const fakeBtn=document.querySelector(`#bnav-${id}`)||document.createElement('button');
   window.nav(id,fakeBtn);
 };
+
+// ── SIDEBAR TOGGLE ──
+window.toggleSidebar=()=>{
+  const sb=document.getElementById('sidebar');
+  if(!sb)return;
+  const isCollapsed=sb.classList.toggle('collapsed');
+  localStorage.setItem('fina_sidebar_collapsed',isCollapsed);
+  const btn=document.getElementById('sidebar-toggle-btn');
+  if(btn)btn.textContent=isCollapsed?'›› ':'‹‹';
+  btn.title=isCollapsed?'Expandir':'Colapsar';
+};
+(function initSidebar(){
+  const collapsed=localStorage.getItem('fina_sidebar_collapsed')==='true';
+  if(collapsed){
+    const sb=document.getElementById('sidebar');
+    if(sb)sb.classList.add('collapsed');
+    const btn=document.getElementById('sidebar-toggle-btn');
+    if(btn){btn.textContent='›› ';btn.title='Expandir';}
+  }
+  // Tooltip
+  const tip=document.createElement('div');
+  tip.className='sidebar-tooltip';
+  tip.id='sidebar-tooltip';
+  document.body.appendChild(tip);
+  document.querySelectorAll('#sidebar .nav-item[data-label]').forEach(item=>{
+    item.addEventListener('mouseenter',()=>{
+      const sb=document.getElementById('sidebar');
+      if(!sb||!sb.classList.contains('collapsed'))return;
+      const rect=item.getBoundingClientRect();
+      tip.textContent=item.getAttribute('data-label');
+      tip.style.left='68px';
+      tip.style.top=(rect.top+rect.height/2-14)+'px';
+      tip.classList.add('visible');
+    });
+    item.addEventListener('mouseleave',()=>tip.classList.remove('visible'));
+  });
+})();
 
 // ── CARGA SHEET ──
 let _cargaOpen=false;
