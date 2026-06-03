@@ -3418,8 +3418,6 @@ let _invLastFetch=null;
 let _invRefreshTimer=null;
 let _invSearchTimer=null;
 
-const _finnhubKey=()=>localStorage.getItem('finnhub_key')||'';
-
 // helpers de formato
 function _invFmtARS(n){if(!n&&n!==0)return'—';const a=Math.abs(n);if(a>=1e6)return'$'+(n/1e6).toFixed(2)+'M';if(a>=1e3)return'$'+Math.round(n).toLocaleString('es-AR');return'$'+n.toFixed(0);}
 function _invFmtUSD(n){if(!n&&n!==0)return'—';return'U$S '+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
@@ -3443,8 +3441,8 @@ window.toggleFavorito=async(symbol,tipo,nombre)=>{
 // API fetches
 async function _fetchDolar(){try{const r=await fetch('https://criptoya.com/api/dolar');return r.ok?await r.json():null;}catch(e){return null;}}
 async function _fetchCripto(coin){try{const r=await fetch(`https://criptoya.com/api/${coin}/ARS/0.1`);if(!r.ok)return null;const d=await r.json();for(const ex of['letsbit','buenbit','fiwind','tiendacrypto','ripio','belo']){if(d[ex]?.totalAsk)return d[ex];}const k=Object.keys(d).find(k=>d[k]?.totalAsk);return k?d[k]:null;}catch(e){return null;}}
-async function _fetchStock(sym){const key=_finnhubKey();if(!key)return null;try{const r=await fetch(`https://finnhub.io/api/v1/quote?symbol=${sym}&token=${key}`);return r.ok?await r.json():null;}catch(e){return null;}}
-async function _fetchStockSearch(q){const key=_finnhubKey();if(!key)return[];try{const r=await fetch(`https://finnhub.io/api/v1/search?q=${encodeURIComponent(q)}&token=${key}`);if(!r.ok)return[];const d=await r.json();return(d.result||[]).slice(0,8);}catch(e){return[];}}
+async function _fetchStock(sym){try{const r=await fetch('/.netlify/functions/finnhub',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'quote',symbol:sym})});if(!r.ok)return null;const d=await r.json();if(d.error||!d.price)return null;return{c:d.price,d:d.change,dp:d.changePercent,h:d.high,l:d.low,pc:d.prevClose};}catch(e){return null;}}
+async function _fetchStockSearch(q){try{const r=await fetch('/.netlify/functions/finnhub',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'search',query:q})});if(!r.ok)return[];const d=await r.json();return Array.isArray(d)?d:[];}catch(e){return[];}}
 
 // data refresh
 async function _invFetchAll(){
@@ -3452,11 +3450,10 @@ async function _invFetchAll(){
   const[dolar,...criptoRes]=await Promise.all([_fetchDolar(),...INV_CRYPTOS.map(c=>_fetchCripto(c))]);
   _invDolar=dolar;
   INV_CRYPTOS.forEach((c,i)=>{if(criptoRes[i])_invCriptos[c]=criptoRes[i];});
-  if(_finnhubKey()){
-    const stockRes=await Promise.all(INV_STOCKS.map(s=>_fetchStock(s)));
-    INV_STOCKS.forEach((s,i)=>{if(stockRes[i])_invStocks[s]=stockRes[i];});
-    for(const fav of _invFavoritos.filter(f=>f.tipo==='stock'&&!_invStocks[f.symbol])){const d=await _fetchStock(fav.symbol);if(d)_invStocks[fav.symbol]=d;}
-  }
+  // Stocks siempre via proxy (sin key en frontend)
+  const stockRes=await Promise.all(INV_STOCKS.map(s=>_fetchStock(s)));
+  INV_STOCKS.forEach((s,i)=>{if(stockRes[i])_invStocks[s]=stockRes[i];});
+  for(const fav of _invFavoritos.filter(f=>f.tipo==='stock'&&!_invStocks[f.symbol])){const d=await _fetchStock(fav.symbol);if(d)_invStocks[fav.symbol]=d;}
   _invRenderActive();
 }
 function _invRenderActive(){if(_invActiveTab==='mercado')renderInvMercado();else if(_invActiveTab==='favoritos')renderInvFavoritos();else if(_invActiveTab==='cartera')renderInvCartera();}
@@ -3496,11 +3493,10 @@ function renderInvMercado(){
   h+=`<div style="font-size:10px;font-weight:700;color:#aaa;letter-spacing:.08em;margin-bottom:8px">CRIPTO</div><div class="inv-grid-3" style="margin-bottom:20px">`;
   INV_CRYPTOS.forEach(coin=>{const data=_invCriptos[coin];const fav=_isFav(coin);const nombre=CRIPTO_NOMBRES[coin]||coin;const col=CRIPTO_COLORS[coin]||'#1a1a1a';if(!data){h+=`<div>${_invSkel('130px')}</div>`;return;}const precio=data.totalAsk||data.ask||0;const precioUSD=blueV>0?precio/blueV:0;const vari=data.variation24h||0;h+=`<div class="inv-card"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px"><div><div style="font-size:14px;font-weight:700;color:${col}">${coin}</div><div style="font-size:10px;color:#aaa">${nombre}</div></div><button class="inv-star" data-sym="${coin}" onclick="toggleFavorito('${coin}','crypto','${nombre}')" style="background:none;border:none;cursor:pointer;font-size:16px;padding:0;color:${fav?'#f59e0b':'#ccc'}">${fav?'★':'☆'}</button></div><div style="font-size:16px;font-weight:700;color:${col};margin-bottom:1px">${_invFmtARS(precio)}</div><div style="font-size:10px;color:#aaa;margin-bottom:5px">≈ ${_invFmtUSD(precioUSD)}</div>${_invVarBadge(vari)}${_invSpark(vari)}</div>`;});
   h+='</div>';
-  // ACCIONES
-  const key=_finnhubKey();
-  h+=`<div style="font-size:10px;font-weight:700;color:#aaa;letter-spacing:.08em;margin-bottom:8px">ACCIONES & CEDEARs</div>`;
-  if(!key){h+=`<div class="inv-card" style="text-align:center;padding:20px 14px"><div style="font-size:28px;margin-bottom:8px">🔑</div><div style="font-size:13px;font-weight:600;margin-bottom:4px">Configurá tu API key de Finnhub</div><div style="font-size:12px;color:#aaa;margin-bottom:12px">Registrate gratis en <strong>finnhub.io</strong> para ver cotizaciones de acciones y CEDEARs.</div><button onclick="invSetFinnhubKey()" style="padding:8px 16px;background:#1a1a1a;color:#fff;border:none;border-radius:10px;font-size:13px;cursor:pointer;font-weight:600">Ingresar API key</button></div>`;}
-  else{h+=`<div class="inv-grid-3">`;INV_STOCKS.forEach(sym=>{const data=_invStocks[sym];const fav=_isFav(sym);const meta=INV_STOCK_META[sym]||{sub:'Acción'};if(!data){h+=`<div>${_invSkel('130px')}</div>`;return;}const precio=data.c||0;const vari=data.dp||0;h+=`<div class="inv-card"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px"><div><div style="font-size:14px;font-weight:700">${sym}</div><div style="font-size:10px;color:#aaa">${meta.sub}</div></div><button class="inv-star" data-sym="${sym}" onclick="toggleFavorito('${sym}','stock','${sym}')" style="background:none;border:none;cursor:pointer;font-size:16px;padding:0;color:${fav?'#f59e0b':'#ccc'}">${fav?'★':'☆'}</button></div><div style="font-size:16px;font-weight:700;margin-bottom:1px">${_invFmtUSD(precio)}</div><div style="font-size:10px;color:#aaa;margin-bottom:5px">USD</div>${_invVarBadge(vari)}${_invSpark(vari)}</div>`;});h+='</div>';}
+  // ACCIONES (via proxy Netlify Function — sin key en frontend)
+  h+=`<div style="font-size:10px;font-weight:700;color:#aaa;letter-spacing:.08em;margin-bottom:8px">ACCIONES & CEDEARs</div><div class="inv-grid-3">`;
+  INV_STOCKS.forEach(sym=>{const data=_invStocks[sym];const fav=_isFav(sym);const meta=INV_STOCK_META[sym]||{sub:'Acción'};if(!data){h+=`<div>${_invSkel('130px')}</div>`;return;}const precio=data.c||0;const vari=data.dp||0;h+=`<div class="inv-card"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px"><div><div style="font-size:14px;font-weight:700">${sym}</div><div style="font-size:10px;color:#aaa">${meta.sub}</div></div><button class="inv-star" data-sym="${sym}" onclick="toggleFavorito('${sym}','stock','${sym}')" style="background:none;border:none;cursor:pointer;font-size:16px;padding:0;color:${fav?'#f59e0b':'#ccc'}">${fav?'★':'☆'}</button></div><div style="font-size:16px;font-weight:700;margin-bottom:1px">${_invFmtUSD(precio)}</div><div style="font-size:10px;color:#aaa;margin-bottom:5px">USD</div>${_invVarBadge(vari)}${_invSpark(vari)}</div>`;});
+  h+='</div>';
   el.innerHTML=h;
 }
 
@@ -3543,52 +3539,63 @@ window._invAgregarFav=async(symbol,tipo,nombre)=>{
 };
 
 // ── TAB CARTERA ──
-function renderInvCartera(){
-  const el=document.getElementById('inv-cartera');if(!el)return;
+function _invCalcCartera(){
+  const gastos=window.gastos||[];
   const ai=window.ahorrosIniciales||{usd:0,inversiones:0,otros:0};
   const blueV=_dolarPrecio(_invDolar?.blue)||0;
-  const usdARS=(ai.usd||0)*blueV;const invARS=ai.inversiones||0;const otrosARS=ai.otros||0;
-  const totalARS=usdARS+invARS+otrosARS;const totalUSD=blueV>0?totalARS/blueV:0;
+  const totalUSD=typeof calcSaldoUSD==='function'?calcSaldoUSD():(ai.usd||0);
+  const movAhorro=gastos.filter(g=>g.tipo==='Ahorro');
+  const invMovARS=movAhorro.filter(g=>g.categoria==='Inversiones').reduce((s,g)=>s+(g.monto||0),0);
+  const totalInvARS=invMovARS+(ai.inversiones||0);
+  const catExcl=new Set(['Compra USD','Inversiones']);
+  const otrosMovARS=movAhorro.filter(g=>!catExcl.has(g.categoria)).reduce((s,g)=>s+(g.monto||0),0);
+  const totalOtrosARS=otrosMovARS+(ai.otros||0);
+  const usdARS=totalUSD*blueV;
+  const totalARS=usdARS+totalInvARS+totalOtrosARS;
+  const totalUSDEq=blueV>0?totalARS/blueV:0;
+  const catMap={};movAhorro.forEach(g=>{const k=g.categoria||'Otros';catMap[k]=(catMap[k]||0)+(g.monto||0);});
+  return{totalUSD,totalInvARS,totalOtrosARS,usdARS,totalARS,totalUSDEq,blueV,catMap,ai};
+}
+
+function renderInvCartera(){
+  const el=document.getElementById('inv-cartera');if(!el)return;
+  const{totalUSD,totalInvARS,totalOtrosARS,usdARS,totalARS,totalUSDEq,blueV,catMap,ai}=_invCalcCartera();
   const blueStr=blueV?`$${Math.round(blueV).toLocaleString('es-AR')}`:'—';
+  if(!totalARS){el.innerHTML=`<div class="inv-card" style="text-align:center;padding:32px 16px"><div style="font-size:36px;margin-bottom:10px">💼</div><div style="font-size:14px;font-weight:700;margin-bottom:6px">Todavía no registraste ahorros</div><div style="font-size:12px;color:#aaa;margin-bottom:16px;line-height:1.6">Cargá un movimiento de tipo <strong>Ahorro</strong> o configurá tus ahorros iniciales en Configuración para ver tu cartera aquí.</div><button onclick="drawerNav('config')" style="padding:10px 20px;background:#1a1a1a;color:#fff;border:none;border-radius:10px;font-size:13px;cursor:pointer;font-weight:600">Ir a Configuración →</button></div>`;return;}
   let h=`<div style="background:linear-gradient(135deg,#1a1a2e 0%,#0f3460 100%);border-radius:14px;padding:20px;margin-bottom:16px;color:#fff">
     <div style="font-size:10px;font-weight:700;color:#a0aec0;letter-spacing:.1em;margin-bottom:8px">PATRIMONIO TOTAL ESTIMADO</div>
-    <div style="font-size:34px;font-weight:700;line-height:1;margin-bottom:4px">${_invFmtARS(totalARS)||'—'}</div>
-    <div style="font-size:12px;color:#a0aec0;margin-bottom:16px">≈ ${_invFmtUSD(totalUSD)} · al blue ${blueStr}</div>
+    <div style="font-size:34px;font-weight:700;line-height:1;margin-bottom:4px">${_invFmtARS(totalARS)}</div>
+    <div style="font-size:12px;color:#a0aec0;margin-bottom:16px">≈ ${_invFmtUSD(totalUSDEq)} · al blue ${blueStr}</div>
     <div style="display:flex;border-top:1px solid rgba(255,255,255,.1);padding-top:12px">
-      <div style="flex:1;text-align:center;border-right:1px solid rgba(255,255,255,.1)"><div style="font-size:16px;font-weight:700">${ai.usd?'U$S '+Number(ai.usd).toLocaleString('es-AR'):'—'}</div><div style="font-size:10px;color:#a0aec0;margin-top:2px">USD acumulados</div></div>
-      <div style="flex:1;text-align:center;border-right:1px solid rgba(255,255,255,.1)"><div style="font-size:16px;font-weight:700">${invARS?_invFmtARS(invARS):'—'}</div><div style="font-size:10px;color:#a0aec0;margin-top:2px">Inversiones ARS</div></div>
-      <div style="flex:1;text-align:center"><div style="font-size:16px;font-weight:700">—</div><div style="font-size:10px;color:#a0aec0;margin-top:2px">Rentab. estimada</div></div>
+      <div style="flex:1;text-align:center;border-right:1px solid rgba(255,255,255,.1)"><div style="font-size:14px;font-weight:700">${totalUSD?'U$S '+Number(totalUSD.toFixed(0)).toLocaleString('es-AR'):'—'}</div><div style="font-size:10px;color:#a0aec0;margin-top:2px">USD acumulados</div></div>
+      <div style="flex:1;text-align:center;border-right:1px solid rgba(255,255,255,.1)"><div style="font-size:14px;font-weight:700">${totalInvARS?_invFmtARS(totalInvARS):'—'}</div><div style="font-size:10px;color:#a0aec0;margin-top:2px">Inversiones ARS</div></div>
+      <div style="flex:1;text-align:center"><div style="font-size:14px;font-weight:700">—</div><div style="font-size:10px;color:#a0aec0;margin-top:2px">Rentab. estimada</div></div>
     </div>
   </div>`;
-  // Holdings
   const holdings=[];
-  if(ai.usd>0)holdings.push({label:'USD · Dólares',sub:`${ai.usd} dólares al blue`,valor:_invFmtARS(usdARS),avBg:'#dcfce7',avCol:'#15803d',icon:'U$S'});
-  if(invARS>0)holdings.push({label:'Fondo Común / Inversiones',sub:'Inversiones ARS',valor:_invFmtARS(invARS),avBg:'#f3e8ff',avCol:'#7e22ce',icon:'FCI'});
-  if(otrosARS>0)holdings.push({label:'Otros activos',sub:'Ahorro general',valor:_invFmtARS(otrosARS),avBg:'#f0f9ff',avCol:'#0369a1',icon:'ARS'});
+  if(totalUSD>0)holdings.push({label:'USD · Dólares',sub:`U$S ${Number(totalUSD.toFixed(0)).toLocaleString('es-AR')} · ≈ ${_invFmtARS(usdARS)} al blue`,valor:'U$S '+Number(totalUSD.toFixed(0)).toLocaleString('es-AR'),avBg:'#dcfce7',avCol:'#15803d',icon:'U$S'});
+  const catExcl=new Set(['Compra USD']);Object.entries(catMap).filter(([k,v])=>!catExcl.has(k)&&v>0).forEach(([cat,monto])=>{const avBg=cat==='Inversiones'?'#f3e8ff':cat==='Fondo emergencia'?'#fef3c7':'#f0f9ff';const avCol=cat==='Inversiones'?'#7e22ce':cat==='Fondo emergencia'?'#92400e':'#0369a1';const icon=cat==='Inversiones'?'FCI':cat==='Fondo emergencia'?'FE':cat.slice(0,3).toUpperCase();holdings.push({label:cat,sub:'Movimientos de ahorro',valor:_invFmtARS(monto),avBg,avCol,icon});});
+  if(ai.inversiones>0&&!(catMap['Inversiones']>0))holdings.push({label:'Inversiones ARS',sub:'Saldo inicial configurado',valor:_invFmtARS(ai.inversiones),avBg:'#f3e8ff',avCol:'#7e22ce',icon:'FCI'});
+  if(ai.otros>0)holdings.push({label:'Otros ahorros',sub:'Saldo inicial configurado',valor:_invFmtARS(ai.otros),avBg:'#f0f9ff',avCol:'#0369a1',icon:'ARS'});
   h+=`<div style="font-size:10px;font-weight:700;color:#aaa;letter-spacing:.08em;margin-bottom:8px">HOLDINGS</div>`;
-  if(holdings.length){h+=`<div class="inv-card" style="padding:0;margin-bottom:16px">`;holdings.forEach((hh,i)=>{const border=i<holdings.length-1?'border-bottom:0.5px solid #f3f3f0':'';h+=`<div style="display:flex;align-items:center;gap:12px;padding:12px 14px;${border}"><div style="width:40px;height:40px;border-radius:10px;background:${hh.avBg};color:${hh.avCol};font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">${hh.icon}</div><div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:700">${hh.label}</div><div style="font-size:11px;color:#aaa">${hh.sub}</div></div><div style="font-size:14px;font-weight:700">${hh.valor}</div></div>`;});h+='</div>';}
-  else{h+=`<div class="inv-card" style="text-align:center;padding:20px;color:#aaa;margin-bottom:16px;font-size:13px">Cargá tus ahorros en Configuración → La app para ver tus holdings aquí.</div>`;}
-  // Sugerencia del agente
-  h+=`<div style="background:#f0fdf4;border:0.5px solid #bbf7d0;border-radius:12px;padding:16px"><div style="display:flex;align-items:center;gap:10px;margin-bottom:8px"><span style="font-size:22px">🤖</span><div style="font-size:13px;font-weight:700;color:#15803d">Fina recomienda</div></div><div id="inv-agente-txt" style="font-size:13px;color:#166534;line-height:1.7">${_invAgenteEstático(ai)}</div><button onclick="invPedirSugerencia()" style="margin-top:10px;padding:7px 14px;background:#16a34a;color:#fff;border:none;border-radius:8px;font-size:12px;cursor:pointer;font-weight:600">↺ Actualizar sugerencia</button></div>`;
+  if(holdings.length){h+=`<div class="inv-card" style="padding:0;margin-bottom:16px">`;holdings.forEach((hh,i)=>{const border=i<holdings.length-1?'border-bottom:0.5px solid #f3f3f0':'';h+=`<div style="display:flex;align-items:center;gap:12px;padding:12px 14px;${border}"><div style="width:40px;height:40px;border-radius:10px;background:${hh.avBg};color:${hh.avCol};font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;text-align:center">${hh.icon}</div><div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:700">${hh.label}</div><div style="font-size:11px;color:#aaa;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${hh.sub}</div></div><div style="font-size:14px;font-weight:700;flex-shrink:0">${hh.valor}</div></div>`;});h+='</div>';}
+  h+=`<div style="background:#f0fdf4;border:0.5px solid #bbf7d0;border-radius:12px;padding:16px"><div style="display:flex;align-items:center;gap:10px;margin-bottom:8px"><span style="font-size:22px">🤖</span><div style="font-size:13px;font-weight:700;color:#15803d">Fina recomienda</div></div><div id="inv-agente-txt" style="font-size:13px;color:#166534;line-height:1.7">${_invAgenteEstático(totalUSD,totalInvARS,totalARS,blueV)}</div><button onclick="invPedirSugerencia()" style="margin-top:10px;padding:7px 14px;background:#16a34a;color:#fff;border:none;border-radius:8px;font-size:12px;cursor:pointer;font-weight:600">↺ Actualizar sugerencia</button></div>`;
   el.innerHTML=h;
 }
 
-function _invAgenteEstático(ai){const blueV=_invDolar?.blue?.venta||0;const total=(ai.usd||0)*blueV+(ai.inversiones||0)+(ai.otros||0);if(!total)return'Cargá tus ahorros y tu perfil de inversor para recibir recomendaciones personalizadas.';const pct=total>0?Math.round(((ai.usd||0)*blueV)/total*100):0;if(pct>70)return`Tu cartera tiene un ${pct}% en USD — buena cobertura frente a la inflación. Con liquidez extra, podrías diversificar en un FCI en pesos para sumar rendimiento en ARS.`;if(pct<30)return`Solo el ${pct}% de tu cartera está en USD. Dado el contexto argentino, te recomendamos destinar al menos un 40–50% a dólares como reserva de valor.`;return`Tu distribución es equilibrada: ${pct}% en USD y ${100-pct}% en pesos. Seguí monitoreando el blue y aprovechá las bajas para comprar más dólares.`;}
+function _invAgenteEstático(totalUSD,totalInvARS,totalARS,blueV){if(!totalARS)return'Cargá tus ahorros para recibir recomendaciones personalizadas.';const usdARS=(totalUSD||0)*(blueV||0);const pct=totalARS>0?Math.round(usdARS/totalARS*100):0;if(pct>70)return`Tu cartera tiene un ${pct}% en USD — buena cobertura frente a la inflación. Con liquidez extra, podrías diversificar en un FCI en pesos para sumar rendimiento en ARS.`;if(pct<30)return`Solo el ${pct}% de tu cartera está en USD. Dado el contexto argentino, te recomendamos destinar al menos un 40–50% a dólares como reserva de valor.`;return`Tu distribución es equilibrada: ${pct}% en USD y ${100-pct}% en pesos. Seguí monitoreando el blue y aprovechá las bajas para comprar más dólares.`;}
 
 window.invPedirSugerencia=async()=>{
   const el=document.getElementById('inv-agente-txt');if(!el)return;
   el.textContent='Consultando a Fina...';
-  const ai=window.ahorrosIniciales||{usd:0,inversiones:0,otros:0};
-  const blueV=_dolarPrecio(_invDolar?.blue)||0;
-  const totalARS=(ai.usd||0)*blueV+(ai.inversiones||0)+(ai.otros||0);
-  const prompt=`Patrimonio total: ${_invFmtARS(totalARS)} (~${_invFmtUSD(blueV>0?totalARS/blueV:0)} al blue $${Math.round(blueV||0).toLocaleString('es-AR')}).
-Composición: USD ${ai.usd||0} dólares (≈${_invFmtARS((ai.usd||0)*blueV)}), Inversiones ARS ${_invFmtARS(ai.inversiones||0)}, Otros ${_invFmtARS(ai.otros||0)}.
+  const{totalUSD,totalInvARS,totalOtrosARS,totalARS,blueV}=_invCalcCartera();
+  const prompt=`Patrimonio total: ${_invFmtARS(totalARS)} (≈ ${_invFmtUSD(blueV>0?totalARS/blueV:0)} al blue $${Math.round(blueV||0).toLocaleString('es-AR')}).
+USD: U$S ${Number((totalUSD||0).toFixed(0)).toLocaleString('es-AR')} (${blueV&&totalARS?Math.round((totalUSD*blueV)/totalARS*100):0}%). Inversiones ARS: ${_invFmtARS(totalInvARS)}. Otros: ${_invFmtARS(totalOtrosARS)}.
 Dáme una recomendación concreta de 2-3 acciones para optimizar mi cartera. Máximo 80 palabras, español rioplatense.`;
   try{const r=await fetch('/.netlify/functions/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:250,messages:[{role:'user',content:prompt}]})});const d=await r.json();el.textContent=d.content?.[0]?.text||'No se pudo generar la sugerencia.';}
-  catch(e){el.textContent=_invAgenteEstático(ai);}
+  catch(e){const{totalUSD:u,totalInvARS:i,totalARS:t,blueV:b}=_invCalcCartera();el.textContent=_invAgenteEstático(u,i,t,b);}
 };
 
-window.invSetFinnhubKey=()=>{const key=prompt('Ingresá tu API key de Finnhub\n(registrate gratis en finnhub.io):');if(key?.trim()){localStorage.setItem('finnhub_key',key.trim());window.toast?.('API key guardada ✓','ok',2000);invRefresh();}};
 
 // ── INIT ──
 window.renderInversiones=async()=>{
