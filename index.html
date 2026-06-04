@@ -345,9 +345,8 @@ select,input[type=text],input[type=number],input[type=date],input[type=month]{pa
 @media(min-width:768px){
   #app-screen{flex-direction:row;height:100vh;padding-bottom:0;overflow:hidden}
   #sidebar{display:flex}
-  #app-main{flex:1;display:flex;flex-direction:column;overflow-y:auto;min-width:0}
+  #app-main{flex:1;display:flex;flex-direction:column;overflow-y:auto;min-width:0;padding-bottom:80px}
   #topbar-hamburger{display:none!important}
-  #bottom-nav{display:none!important}
   #drawer,#drawer-overlay{display:none!important}
 }
 </style>
@@ -1302,7 +1301,7 @@ function mostrarApp(user){
   document.getElementById('invite-screen').style.display='none';
   document.getElementById('onboarding-screen').style.display='none';
   document.getElementById('app-screen').style.display=window.innerWidth>=768?'flex':'block';
-  document.getElementById('bottom-nav').style.display=window.innerWidth>=768?'none':'flex';
+  document.getElementById('bottom-nav').style.display='flex';
   document.getElementById('fab-wrapper').style.display='flex';
   const wrap=document.getElementById('user-avatar-wrap');
   wrap.innerHTML=user.photoURL?`<img src="${user.photoURL}" class="user-avatar">`:`<div class="user-initials">${(user.displayName||'?')[0]}</div>`;
