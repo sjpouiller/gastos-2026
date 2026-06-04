@@ -316,6 +316,8 @@ select,input[type=text],input[type=number],input[type=date],input[type=month]{pa
 @keyframes inv-pulse{0%,100%{opacity:1}50%{opacity:.5}}
 .inv-skeleton{background:#e9e9e7;animation:inv-pulse 1.4s ease-in-out infinite}
 .inv-star.active{color:#f59e0b!important}
+.inv-panel-hidden{visibility:hidden;position:absolute;top:0;left:0;right:0;pointer-events:none;overflow:hidden}
+.inv-panels-wrap{position:relative}
 .nav-badge-nuevo{margin-left:auto;font-size:9px;padding:2px 6px;border-radius:99px;background:#dcfce7;color:#15803d;font-weight:600}
 /* ── SIDEBAR DESKTOP ── */
 #sidebar{display:none;flex-direction:column;width:240px;min-width:240px;background:#fff;border-right:0.5px solid #e5e5e0;transition:width .2s ease,min-width .2s ease;height:100vh;position:sticky;top:0;overflow:hidden;flex-shrink:0;z-index:10}
@@ -864,9 +866,11 @@ select,input[type=text],input[type=number],input[type=date],input[type=month]{pa
         <button id="invtab-favoritos" class="inv-tab"        onclick="invTab('favoritos')">⭐ Favoritos</button>
         <button id="invtab-cartera"   class="inv-tab"        onclick="invTab('cartera')">💼 Cartera</button>
       </div>
-      <div id="inv-mercado"></div>
-      <div id="inv-favoritos" style="display:none"></div>
-      <div id="inv-cartera"   style="display:none"></div>
+      <div class="inv-panels-wrap">
+        <div id="inv-mercado"></div>
+        <div id="inv-favoritos" class="inv-panel-hidden"></div>
+        <div id="inv-cartera" class="inv-panel-hidden"></div>
+      </div>
     </div>
     <!-- PRESUPUESTO -->
     <div id="sec-presupuesto" class="section">
@@ -955,6 +959,7 @@ select,input[type=text],input[type=number],input[type=date],input[type=month]{pa
       </select>
     </div>
     <div class="form-group" id="grp-cat"><label data-t="lbl-cat">Categoría</label><select id="inp-cat" onchange="toggleDolarField()"></select></div>
+    <div class="form-group" id="grp-activo" style="display:none"><label>Activo / Instrumento <span style="color:#bbb;font-weight:400">(opcional)</span></label><div style="position:relative"><input type="text" id="inp-activo" placeholder="Buscar activo... (ej: BTC, FCI, AAPL)" style="width:100%;box-sizing:border-box" oninput="activoSearchDebounce(this.value)" onfocus="activoOnFocus()" autocomplete="off"><div id="activo-results" style="display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;background:#fff;border-radius:12px;border:0.5px solid #e5e5e0;box-shadow:0 4px 20px rgba(0,0,0,.12);z-index:100;max-height:280px;overflow-y:auto"></div></div></div>
     <div class="form-group"><label data-t="lbl-monto">Monto ($)</label><input type="number" id="inp-monto" placeholder="0" inputmode="numeric"></div>
     <div class="dolar-field" id="grp-dolar">
       <label>Cantidad en dólares (USD)</label>
@@ -1935,9 +1940,10 @@ window.guardar=async()=>{
     const dd={fecha,tipo,tipoIngreso:tipo==='Ingreso'?cat:'',categoria:tipo!=='Ingreso'?cat:'',monto,formaPago:pago,pago:quien,mes,creadoEn:serverTimestamp(),fuente:'app',usuario:auth.currentUser?.email||''};
     if(montoDolar>0&&(cat==='Compra USD'||cat==='Sueldo USD'||cat==='Venta USD'))dd.montoDolar=montoDolar;
     if(comentario)dd.comentario=comentario;
+    if(tipo==='Ahorro'&&window._activoSelected)dd.activo=window._activoSelected;
     await addDoc(gastosCol(),dd);
     msgEl.innerHTML=`<div class="alert alert-ok">✓ ${cat} · ${fmt(monto)} guardado</div>`;
-    document.getElementById('inp-monto').value='';const inpD=document.getElementById('inp-dolar');if(inpD)inpD.value='';document.getElementById('inp-comentario').value='';
+    document.getElementById('inp-monto').value='';const inpD=document.getElementById('inp-dolar');if(inpD)inpD.value='';document.getElementById('inp-comentario').value='';window._activoSelected=null;const inpA=document.getElementById('inp-activo');if(inpA)inpA.value='';
     if(mes!==mesActualStr())toast(`⚠️ Guardado en ${mes}, no en el mes actual (${mesActualStr()}). Chequeá que esté ok.`,'warn',6000);
     else toast(`✓ ${cat} · ${fmt(monto)}`,'ok',2500);
     // cerrar sheet tras 1.2s
@@ -2158,7 +2164,7 @@ function getCatsConCustom(tipo){
 }
 function actualizarCategorias(){const t=document.getElementById('inp-tipo').value;const s=document.getElementById('inp-cat');if(!s)return;s.innerHTML=getCatsConCustom(t).map(c=>`<option value="${c}">${c}</option>`).join('');toggleDolarField();}
 window.toggleDolarField=()=>{const c=document.getElementById('inp-cat')?.value||'';const g=document.getElementById('grp-dolar');if(!g)return;if(CATS_USD.includes(c))g.style.display='block';else{g.style.display='none';const di=document.getElementById('inp-dolar');if(di)di.value='';}};
-window.toggleTipo=()=>{const gc=document.getElementById('grp-cat');if(gc)gc.style.display='block';const ac=document.getElementById('alertas-carga-card');if(ac)ac.style.display='none';actualizarCategorias();};
+window.toggleTipo=()=>{const tipo=document.getElementById('inp-tipo')?.value;const gc=document.getElementById('grp-cat');if(gc)gc.style.display='block';const ga=document.getElementById('grp-activo');if(ga)ga.style.display=tipo==='Ahorro'?'block':'none';const ac=document.getElementById('alertas-carga-card');if(ac)ac.style.display='none';actualizarCategorias();};
 actualizarCategorias();
 const hI=new Date();const inpF=document.getElementById('inp-fecha');if(inpF)inpF.value=`${hI.getFullYear()}-${pad(hI.getMonth()+1)}-${pad(hI.getDate())}`;
 
@@ -3540,6 +3546,61 @@ window.enviarContacto=async()=>{
   btn.disabled=false;btn.textContent='✉️ Enviar mensaje';
 };
 
+// ── ACTIVO / INSTRUMENTO (campo opcional en Ahorro) ──
+window._activoSelected=null;
+let _activoSearchTimer=null;
+let _activoItems=[];
+const ACTIVOS_LOCALES=[
+  {symbol:'PF',nombre:'Plazo Fijo ARS',tipo:'local',tienePrecio:false},
+  {symbol:'FCI',nombre:'FCI (Fondo Común de Inversión)',tipo:'local',tienePrecio:false},
+  {symbol:'CAUC',nombre:'Cauciones',tipo:'local',tienePrecio:false},
+  {symbol:'ON',nombre:'ON (Obligaciones Negociables)',tipo:'local',tienePrecio:false},
+  {symbol:'BONO-ARS',nombre:'Bonos ARS',tipo:'local',tienePrecio:false},
+  {symbol:'BONO-USD',nombre:'Bonos USD',tipo:'local',tienePrecio:false},
+  {symbol:'ACC-LOCAL',nombre:'Acciones locales',tipo:'local',tienePrecio:false},
+  {symbol:'OTROS',nombre:'Otros',tipo:'local',tienePrecio:false},
+];
+function _activoRenderGroups(groups){
+  const el=document.getElementById('activo-results');if(!el)return;
+  _activoItems=[];
+  const noContent=groups.every(g=>!g.items.length);
+  if(noContent){el.style.display='none';return;}
+  let h='';
+  groups.forEach(g=>{
+    if(!g.items.length)return;
+    h+=`<div style="padding:6px 14px 3px;font-size:10px;font-weight:700;color:#aaa;letter-spacing:.05em;background:#fafaf8;border-bottom:0.5px solid #f0f0ee">${g.label}</div>`;
+    g.items.forEach(item=>{const idx=_activoItems.length;_activoItems.push(item);h+=`<div style="padding:9px 14px;border-bottom:0.5px solid #f5f5f3;cursor:pointer" onmouseover="this.style.background='#f9f9f7'" onmouseout="this.style.background=''" onclick="activoSeleccionar(${idx})"><div style="font-size:13px;font-weight:700">${item.symbol}</div><div style="font-size:11px;color:#aaa">${item.nombre}</div></div>`;});
+  });
+  el.innerHTML=h;
+  el.style.display='block';
+}
+window.activoOnFocus=()=>{
+  const q=(document.getElementById('inp-activo')?.value||'').trim();
+  if(!q)_activoRenderGroups([
+    {label:'🇦🇷 Instrumentos locales',items:ACTIVOS_LOCALES},
+    {label:'₿ Criptomonedas',items:Object.keys(CRIPTO_NOMBRES||{}).slice(0,8).map(sym=>({symbol:sym,nombre:(CRIPTO_NOMBRES||{})[sym]||sym,tipo:'crypto',tienePrecio:true}))},
+    {label:'📈 Acciones / CEDEARs',items:(typeof INV_STOCKS!=='undefined'?INV_STOCKS:[]).map(sym=>({symbol:sym,nombre:(typeof INV_STOCK_META!=='undefined'?INV_STOCK_META[sym]?.sub:'')||sym,tipo:'stock',tienePrecio:true}))}
+  ]);
+};
+window.activoSearchDebounce=(q)=>{window._activoSelected=null;clearTimeout(_activoSearchTimer);_activoSearchTimer=setTimeout(()=>_activoDoSearch(q.trim()),300);};
+async function _activoDoSearch(q){
+  const el=document.getElementById('activo-results');if(!el)return;
+  if(!q){el.style.display='none';return;}
+  const qU=q.toUpperCase();
+  const locales=ACTIVOS_LOCALES.filter(a=>a.symbol.includes(qU)||a.nombre.toLowerCase().includes(q.toLowerCase())).slice(0,4);
+  const cryptos=Object.keys(CRIPTO_NOMBRES||{}).filter(k=>k.includes(qU)||(CRIPTO_NOMBRES[k]||'').toLowerCase().includes(q.toLowerCase())).slice(0,4).map(sym=>({symbol:sym,nombre:CRIPTO_NOMBRES[sym],tipo:'crypto',tienePrecio:true}));
+  let stocks=(typeof INV_STOCKS!=='undefined'?INV_STOCKS:[]).filter(s=>s.includes(qU)).map(sym=>({symbol:sym,nombre:(typeof INV_STOCK_META!=='undefined'?INV_STOCK_META[sym]?.sub:'')||sym,tipo:'stock',tienePrecio:true}));
+  if(stocks.length<3){try{const res=await _fetchStockSearch(q);const extra=res.filter(s=>s.type==='Common Stock'||s.type==='ETP').slice(0,5).map(s=>({symbol:s.symbol,nombre:s.description,tipo:'stock',tienePrecio:true}));stocks=[...stocks,...extra.filter(e=>!stocks.find(s=>s.symbol===e.symbol))].slice(0,5);}catch(e){}}
+  _activoRenderGroups([{label:'🇦🇷 Instrumentos locales',items:locales},{label:'₿ Criptomonedas',items:cryptos},{label:'📈 Acciones / CEDEARs',items:stocks.slice(0,4)}]);
+}
+window.activoSeleccionar=(idx)=>{
+  const item=_activoItems[idx];if(!item)return;
+  window._activoSelected=item;
+  const inp=document.getElementById('inp-activo');if(inp)inp.value=`${item.symbol} — ${item.nombre}`;
+  const el=document.getElementById('activo-results');if(el)el.style.display='none';
+};
+document.addEventListener('click',e=>{const wrap=document.getElementById('grp-activo');if(wrap&&!wrap.contains(e.target)){const r=document.getElementById('activo-results');if(r)r.style.display='none';}});
+
 // ── MÓDULO INVERSIONES ──
 const INV_CRYPTOS=['BTC','ETH','USDT','SOL','BNB','XRP'];
 const INV_STOCKS=['IVV','MELI','GGAL'];
@@ -3586,13 +3647,17 @@ async function _fetchStockSearch(q){try{const r=await fetch('/.netlify/functions
 // data refresh
 async function _invFetchAll(){
   _invLastFetch=new Date();
-  const[dolar,...criptoRes]=await Promise.all([_fetchDolar(),...INV_CRYPTOS.map(c=>_fetchCripto(c))]);
+  // Merge lista default + crypto favoritos para fetch
+  const cryptoFavSyms=_invFavoritos.filter(f=>f.tipo==='crypto').map(f=>f.symbol);
+  const allCryptos=[...new Set([...INV_CRYPTOS,...cryptoFavSyms])];
+  const[dolar,...criptoRes]=await Promise.all([_fetchDolar(),...allCryptos.map(c=>_fetchCripto(c))]);
   _invDolar=dolar;
-  INV_CRYPTOS.forEach((c,i)=>{if(criptoRes[i])_invCriptos[c]=criptoRes[i];});
-  // Stocks siempre via proxy (sin key en frontend)
-  const stockRes=await Promise.all(INV_STOCKS.map(s=>_fetchStock(s)));
-  INV_STOCKS.forEach((s,i)=>{if(stockRes[i])_invStocks[s]=stockRes[i];});
-  for(const fav of _invFavoritos.filter(f=>f.tipo==='stock'&&!_invStocks[f.symbol])){const d=await _fetchStock(fav.symbol);if(d)_invStocks[fav.symbol]=d;}
+  allCryptos.forEach((c,i)=>{if(criptoRes[i])_invCriptos[c]=criptoRes[i];});
+  // Stocks siempre via proxy
+  const stockFavSyms=_invFavoritos.filter(f=>f.tipo==='stock').map(f=>f.symbol);
+  const allStocks=[...new Set([...INV_STOCKS,...stockFavSyms])];
+  const stockRes=await Promise.all(allStocks.map(s=>_fetchStock(s)));
+  allStocks.forEach((s,i)=>{if(stockRes[i])_invStocks[s]=stockRes[i];});
   _invRenderActive();
 }
 function _invRenderActive(){if(_invActiveTab==='mercado')renderInvMercado();else if(_invActiveTab==='favoritos')renderInvFavoritos();else if(_invActiveTab==='cartera')renderInvCartera();}
@@ -3603,7 +3668,7 @@ window.invTab=(tab)=>{
   _invActiveTab=tab;
   ['mercado','favoritos','cartera'].forEach(t=>{
     const el=document.getElementById('inv-'+t);const b=document.getElementById('invtab-'+t);
-    if(el)el.style.display=t===tab?'block':'none';
+    if(el){if(t===tab)el.classList.remove('inv-panel-hidden');else el.classList.add('inv-panel-hidden');}
     if(b)b.classList.toggle('active',t===tab);
   });
   if(tab==='mercado')renderInvMercado();
@@ -3628,14 +3693,22 @@ function renderInvMercado(){
   if(!_invDolar){h+=[0,1,2,3].map(()=>`<div>${_invSkel('95px')}</div>`).join('');}
   else{const d=_invDolar;[{key:'blue',label:'BLUE',sub:`Compra $${Math.round(_dolarCompra(d.blue)||0).toLocaleString('es-AR')}`},{key:'mep',label:'MEP',sub:'Vía bonos'},{key:'ccl',label:'CCL',sub:'Cable'},{key:'oficial',label:'OFICIAL',sub:'Banco Nación'}].forEach(({key,label,sub})=>{const v=d[key];if(!v){h+=`<div>${_invSkel('95px')}</div>`;return;}const precio=_dolarPrecio(v);const vari=_dolarVari(v);h+=`<div class="inv-card"><div style="font-size:10px;font-weight:700;color:#aaa;letter-spacing:.05em;margin-bottom:5px">${label}</div><div style="font-size:19px;font-weight:700;line-height:1.1">$${Math.round(precio).toLocaleString('es-AR')}</div><div style="font-size:10px;color:#aaa;margin-bottom:5px">ARS</div>${_invVarBadge(vari)}<div style="font-size:10px;color:#bbb;margin-top:4px">${sub}</div></div>`;});}
   h+='</div>';
-  // CRIPTO
-  h+=`<div style="font-size:10px;font-weight:700;color:#aaa;letter-spacing:.08em;margin-bottom:8px">CRIPTO</div><div class="inv-grid-3" style="margin-bottom:20px">`;
-  INV_CRYPTOS.forEach(coin=>{const data=_invCriptos[coin];const fav=_isFav(coin);const nombre=CRIPTO_NOMBRES[coin]||coin;const col=CRIPTO_COLORS[coin]||'#1a1a1a';if(!data){h+=`<div>${_invSkel('130px')}</div>`;return;}const precio=data.totalAsk||data.ask||0;const precioUSD=blueV>0?precio/blueV:0;const vari=data.variation24h||0;h+=`<div class="inv-card"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px"><div><div style="font-size:14px;font-weight:700;color:${col}">${coin}</div><div style="font-size:10px;color:#aaa">${nombre}</div></div><button class="inv-star" data-sym="${coin}" onclick="toggleFavorito('${coin}','crypto','${nombre}')" style="background:none;border:none;cursor:pointer;font-size:16px;padding:0;color:${fav?'#f59e0b':'#ccc'}">${fav?'★':'☆'}</button></div><div style="font-size:16px;font-weight:700;color:${col};margin-bottom:1px">${_invFmtARS(precio)}</div><div style="font-size:10px;color:#aaa;margin-bottom:5px">≈ ${_invFmtUSD(precioUSD)}</div>${_invVarBadge(vari)}${_invSpark(vari)}</div>`;});
+  // CRIPTO — muestra favoritos crypto; fallback a lista default
+  const cryptoFavs=_invFavoritos.filter(f=>f.tipo==='crypto');
+  const cryptoList=cryptoFavs.length>0?cryptoFavs.map(f=>f.symbol):INV_CRYPTOS;
+  const cryptoFallback=cryptoFavs.length===0;
+  h+=`<div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px"><div style="font-size:10px;font-weight:700;color:#aaa;letter-spacing:.08em">CRIPTO</div><div style="font-size:10px;color:#bbb">Fuente: CriptoYa · actualiza cada 1 min</div></div><div class="inv-grid-3" style="margin-bottom:${cryptoFallback?'4px':'20px'}">`;
+  cryptoList.forEach(coin=>{const data=_invCriptos[coin];const fav=_isFav(coin);const nombre=CRIPTO_NOMBRES[coin]||coin;const col=CRIPTO_COLORS[coin]||'#1a1a1a';if(!data){h+=`<div>${_invSkel('130px')}</div>`;return;}const precio=data.totalAsk||data.ask||0;const precioUSD=blueV>0?precio/blueV:0;const vari=data.variation24h||0;h+=`<div class="inv-card"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px"><div><div style="font-size:14px;font-weight:700;color:${col}">${coin}</div><div style="font-size:10px;color:#aaa">${nombre}</div></div><button class="inv-star" data-sym="${coin}" onclick="toggleFavorito('${coin}','crypto','${nombre}')" style="background:none;border:none;cursor:pointer;font-size:16px;padding:0;color:${fav?'#f59e0b':'#ccc'}">${fav?'★':'☆'}</button></div><div style="font-size:16px;font-weight:700;color:${col};margin-bottom:1px">${_invFmtARS(precio)}</div><div style="font-size:10px;color:#aaa;margin-bottom:5px">≈ ${_invFmtUSD(precioUSD)}</div>${_invVarBadge(vari)}${_invSpark(vari)}</div>`;});
   h+='</div>';
-  // ACCIONES (via proxy Netlify Function — sin key en frontend)
-  h+=`<div style="font-size:10px;font-weight:700;color:#aaa;letter-spacing:.08em;margin-bottom:8px">ACCIONES & CEDEARs</div><div class="inv-grid-3">`;
-  INV_STOCKS.forEach(sym=>{const data=_invStocks[sym];const fav=_isFav(sym);const meta=INV_STOCK_META[sym]||{sub:'Acción'};if(!data){h+=`<div>${_invSkel('130px')}</div>`;return;}const precio=data.c||0;const vari=data.dp||0;h+=`<div class="inv-card"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px"><div><div style="font-size:14px;font-weight:700">${sym}</div><div style="font-size:10px;color:#aaa">${meta.sub}</div></div><button class="inv-star" data-sym="${sym}" onclick="toggleFavorito('${sym}','stock','${sym}')" style="background:none;border:none;cursor:pointer;font-size:16px;padding:0;color:${fav?'#f59e0b':'#ccc'}">${fav?'★':'☆'}</button></div><div style="font-size:16px;font-weight:700;margin-bottom:1px">${_invFmtUSD(precio)}</div><div style="font-size:10px;color:#aaa;margin-bottom:5px">USD</div>${_invVarBadge(vari)}${_invSpark(vari)}</div>`;});
+  if(cryptoFallback)h+=`<div style="font-size:11px;color:#aaa;margin-bottom:20px;margin-top:4px">Mostrando activos default · <button onclick="invTab('favoritos')" style="background:none;border:none;color:#16a34a;font-size:11px;font-weight:600;cursor:pointer;padding:0">Agregá favoritos →</button></div>`;
+  // ACCIONES — muestra favoritos stocks; fallback a lista default
+  const stockFavs=_invFavoritos.filter(f=>f.tipo==='stock');
+  const stockList=stockFavs.length>0?stockFavs.map(f=>f.symbol):INV_STOCKS;
+  const stockFallback=stockFavs.length===0;
+  h+=`<div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px"><div style="font-size:10px;font-weight:700;color:#aaa;letter-spacing:.08em">ACCIONES & CEDEARs</div><div style="font-size:10px;color:#bbb">Fuente: Finnhub</div></div><div class="inv-grid-3" style="margin-bottom:${stockFallback?'4px':'0'}">`;
+  stockList.forEach(sym=>{const data=_invStocks[sym];const fav=_isFav(sym);const nombre=stockFavs.find(f=>f.symbol===sym)?.nombre||sym;const meta=INV_STOCK_META[sym]||{sub:'Acción'};if(!data){h+=`<div>${_invSkel('130px')}</div>`;return;}const precio=data.c||0;const vari=data.dp||0;h+=`<div class="inv-card"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px"><div><div style="font-size:14px;font-weight:700">${sym}</div><div style="font-size:10px;color:#aaa">${meta.sub||nombre}</div></div><button class="inv-star" data-sym="${sym}" onclick="toggleFavorito('${sym}','stock','${nombre}')" style="background:none;border:none;cursor:pointer;font-size:16px;padding:0;color:${fav?'#f59e0b':'#ccc'}">${fav?'★':'☆'}</button></div><div style="font-size:16px;font-weight:700;margin-bottom:1px">${_invFmtUSD(precio)}</div><div style="font-size:10px;color:#aaa;margin-bottom:5px">USD</div>${_invVarBadge(vari)}${_invSpark(vari)}</div>`;});
   h+='</div>';
+  if(stockFallback)h+=`<div style="font-size:11px;color:#aaa;margin-top:4px">Mostrando activos default · <button onclick="invTab('favoritos')" style="background:none;border:none;color:#16a34a;font-size:11px;font-weight:600;cursor:pointer;padding:0">Agregá favoritos →</button></div>`;
   el.innerHTML=h;
 }
 
@@ -3663,11 +3736,15 @@ async function _invDoSearch(q){
   el.style.display='block';
   el.innerHTML='<div style="padding:10px 14px;color:#aaa;font-size:12px">Buscando...</div>';
   const qU=q.toUpperCase();
-  const localCryptos=Object.keys(CRIPTO_NOMBRES).filter(k=>k.includes(qU)||CRIPTO_NOMBRES[k].toLowerCase().includes(q.toLowerCase()));
+  // Verificar match exacto con un favorito
+  const exactFav=_invFavoritos.find(f=>f.symbol===qU);
+  if(exactFav){el.innerHTML=`<div style="padding:10px 14px;font-size:12px;color:#16a34a;font-weight:600">✓ Ya tenés ${exactFav.symbol} en tus favoritos</div>`;return;}
+  const localCryptos=Object.keys(CRIPTO_NOMBRES).filter(k=>(k.includes(qU)||CRIPTO_NOMBRES[k].toLowerCase().includes(q.toLowerCase()))&&!_isFav(k));
   const stocks=await _fetchStockSearch(q);
-  const results=[...localCryptos.map(sym=>({symbol:sym,nombre:CRIPTO_NOMBRES[sym],tipo:'crypto',mercado:'Crypto'})),...stocks.filter(s=>s.type==='Common Stock'||s.type==='ETP').slice(0,5).map(s=>({symbol:s.symbol,nombre:s.description,tipo:'stock',mercado:s.type}))].slice(0,8);
+  const filteredStocks=stocks.filter(s=>(s.type==='Common Stock'||s.type==='ETP')&&!_isFav(s.symbol)).slice(0,5);
+  const results=[...localCryptos.map(sym=>({symbol:sym,nombre:CRIPTO_NOMBRES[sym],tipo:'crypto',mercado:'Crypto'})),...filteredStocks.map(s=>({symbol:s.symbol,nombre:s.description,tipo:'stock',mercado:s.type}))].slice(0,8);
   if(!results.length){el.innerHTML='<div style="padding:10px 14px;color:#aaa;font-size:12px">Sin resultados</div>';return;}
-  el.innerHTML=results.map(r=>{const already=_isFav(r.symbol);return`<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:0.5px solid #f3f3f0" onmouseover="this.style.background='#f9f9f7'" onmouseout="this.style.background=''"><div style="flex:1"><div style="font-size:13px;font-weight:700">${r.symbol}</div><div style="font-size:11px;color:#aaa">${r.nombre} · ${r.mercado}</div></div>${already?`<span style="font-size:11px;color:#aaa;font-weight:600">Guardado</span>`:`<button onclick="_invAgregarFav('${r.symbol}','${r.tipo}',\`${r.nombre.replace(/`/g,"'")}\`)" style="padding:5px 12px;background:#16a34a;color:#fff;border:none;border-radius:8px;font-size:11px;cursor:pointer;font-weight:600">+ Agregar</button>`}</div>`;}).join('');
+  el.innerHTML=results.map(r=>`<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:0.5px solid #f3f3f0" onmouseover="this.style.background='#f9f9f7'" onmouseout="this.style.background=''"><div style="flex:1"><div style="font-size:13px;font-weight:700">${r.symbol}</div><div style="font-size:11px;color:#aaa">${r.nombre} · ${r.mercado}</div></div><button onclick="_invAgregarFav('${r.symbol}','${r.tipo}',\`${r.nombre.replace(/`/g,"'")}\`)" style="padding:5px 12px;background:#16a34a;color:#fff;border:none;border-radius:8px;font-size:11px;cursor:pointer;font-weight:600">+ Agregar</button></div>`).join('');
 }
 
 window._invAgregarFav=async(symbol,tipo,nombre)=>{
@@ -3684,40 +3761,79 @@ function _invCalcCartera(){
   const blueV=_dolarPrecio(_invDolar?.blue)||0;
   const totalUSD=typeof calcSaldoUSD==='function'?calcSaldoUSD():(ai.usd||0);
   const movAhorro=gastos.filter(g=>g.tipo==='Ahorro');
+  // Agrupar por activo.symbol si existe
+  const simboloMap={};
+  const sinActivo=[];
+  movAhorro.forEach(g=>{
+    if(g.activo?.symbol){const sym=g.activo.symbol;if(!simboloMap[sym])simboloMap[sym]={activo:g.activo,monto:0,count:0};simboloMap[sym].monto+=(g.monto||0);simboloMap[sym].count++;}
+    else sinActivo.push(g);
+  });
+  const catMap={};sinActivo.forEach(g=>{const k=g.categoria||'Otros';catMap[k]=(catMap[k]||0)+(g.monto||0);});
+  // Totales legacy para compatibilidad
   const invMovARS=movAhorro.filter(g=>g.categoria==='Inversiones').reduce((s,g)=>s+(g.monto||0),0);
   const totalInvARS=invMovARS+(ai.inversiones||0);
   const catExcl=new Set(['Compra USD','Inversiones']);
-  const otrosMovARS=movAhorro.filter(g=>!catExcl.has(g.categoria)).reduce((s,g)=>s+(g.monto||0),0);
+  const otrosMovARS=sinActivo.filter(g=>!catExcl.has(g.categoria)).reduce((s,g)=>s+(g.monto||0),0);
   const totalOtrosARS=otrosMovARS+(ai.otros||0);
   const usdARS=totalUSD*blueV;
   const totalARS=usdARS+totalInvARS+totalOtrosARS;
   const totalUSDEq=blueV>0?totalARS/blueV:0;
-  const catMap={};movAhorro.forEach(g=>{const k=g.categoria||'Otros';catMap[k]=(catMap[k]||0)+(g.monto||0);});
-  return{totalUSD,totalInvARS,totalOtrosARS,usdARS,totalARS,totalUSDEq,blueV,catMap,ai};
+  return{totalUSD,totalInvARS,totalOtrosARS,usdARS,totalARS,totalUSDEq,blueV,catMap,ai,simboloMap};
 }
 
 function renderInvCartera(){
   const el=document.getElementById('inv-cartera');if(!el)return;
-  const{totalUSD,totalInvARS,totalOtrosARS,usdARS,totalARS,totalUSDEq,blueV,catMap,ai}=_invCalcCartera();
+  const{totalUSD,totalInvARS,totalOtrosARS,usdARS,totalARS,totalUSDEq,blueV,catMap,ai,simboloMap}=_invCalcCartera();
   const blueStr=blueV?`$${Math.round(blueV).toLocaleString('es-AR')}`:'—';
   if(!totalARS){el.innerHTML=`<div class="inv-card" style="text-align:center;padding:32px 16px"><div style="font-size:36px;margin-bottom:10px">💼</div><div style="font-size:14px;font-weight:700;margin-bottom:6px">Todavía no registraste ahorros</div><div style="font-size:12px;color:#aaa;margin-bottom:16px;line-height:1.6">Cargá un movimiento de tipo <strong>Ahorro</strong> o configurá tus ahorros iniciales en Configuración para ver tu cartera aquí.</div><button onclick="drawerNav('config')" style="padding:10px 20px;background:#1a1a1a;color:#fff;border:none;border-radius:10px;font-size:13px;cursor:pointer;font-weight:600">Ir a Configuración →</button></div>`;return;}
+  // Calcular breakdown hero
+  const invSimbolosARS=Object.values(simboloMap).filter(h=>h.activo.tienePrecio).reduce((s,h)=>s+h.monto,0);
+  const otrosSimbolosARS=Object.values(simboloMap).filter(h=>!h.activo.tienePrecio).reduce((s,h)=>s+h.monto,0);
+  const totalInvBD=invSimbolosARS+(ai.inversiones||0);
+  const totalOtrosBD=otrosSimbolosARS+totalOtrosARS;
+  // Rentabilidad estimada (promedio ponderado de holdings con precio)
+  let rentabNum=0,rentabDen=0;
+  Object.entries(simboloMap).forEach(([sym,h])=>{
+    if(!h.activo.tienePrecio)return;
+    let vari=null;
+    if(h.activo.tipo==='crypto'&&_invCriptos[sym])vari=_invCriptos[sym].variation24h??null;
+    else if(h.activo.tipo==='stock'&&_invStocks[sym])vari=_invStocks[sym].dp??null;
+    if(vari!==null){rentabNum+=vari*h.monto;rentabDen+=h.monto;}
+  });
+  const rentabEst=rentabDen>0?(rentabNum/rentabDen):null;
   let h=`<div style="background:linear-gradient(135deg,#1a1a2e 0%,#0f3460 100%);border-radius:14px;padding:20px;margin-bottom:16px;color:#fff">
     <div style="font-size:10px;font-weight:700;color:#a0aec0;letter-spacing:.1em;margin-bottom:8px">PATRIMONIO TOTAL ESTIMADO</div>
     <div style="font-size:34px;font-weight:700;line-height:1;margin-bottom:4px">${_invFmtARS(totalARS)}</div>
-    <div style="font-size:12px;color:#a0aec0;margin-bottom:16px">≈ ${_invFmtUSD(totalUSDEq)} · al blue ${blueStr}</div>
+    <div style="font-size:12px;color:#a0aec0;margin-bottom:10px">≈ ${_invFmtUSD(totalUSDEq)} · al blue ${blueStr}</div>
+    <div style="font-size:11px;color:#94a3b8;margin-bottom:14px">💵 U$S ${Number((totalUSD||0).toFixed(0)).toLocaleString('es-AR')}${totalInvBD?` · 📈 ${_invFmtARS(totalInvBD)} en inversiones`:''}${totalOtrosBD?` · 🏦 ${_invFmtARS(totalOtrosBD)} otros`:''}</div>
     <div style="display:flex;border-top:1px solid rgba(255,255,255,.1);padding-top:12px">
-      <div style="flex:1;text-align:center;border-right:1px solid rgba(255,255,255,.1)"><div style="font-size:14px;font-weight:700">${totalUSD?'U$S '+Number(totalUSD.toFixed(0)).toLocaleString('es-AR'):'—'}</div><div style="font-size:10px;color:#a0aec0;margin-top:2px">USD acumulados</div></div>
-      <div style="flex:1;text-align:center;border-right:1px solid rgba(255,255,255,.1)"><div style="font-size:14px;font-weight:700">${totalInvARS?_invFmtARS(totalInvARS):'—'}</div><div style="font-size:10px;color:#a0aec0;margin-top:2px">Inversiones ARS</div></div>
-      <div style="flex:1;text-align:center"><div style="font-size:14px;font-weight:700">—</div><div style="font-size:10px;color:#a0aec0;margin-top:2px">Rentab. estimada</div></div>
+      <div style="flex:1;text-align:center;border-right:1px solid rgba(255,255,255,.1)"><div style="font-size:14px;font-weight:700">${totalUSD?'U$S '+Number(totalUSD.toFixed(0)).toLocaleString('es-AR'):'—'}</div><div style="font-size:10px;color:#a0aec0;margin-top:2px">USD real</div></div>
+      <div style="flex:1;text-align:center;border-right:1px solid rgba(255,255,255,.1)"><div style="font-size:14px;font-weight:700">${totalInvBD?_invFmtARS(totalInvBD):'—'}</div><div style="font-size:10px;color:#a0aec0;margin-top:2px">Inversiones ARS</div></div>
+      <div style="flex:1;text-align:center"><div style="font-size:14px;font-weight:700">${rentabEst!==null?_invVarBadge(rentabEst):'—'}</div><div style="font-size:10px;color:#a0aec0;margin-top:2px">Rentab. estimada</div></div>
     </div>
   </div>`;
+  // Holdings por activo.symbol
   const holdings=[];
-  if(totalUSD>0)holdings.push({label:'USD · Dólares',sub:`U$S ${Number(totalUSD.toFixed(0)).toLocaleString('es-AR')} · ≈ ${_invFmtARS(usdARS)} al blue`,valor:'U$S '+Number(totalUSD.toFixed(0)).toLocaleString('es-AR'),avBg:'#dcfce7',avCol:'#15803d',icon:'U$S'});
-  const catExcl=new Set(['Compra USD']);Object.entries(catMap).filter(([k,v])=>!catExcl.has(k)&&v>0).forEach(([cat,monto])=>{const avBg=cat==='Inversiones'?'#f3e8ff':cat==='Fondo emergencia'?'#fef3c7':'#f0f9ff';const avCol=cat==='Inversiones'?'#7e22ce':cat==='Fondo emergencia'?'#92400e':'#0369a1';const icon=cat==='Inversiones'?'FCI':cat==='Fondo emergencia'?'FE':cat.slice(0,3).toUpperCase();holdings.push({label:cat,sub:'Movimientos de ahorro',valor:_invFmtARS(monto),avBg,avCol,icon});});
-  if(ai.inversiones>0&&!(catMap['Inversiones']>0))holdings.push({label:'Inversiones ARS',sub:'Saldo inicial configurado',valor:_invFmtARS(ai.inversiones),avBg:'#f3e8ff',avCol:'#7e22ce',icon:'FCI'});
-  if(ai.otros>0)holdings.push({label:'Otros ahorros',sub:'Saldo inicial configurado',valor:_invFmtARS(ai.otros),avBg:'#f0f9ff',avCol:'#0369a1',icon:'ARS'});
+  if(totalUSD>0)holdings.push({label:'Dólares',sub:`U$S ${Number(totalUSD.toFixed(0)).toLocaleString('es-AR')} · ≈ ${_invFmtARS(usdARS)} al blue`,valor:'U$S '+Number(totalUSD.toFixed(0)).toLocaleString('es-AR'),avBg:'#dcfce7',avCol:'#15803d',icon:'U$S',rentab:null});
+  Object.entries(simboloMap).forEach(([sym,hh])=>{
+    const {activo,monto}=hh;
+    const isCrypto=activo.tipo==='crypto',isStock=activo.tipo==='stock';
+    const avBg=isStock?'#eff6ff':isCrypto?'#fef9c3':'#f5f5f3';
+    const avCol=isStock?'#1d4ed8':isCrypto?'#92400e':'#555';
+    let vari=null;
+    if(isCrypto&&_invCriptos[sym])vari=_invCriptos[sym].variation24h??null;
+    else if(isStock&&_invStocks[sym])vari=_invStocks[sym].dp??null;
+    holdings.push({label:sym,sub:activo.nombre+(vari!==null?'':' · sin precio en tiempo real'),valor:_invFmtARS(monto),avBg,avCol,icon:sym.slice(0,4),rentab:activo.tienePrecio?vari:null});
+  });
+  // Ahorros iniciales sin activo
+  if(ai.inversiones>0&&!Object.values(simboloMap).some(h=>h.activo.tipo!=='local'&&h.activo.tipo!=='crypto'&&h.activo.tipo!=='stock'))holdings.push({label:'Inversiones (inicial)',sub:'Saldo inicial configurado',valor:_invFmtARS(ai.inversiones),avBg:'#f3e8ff',avCol:'#7e22ce',icon:'FCI',rentab:null});
+  // sinActivo por categoria (excluyendo Compra USD)
+  const catExcl2=new Set(['Compra USD']);
+  const otrosCat=Object.entries(catMap).filter(([k,v])=>!catExcl2.has(k)&&v>0);
+  if(otrosCat.length){const totalOtrosCat=otrosCat.reduce((s,[,v])=>s+v,0);holdings.push({label:'Otros ahorros',sub:otrosCat.map(([k])=>k).join(', '),valor:_invFmtARS(totalOtrosCat+(ai.otros||0)),avBg:'#f0f9ff',avCol:'#0369a1',icon:'ARS',rentab:null});}
+  else if(ai.otros>0)holdings.push({label:'Otros ahorros',sub:'Saldo inicial configurado',valor:_invFmtARS(ai.otros),avBg:'#f0f9ff',avCol:'#0369a1',icon:'ARS',rentab:null});
   h+=`<div style="font-size:10px;font-weight:700;color:#aaa;letter-spacing:.08em;margin-bottom:8px">HOLDINGS</div>`;
-  if(holdings.length){h+=`<div class="inv-card" style="padding:0;margin-bottom:16px">`;holdings.forEach((hh,i)=>{const border=i<holdings.length-1?'border-bottom:0.5px solid #f3f3f0':'';h+=`<div style="display:flex;align-items:center;gap:12px;padding:12px 14px;${border}"><div style="width:40px;height:40px;border-radius:10px;background:${hh.avBg};color:${hh.avCol};font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;text-align:center">${hh.icon}</div><div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:700">${hh.label}</div><div style="font-size:11px;color:#aaa;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${hh.sub}</div></div><div style="font-size:14px;font-weight:700;flex-shrink:0">${hh.valor}</div></div>`;});h+='</div>';}
+  if(holdings.length){h+=`<div class="inv-card" style="padding:0;margin-bottom:16px">`;holdings.forEach((hh,i)=>{const border=i<holdings.length-1?'border-bottom:0.5px solid #f3f3f0':'';h+=`<div style="display:flex;align-items:center;gap:12px;padding:12px 14px;${border}"><div style="width:40px;height:40px;border-radius:10px;background:${hh.avBg};color:${hh.avCol};font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;text-align:center">${hh.icon}</div><div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:700">${hh.label}</div><div style="font-size:11px;color:#aaa;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${hh.sub}</div></div><div style="text-align:right;flex-shrink:0"><div style="font-size:14px;font-weight:700">${hh.valor}</div>${hh.rentab!==null?`<div style="margin-top:2px">${_invVarBadge(hh.rentab)}</div>`:''}</div></div>`;});h+='</div>';}
   h+=`<div style="background:#f0fdf4;border:0.5px solid #bbf7d0;border-radius:12px;padding:16px"><div style="display:flex;align-items:center;gap:10px;margin-bottom:8px"><span style="font-size:22px">🤖</span><div style="font-size:13px;font-weight:700;color:#15803d">Fina recomienda</div></div><div id="inv-agente-txt" style="font-size:13px;color:#166534;line-height:1.7">${_invAgenteEstático(totalUSD,totalInvARS,totalARS,blueV)}</div><button onclick="invPedirSugerencia()" style="margin-top:10px;padding:7px 14px;background:#16a34a;color:#fff;border:none;border-radius:8px;font-size:12px;cursor:pointer;font-weight:600">↺ Actualizar sugerencia</button></div>`;
   el.innerHTML=h;
 }
