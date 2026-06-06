@@ -3903,7 +3903,9 @@ function renderInvCartera(){
   </div>`;
   // Holdings por activo.symbol
   const holdings=[];
+  // 1. USD (siempre si hay saldo)
   if(totalUSD>0)holdings.push({label:'Dólares',sub:`U$S ${Number(totalUSD.toFixed(0)).toLocaleString('es-AR')} · ≈ ${_invFmtARS(usdARS)} al blue`,valor:'U$S '+Number(totalUSD.toFixed(0)).toLocaleString('es-AR'),avBg:'#dcfce7',avCol:'#15803d',icon:'U$S',rentab:null});
+  // 2. Movimientos con activo.symbol (crypto/stocks/local)
   Object.entries(simboloMap).forEach(([sym,hh])=>{
     const {activo,monto}=hh;
     const isCrypto=activo.tipo==='crypto',isStock=activo.tipo==='stock';
@@ -3914,13 +3916,18 @@ function renderInvCartera(){
     else if(isStock&&_invStocks[sym])vari=_invStocks[sym].dp??null;
     holdings.push({label:sym,sub:activo.nombre+(vari!==null?'':' · sin precio en tiempo real'),valor:_invFmtARS(monto),avBg,avCol,icon:sym.slice(0,4),rentab:activo.tienePrecio?vari:null});
   });
-  // Ahorros iniciales sin activo
-  if(ai.inversiones>0&&!Object.values(simboloMap).some(h=>h.activo.tipo!=='local'&&h.activo.tipo!=='crypto'&&h.activo.tipo!=='stock'))holdings.push({label:'Inversiones (inicial)',sub:'Saldo inicial configurado',valor:_invFmtARS(ai.inversiones),avBg:'#f3e8ff',avCol:'#7e22ce',icon:'FCI',rentab:null});
-  // sinActivo por categoria (excluyendo Compra USD)
+  // 3. Movimientos sin activo por categoría (excl. Compra USD)
   const catExcl2=new Set(['Compra USD']);
-  const otrosCat=Object.entries(catMap).filter(([k,v])=>!catExcl2.has(k)&&v>0);
-  if(otrosCat.length){const totalOtrosCat=otrosCat.reduce((s,[,v])=>s+v,0);holdings.push({label:'Otros ahorros',sub:otrosCat.map(([k])=>k).join(', '),valor:_invFmtARS(totalOtrosCat+(ai.otros||0)),avBg:'#f0f9ff',avCol:'#0369a1',icon:'ARS',rentab:null});}
-  else if(ai.otros>0)holdings.push({label:'Otros ahorros',sub:'Saldo inicial configurado',valor:_invFmtARS(ai.otros),avBg:'#f0f9ff',avCol:'#0369a1',icon:'ARS',rentab:null});
+  Object.entries(catMap).filter(([k,v])=>!catExcl2.has(k)&&v>0).forEach(([cat,monto])=>{
+    const avBg=cat==='Inversiones'?'#f3e8ff':cat==='Fondo emergencia'?'#fef3c7':'#f0f9ff';
+    const avCol=cat==='Inversiones'?'#7e22ce':cat==='Fondo emergencia'?'#92400e':'#0369a1';
+    const icon=cat==='Inversiones'?'📈':cat==='Fondo emergencia'?'FE':cat.slice(0,3).toUpperCase();
+    holdings.push({label:cat,sub:'Movimientos de ahorro',valor:_invFmtARS(monto),avBg,avCol,icon,rentab:null});
+  });
+  // 4. ai.inversiones — siempre desglosado si tiene valor
+  if(ai.inversiones>0)holdings.push({label:'Inversiones (inicial)',sub:'Saldo inicial · Configuración → La app',valor:_invFmtARS(ai.inversiones),avBg:'#f3e8ff',avCol:'#7e22ce',icon:'📈',rentab:null});
+  // 5. ai.otros — siempre desglosado si tiene valor
+  if(ai.otros>0)holdings.push({label:'Otros ahorros (inicial)',sub:'Saldo inicial · Configuración → La app',valor:_invFmtARS(ai.otros),avBg:'#f0f9ff',avCol:'#0369a1',icon:'ARS',rentab:null});
   h+=`<div style="font-size:10px;font-weight:700;color:#aaa;letter-spacing:.08em;margin-bottom:8px">HOLDINGS</div>`;
   if(holdings.length){h+=`<div class="inv-card" style="padding:0;margin-bottom:16px">`;holdings.forEach((hh,i)=>{const border=i<holdings.length-1?'border-bottom:0.5px solid #f3f3f0':'';h+=`<div style="display:flex;align-items:center;gap:12px;padding:12px 14px;${border}"><div style="width:40px;height:40px;border-radius:10px;background:${hh.avBg};color:${hh.avCol};font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;text-align:center">${hh.icon}</div><div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:700">${hh.label}</div><div style="font-size:11px;color:#aaa;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${hh.sub}</div></div><div style="text-align:right;flex-shrink:0"><div style="font-size:14px;font-weight:700">${hh.valor}</div>${hh.rentab!==null?`<div style="margin-top:2px">${_invVarBadge(hh.rentab)}</div>`:''}</div></div>`;});h+='</div>';}
   h+=`<div style="background:#f0fdf4;border:0.5px solid #bbf7d0;border-radius:12px;padding:16px"><div style="display:flex;align-items:center;gap:10px;margin-bottom:8px"><span style="font-size:22px">🤖</span><div style="font-size:13px;font-weight:700;color:#15803d">Fina recomienda</div></div><div id="inv-agente-txt" style="font-size:13px;color:#166534;line-height:1.7">${_invAgenteEstático(totalUSD,totalInvARS,totalARS,blueV)}</div><button onclick="invPedirSugerencia()" style="margin-top:10px;padding:7px 14px;background:#16a34a;color:#fff;border:none;border-radius:8px;font-size:12px;cursor:pointer;font-weight:600">↺ Actualizar sugerencia</button></div>`;
