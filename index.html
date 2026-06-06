@@ -299,8 +299,15 @@ select,input[type=text],input[type=number],input[type=date],input[type=month]{pa
 /* CAT TABS */
 .cat-tab{padding:6px 14px;border-radius:99px;font-size:12px;font-weight:600;border:1px solid #e5e5e0;background:#fff;color:#888;cursor:pointer;white-space:nowrap}
 .cat-tab.active{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
-.cat-item{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:0.5px solid #f3f3f0;font-size:13px}
+.cat-item{display:flex;align-items:center;justify-content:space-between;padding:9px 14px;border-bottom:0.5px solid #f3f3f0;font-size:13px;gap:8px}
 .cat-item:last-child{border-bottom:none}
+.cat-item-actions{display:flex;gap:4px;opacity:0;transition:opacity .15s;flex-shrink:0}
+.cat-item:hover .cat-item-actions{opacity:1}
+.cat-item-actions button{background:none;border:none;cursor:pointer;padding:3px 5px;border-radius:6px;font-size:13px;line-height:1;color:#999}
+.cat-item-actions button:hover{background:#f3f3f0;color:#1a1a1a}
+.cat-item-actions button.del:hover{background:#fef2f2;color:#dc2626}
+.cat-item-name{flex:1;min-width:0}
+.cat-item-name input{width:100%;border:0.5px solid #d1d5db;border-radius:7px;padding:4px 8px;font-size:13px;background:#fff;outline:none}
 /* ONBOARDING & INVITE */
 #onboarding-screen input[type=text],#onboarding-screen input[type=email]{outline:none}
 #onboarding-screen input[type=text]:focus,#onboarding-screen input[type=email]:focus{border-color:#1a1a1a}
@@ -3330,10 +3337,47 @@ function renderCatListNew(){
   const tipoKey=_catTabActual;
   const tipoFull=catMap[tipoKey]||'Gasto variable';
   const base=(window.CATEGORIAS||{})[tipoFull]||[];
+  const excluidas=(window.catCustom?.[tipoKey+'_excluidas'])||[];
   const custom=(window.catCustom||{})[tipoKey]||[];
-  const all=[...new Set([...base,...custom])].sort();
-  el.innerHTML=`<div style="background:#fff;border:0.5px solid #e5e5e0;border-radius:12px;overflow:hidden">${all.map(c=>{const isCustom=!base.includes(c);return`<div class="cat-item" style="padding:9px 14px"><span>${c}</span>${isCustom?`<button onclick="eliminarCatNew('${tipoKey}','${c}')" style="background:none;border:none;cursor:pointer;color:#dc2626;font-size:16px;padding:0;line-height:1">×</button>`:''}</div>`;}).join('')}</div>`;
+  const all=[...new Set([...base.filter(c=>!excluidas.includes(c)),...custom])].sort();
+  if(!all.length){el.innerHTML='<div style="padding:12px 14px;font-size:13px;color:#aaa;text-align:center">Sin categorías. Agregá una arriba.</div>';return;}
+  el.innerHTML=`<div style="background:#fff;border:0.5px solid #e5e5e0;border-radius:12px;overflow:hidden">${all.map(c=>`<div class="cat-item" id="catrow-${tipoKey}-${CSS.escape(c)}"><span class="cat-item-name">${c}</span><div class="cat-item-actions"><button title="Editar" onclick="editarCatNew('${tipoKey}','${c.replace(/'/g,"\\'")}')" >✏️</button><button class="del" title="Eliminar" onclick="eliminarCatNew('${tipoKey}','${c.replace(/'/g,"\\'")}')">✕</button></div></div>`).join('')}</div>`;
 }
+
+window.editarCatNew=(tipo,cat)=>{
+  // Buscar el row y reemplazar el nombre con un input inline
+  const rows=document.querySelectorAll('#cat-list-new .cat-item');
+  let row=null;
+  rows.forEach(r=>{if(r.querySelector('.cat-item-name')?.textContent===cat)row=r;});
+  if(!row)return;
+  const nameEl=row.querySelector('.cat-item-name');
+  const actionsEl=row.querySelector('.cat-item-actions');
+  nameEl.innerHTML=`<input type="text" value="${cat.replace(/"/g,'&quot;')}" onkeydown="if(event.key==='Enter')confirmarEditCat('${tipo}','${cat.replace(/'/g,"\\'")}',this.value);if(event.key==='Escape')renderCatListNew();" style="width:100%" autofocus>`;
+  actionsEl.innerHTML=`<button onclick="confirmarEditCat('${tipo}','${cat.replace(/'/g,"\\'")}',this.closest('.cat-item').querySelector('input').value)" style="color:#16a34a">✓</button><button onclick="renderCatListNew()" style="color:#888">✕</button>`;
+  nameEl.querySelector('input')?.focus();
+};
+
+window.confirmarEditCat=async(tipo,catVieja,catNuevaRaw)=>{
+  const catNueva=(catNuevaRaw||'').trim();
+  if(!catNueva||catNueva===catVieja){renderCatListNew();return;}
+  const catMap={fijo:'Gasto fijo',variable:'Gasto variable',ingreso:'Ingreso',ahorro:'Ahorro'};
+  const base=(window.CATEGORIAS||{})[catMap[tipo]]||[];
+  const custom=(window.catCustom||{})[tipo]||[];
+  if(custom.includes(catNueva)||base.includes(catNueva)){window.toast?.('Ya existe esa categoría','warn',2000);return;}
+  if(!window.catCustom)window.catCustom={};
+  // Si era custom, renombrar en el array
+  if(custom.includes(catVieja)){window.catCustom[tipo]=custom.map(c=>c===catVieja?catNueva:c);}
+  else{
+    // Era base: excluirla y agregar la nueva como custom
+    if(!window.catCustom[tipo+'_excluidas'])window.catCustom[tipo+'_excluidas']=[];
+    window.catCustom[tipo+'_excluidas'].push(catVieja);
+    if(!window.catCustom[tipo])window.catCustom[tipo]=[];
+    window.catCustom[tipo].push(catNueva);
+  }
+  if(window.guardarCatCustom)await window.guardarCatCustom();
+  renderCatListNew();
+  window.toast?.(`"${catVieja}" → "${catNueva}"`,'ok',2000);
+};
 
 window.agregarCatNew=async()=>{
   const inp=document.getElementById('nueva-cat-new');
@@ -3343,7 +3387,11 @@ window.agregarCatNew=async()=>{
   if(!window.catCustom[_catTabActual])window.catCustom[_catTabActual]=[];
   const catMap={fijo:'Gasto fijo',variable:'Gasto variable',ingreso:'Ingreso',ahorro:'Ahorro'};
   const base=(window.CATEGORIAS||{})[catMap[_catTabActual]]||[];
-  if(window.catCustom[_catTabActual].includes(val)||base.includes(val)){window.toast?.('Ya existe esa categoría','warn',2000);return;}
+  const excluidas=window.catCustom[_catTabActual+'_excluidas']||[];
+  const custom=window.catCustom[_catTabActual]||[];
+  if(custom.includes(val)||(base.includes(val)&&!excluidas.includes(val))){window.toast?.('Ya existe esa categoría','warn',2000);return;}
+  // Si estaba excluida y la re-agregan, quitarla de excluidas
+  if(excluidas.includes(val))window.catCustom[_catTabActual+'_excluidas']=excluidas.filter(c=>c!==val);
   window.catCustom[_catTabActual].push(val);
   if(window.guardarCatCustom)await window.guardarCatCustom();
   inp.value='';
@@ -3353,7 +3401,16 @@ window.agregarCatNew=async()=>{
 
 window.eliminarCatNew=async(tipo,cat)=>{
   if(!confirm(`¿Eliminar "${cat}"?`))return;
-  if(window.catCustom&&window.catCustom[tipo])window.catCustom[tipo]=window.catCustom[tipo].filter(c=>c!==cat);
+  const catMap={fijo:'Gasto fijo',variable:'Gasto variable',ingreso:'Ingreso',ahorro:'Ahorro'};
+  const base=(window.CATEGORIAS||{})[catMap[tipo]]||[];
+  if(!window.catCustom)window.catCustom={};
+  if(base.includes(cat)){
+    // Categoría base: agregar a excluidas
+    if(!window.catCustom[tipo+'_excluidas'])window.catCustom[tipo+'_excluidas']=[];
+    if(!window.catCustom[tipo+'_excluidas'].includes(cat))window.catCustom[tipo+'_excluidas'].push(cat);
+  } else {
+    window.catCustom[tipo]=(window.catCustom[tipo]||[]).filter(c=>c!==cat);
+  }
   if(window.guardarCatCustom)await window.guardarCatCustom();
   renderCatListNew();
   window.toast?.(`"${cat}" eliminada`,'info',2000);
