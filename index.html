@@ -2522,17 +2522,10 @@ async function cargarCatCustom(){try{const s=await getDoc(cfgDoc('categorias'));
 async function guardarCatCustom(){try{await setDoc(cfgDoc('categorias'),window.catCustom);}catch(e){console.error(e);}}
 window.guardarCatCustom=guardarCatCustom;
 
+function _prefRow(nombre,onEdit,onDel){return`<div class="cat-item" style="padding:9px 0"><span class="cat-item-name">${nombre}</span><div class="cat-item-actions"><button title="Editar" onclick="${onEdit}">✏️</button><button class="del" title="Eliminar" onclick="${onDel}">✕</button></div></div>`;}
 function renderPrefSubpage(){
-  const fpHtml=formasDePago.filter(f=>f!=='Tarjeta Credito CUOTAS').map((f,i)=>`
-    <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:0.5px solid #f0f0ee">
-      <span style="flex:1;font-size:14px">${f}</span>
-      <button onclick="eliminarFormaPago(${i})" style="background:none;border:none;color:#f87171;font-size:18px;cursor:pointer;padding:2px 6px">×</button>
-    </div>`).join('');
-  const qpHtml=quienesPagan.map((q,i)=>`
-    <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:0.5px solid #f0f0ee">
-      <span style="flex:1;font-size:14px">${q}</span>
-      <button onclick="eliminarPagador(${i})" style="background:none;border:none;color:#f87171;font-size:18px;cursor:pointer;padding:2px 6px">×</button>
-    </div>`).join('');
+  const fpHtml=formasDePago.filter(f=>f!=='Tarjeta Credito CUOTAS').map((f,i)=>_prefRow(f,`editarFormaPago(${i})`,`eliminarFormaPago(${i})`)).join('');
+  const qpHtml=quienesPagan.map((q,i)=>_prefRow(q,`editarPagador(${i})`,`eliminarPagador(${i})`)).join('');
   document.getElementById('pref-content').innerHTML=`
     <div class="card" style="margin-bottom:12px">
       <div class="card-title">💰 Ahorros iniciales</div>
@@ -2573,8 +2566,28 @@ window.agregarFormaPago=async()=>{
   window.toast?.(`"${val}" agregada`,'ok',2000);
 };
 window.eliminarFormaPago=async(i)=>{
-  formasDePago.splice(i,1);
+  const val=formasDePago.filter(f=>f!=='Tarjeta Credito CUOTAS')[i];
+  if(!val)return;
+  formasDePago=formasDePago.filter(f=>f!==val);
   await guardarPreferencias();actualizarSelectsFormulario();renderPrefSubpage();
+  window.toast?.(`"${val}" eliminada`,'info',2000);
+};
+window.editarFormaPago=(i)=>{
+  const val=formasDePago.filter(f=>f!=='Tarjeta Credito CUOTAS')[i];
+  if(!val)return;
+  const rows=document.querySelectorAll('#pref-content .cat-item');
+  const row=rows[i];if(!row)return;
+  row.querySelector('.cat-item-name').innerHTML=`<input type="text" value="${val.replace(/"/g,'&quot;')}" style="width:100%" onkeydown="if(event.key==='Enter')confirmarEditFP('${val.replace(/'/g,"\\'")}',this.value);if(event.key==='Escape')renderPrefSubpage();" autofocus>`;
+  row.querySelector('.cat-item-actions').innerHTML=`<button onclick="confirmarEditFP('${val.replace(/'/g,"\\'")}',this.closest('.cat-item').querySelector('input').value)" style="color:#16a34a">✓</button><button onclick="renderPrefSubpage()" style="color:#888">✕</button>`;
+  row.querySelector('input')?.focus();
+};
+window.confirmarEditFP=async(vieja,nuevaRaw)=>{
+  const nueva=(nuevaRaw||'').trim();
+  if(!nueva||nueva===vieja){renderPrefSubpage();return;}
+  if(formasDePago.includes(nueva)){window.toast?.('Ya existe','warn',2000);return;}
+  formasDePago=formasDePago.map(f=>f===vieja?nueva:f);
+  await guardarPreferencias();actualizarSelectsFormulario();renderPrefSubpage();
+  window.toast?.(`"${vieja}" → "${nueva}"`,'ok',2000);
 };
 window.agregarPagador=async()=>{
   const inp=document.getElementById('new-qp');
@@ -2586,8 +2599,28 @@ window.agregarPagador=async()=>{
   window.toast?.(`"${val}" agregado`,'ok',2000);
 };
 window.eliminarPagador=async(i)=>{
+  const val=quienesPagan[i];if(!val)return;
   quienesPagan.splice(i,1);
   await guardarPreferencias();actualizarSelectsFormulario();renderPrefSubpage();
+  window.toast?.(`"${val}" eliminado`,'info',2000);
+};
+window.editarPagador=(i)=>{
+  const val=quienesPagan[i];if(!val)return;
+  const fpCount=formasDePago.filter(f=>f!=='Tarjeta Credito CUOTAS').length;
+  const rows=document.querySelectorAll('#pref-content .cat-item');
+  const row=rows[fpCount+i];if(!row)return;
+  row.querySelector('.cat-item-name').innerHTML=`<input type="text" value="${val.replace(/"/g,'&quot;')}" style="width:100%" onkeydown="if(event.key==='Enter')confirmarEditPagador(${i},this.value);if(event.key==='Escape')renderPrefSubpage();" autofocus>`;
+  row.querySelector('.cat-item-actions').innerHTML=`<button onclick="confirmarEditPagador(${i},this.closest('.cat-item').querySelector('input').value)" style="color:#16a34a">✓</button><button onclick="renderPrefSubpage()" style="color:#888">✕</button>`;
+  row.querySelector('input')?.focus();
+};
+window.confirmarEditPagador=async(i,nuevaRaw)=>{
+  const nueva=(nuevaRaw||'').trim();
+  const vieja=quienesPagan[i];
+  if(!nueva||nueva===vieja){renderPrefSubpage();return;}
+  if(quienesPagan.includes(nueva)){window.toast?.('Ya existe','warn',2000);return;}
+  quienesPagan[i]=nueva;
+  await guardarPreferencias();actualizarSelectsFormulario();renderPrefSubpage();
+  window.toast?.(`"${vieja}" → "${nueva}"`,'ok',2000);
 };
 window.renderPrefSubpage=renderPrefSubpage;
 window.renderConfigProyectados=(...a)=>renderConfigProyectados(...a);
