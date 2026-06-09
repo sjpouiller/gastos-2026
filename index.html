@@ -638,11 +638,11 @@ select,input[type=text],input[type=number],input[type=date],input[type=month]{pa
         <div class="year-tabs" id="year-tabs"></div>
         <div class="mes-tabs" id="mes-tabs"></div>
       </div>
+      <div id="fina-resumen" style="margin-bottom:10px"></div>
       <div class="metric-grid" id="metrics"></div>
       <div id="dona-resumen"></div>
       <div id="ahorro-resumen"></div>
       <div id="usd-resumen"></div>
-      <div id="fina-resumen" style="margin-bottom:0"></div>
       <div id="personas"></div>
     </div>
     <!-- MOVIMIENTOS -->
@@ -1857,6 +1857,7 @@ function renderResumenMes(mes){
   const fij=sumarMes(mes,'Gasto fijo'),fijP=sumarMes(prev,'Gasto fijo');
   const vrs=sumarMes(mes,'Gasto variable'),vrsP=sumarMes(prev,'Gasto variable');
   const sal=ing-fij-vrs;const ahP=ing>0?Math.round(sal/ing*100):0;
+  renderFinaCard(mes,ing,fij,vrs,sal);
   document.getElementById('metrics').innerHTML=`<div class="metric" onclick="abrirMetricModal('Ingreso','${mes}','${prev}')"><div class="metric-label">Ingresos</div><div class="metric-value pos">${fmt(ing)}</div><div class="metric-var">${varBadge(ing,ingP,false)}<span style="font-size:11px;color:#888">vs ${mesCorto(prev)} · ver ▸</span></div></div><div class="metric" onclick="abrirMetricModal('Gasto fijo','${mes}','${prev}')"><div class="metric-label">Gastos fijos</div><div class="metric-value">${fmt(fij)}</div><div class="metric-var">${varBadge(fij,fijP,true)}<span style="font-size:11px;color:#888">vs ${mesCorto(prev)} · ver ▸</span></div></div><div class="metric" onclick="abrirMetricModal('Gasto variable','${mes}','${prev}')"><div class="metric-label">Variables</div><div class="metric-value">${fmt(vrs)}</div><div class="metric-var">${varBadge(vrs,vrsP,true)}<span style="font-size:11px;color:#888">vs ${mesCorto(prev)} · ver ▸</span></div></div><div class="metric" onclick="abrirMetricModal('saldo','${mes}','${prev}')"><div class="metric-label">Saldo neto</div><div class="metric-value ${sal>=0?'pos':'neg'}">${fmt(sal)}</div><div class="metric-var">${varBadge(sal,sumarMes(prev,'Ingreso')-sumarMes(prev,'Gasto fijo')-sumarMes(prev,'Gasto variable'),false)}<span style="font-size:11px;color:#888">ahorro ${ahP}% · ver ▸</span></div></div>`;
   document.getElementById('ahorro-resumen').innerHTML=renderAhorroCard(mes,prev);
   renderDonaCard(mes,prev);
@@ -1865,7 +1866,6 @@ function renderResumenMes(mes){
   const uM=gastos.filter(g=>g.mes===mes&&(g.categoria==='Compra USD'||g.tipoIngreso==='Sueldo USD')).reduce((s,g)=>s+(g.montoDolar||0),0)-gastos.filter(g=>g.mes===mes&&g.tipoIngreso==='Venta USD').reduce((s,g)=>s+(g.montoDolar||0),0);
   const uP=gastos.filter(g=>g.mes===prev&&(g.categoria==='Compra USD'||g.tipoIngreso==='Sueldo USD')).reduce((s,g)=>s+(g.montoDolar||0),0)-gastos.filter(g=>g.mes===prev&&g.tipoIngreso==='Venta USD').reduce((s,g)=>s+(g.montoDolar||0),0);
   document.getElementById('usd-resumen').innerHTML=`<div class="usd-card"><div><div style="font-size:13px;font-weight:700">Saldo USD acumulado</div><div class="usd-sub" style="margin-top:3px">este mes: ${uM>=0?'+':''}${fmtUSD(uM)} ${varBadge(uM,uP,false)}</div>${dolarBlue.compra?`<div style="font-size:10px;color:#bbb;margin-top:3px">blue $${dolarBlue.compra.toLocaleString('es-AR')}${dolarBlue.fechaStr?' · '+dolarBlue.fechaStr:''}</div>`:''}</div><div><div class="usd-val">${fmtUSD(saldoUSD)}</div></div></div>`;
-  renderFinaCard(mes,ing,fij,vrs,sal);
   renderPersonas(gastos.filter(g=>g.mes===mes),gastos.filter(g=>g.mes===prev));
 }
 
