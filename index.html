@@ -65,8 +65,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#1
 .persona-card.expanded .persona-toggle-icon{transform:rotate(180deg)}
 @keyframes fadeSlideIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 #fab-wrapper{position:fixed;bottom:72px;right:16px;display:flex;flex-direction:column;align-items:flex-end;gap:8px;z-index:201;display:none}
-#fab-burbuja{background:#fff;border:0.5px solid #e5e5e0;border-radius:12px 12px 2px 12px;padding:10px 12px;max-width:200px;box-shadow:0 4px 16px rgba(0,0,0,.12);font-size:12px;line-height:1.5;color:#1a1a1a;animation:fadeSlideIn .25s ease;cursor:pointer;position:relative}
+#fab-agente{height:46px;padding:0 18px 0 13px;border-radius:23px;background:#1a1a1a;color:#fff;border:none;font-size:13px;font-weight:700;letter-spacing:.01em;cursor:pointer;display:flex;align-items:center;gap:7px;box-shadow:0 4px 20px rgba(0,0,0,.35);animation:fabPulse 2.8s ease-in-out infinite}
+#fab-agente:hover{animation:none;transform:scale(1.04);background:#333}
+@keyframes fabPulse{0%,100%{box-shadow:0 4px 20px rgba(0,0,0,.35)}50%{box-shadow:0 4px 24px rgba(0,0,0,.4),0 0 0 7px rgba(26,26,26,.1)}}
+#fab-burbuja{background:#fff;border:0.5px solid #e5e5e0;border-radius:12px 12px 2px 12px;padding:10px 12px 12px;max-width:250px;box-shadow:0 4px 16px rgba(0,0,0,.12);font-size:12px;line-height:1.5;color:#1a1a1a;animation:fadeSlideIn .25s ease;position:relative}
 #fab-burbuja .burbuja-close{position:absolute;top:4px;right:8px;background:none;border:none;font-size:14px;color:#aaa;cursor:pointer;padding:0;line-height:1}
+.burbuja-chip{padding:5px 10px;font-size:11px;border:0.5px solid #e5e5e0;border-radius:999px;cursor:pointer;background:#f8f8f6;color:#444;white-space:nowrap;font-weight:500;transition:background .15s,color .15s}
+.burbuja-chip:hover{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
 #dona-popover{position:fixed;background:#1a1a1a;color:#fff;border-radius:12px;padding:10px 12px;font-size:12px;pointer-events:none;z-index:500;display:none;min-width:160px;line-height:1.7}
 .metric-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
 .metric{background:#fff;border:0.5px solid #e5e5e0;border-radius:12px;padding:14px}
@@ -637,6 +642,7 @@ select,input[type=text],input[type=number],input[type=date],input[type=month]{pa
       <div id="dona-resumen"></div>
       <div id="ahorro-resumen"></div>
       <div id="usd-resumen"></div>
+      <div id="fina-resumen" style="margin-bottom:0"></div>
       <div id="personas"></div>
     </div>
     <!-- MOVIMIENTOS -->
@@ -1123,8 +1129,8 @@ select,input[type=text],input[type=number],input[type=date],input[type=month]{pa
 <div id="contacto-overlay" onclick="cerrarContacto()" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.4);z-index:295"></div>
 <!-- FAB AGENTE -->
 <div id="fab-wrapper" style="display:none">
-  <div id="fab-burbuja" style="display:none" onclick="onBurbujaClick(event)"><button class="burbuja-close" onclick="cerrarBurbuja(event)">✕</button><span id="fab-burbuja-txt"></span></div>
-  <button id="fab-agente" onclick="toggleAgente()" style="width:52px;height:52px;border-radius:50%;background:#1a1a1a;color:#fff;border:none;font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(0,0,0,.25)">🤖</button>
+  <div id="fab-burbuja" style="display:none"><button class="burbuja-close" onclick="cerrarBurbuja(event)">✕</button><div id="fab-burbuja-msg" onclick="onBurbujaClick(event)" style="cursor:pointer;padding-right:12px"><span id="fab-burbuja-txt"></span></div><div id="fab-burbuja-chips" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px"></div></div>
+  <button id="fab-agente" onclick="toggleAgente()"><span style="font-size:20px">🤖</span>Fina ✨</button>
 </div>
 <div id="dona-popover"></div>
 <!-- AGENT SHEET -->
@@ -1606,7 +1612,7 @@ window._renderResumen=()=>renderResumen();
 
 // ── AGENTE FLOTANTE ──
 let _agenteOpen=false;
-window.toggleAgente=()=>{_agenteOpen=!_agenteOpen;document.getElementById('agent-sheet').style.transform=_agenteOpen?'translateY(0)':'translateY(100%)';document.getElementById('fab-agente').textContent=_agenteOpen?'✕':'🤖';};
+window.toggleAgente=()=>{_agenteOpen=!_agenteOpen;document.getElementById('agent-sheet').style.transform=_agenteOpen?'translateY(0)':'translateY(100%)';const btn=document.getElementById('fab-agente');btn.innerHTML=_agenteOpen?'<span style="font-size:18px">✕</span>':'<span style="font-size:20px">🤖</span>Fina ✨';};
 window.chipAgente=q=>{document.getElementById('chat-input').value=q;enviar();};
 
 // ── DONA CHART ──
@@ -1661,8 +1667,14 @@ function mostrarBurbujaProactiva(mes,prev){
   const wrapper=document.getElementById('fab-wrapper');
   const burbuja=document.getElementById('fab-burbuja');
   const txt=document.getElementById('fab-burbuja-txt');
+  const chipsEl=document.getElementById('fab-burbuja-chips');
   if(!wrapper||!burbuja||!txt)return;
   if(sessionStorage.getItem('burbuja-cerrada-'+mes))return;
+
+  // Calcular saldo neto
+  const ing=sumarMes(mes,'Ingreso'),fij=sumarMes(mes,'Gasto fijo'),vrs=sumarMes(mes,'Gasto variable');
+  const sal=ing-fij-vrs;
+
   // Encontrar categoría variable con mayor incremento %
   const gM=gastos.filter(g=>g.mes===mes&&g.tipo==='Gasto variable');
   const gP=gastos.filter(g=>g.mes===prev&&g.tipo==='Gasto variable');
@@ -1672,27 +1684,82 @@ function mostrarBurbujaProactiva(mes,prev){
   for(const [cat,monto] of Object.entries(cmM)){
     const prev_val=cmP[cat]||0;
     if(prev_val>0){const pct=Math.round((monto-prev_val)/prev_val*100);if(pct>20&&pct>bestPct){bestPct=pct;bestCat=cat;}}
-    else if(!prev_val&&monto>0){// categoría nueva este mes
-      const pct=100;if(pct>bestPct){bestPct=pct;bestCat=cat;}}
+    else if(!prev_val&&monto>0){if(100>bestPct){bestPct=100;bestCat=cat;}}
   }
-  if(!bestCat){// fallback: mostrar la categoría con más gasto
-    const top=Object.entries(cmM).sort((a,b)=>b[1]-a[1])[0];
-    if(top){bestCat=top[0];bestPct=0;}}
-  if(!bestCat)return;
-  txt.textContent=bestPct>0?`${bestCat} subió ${bestPct}% este mes. ¿Querés analizarlo?`:`Tu mayor gasto fue ${bestCat}. ¿Querés que lo analice?`;
-  burbuja._catMsg=bestPct>0?`¿Por qué subió tanto ${bestCat} este mes comparado con ${mesCorto(prev)}? Dame el detalle.`:`Analizame en detalle el gasto en ${bestCat} este mes.`;
-  burbuja.style.display='block';
-  setTimeout(()=>{if(burbuja.style.display!=='none'&&!sessionStorage.getItem('burbuja-cerrada-'+mes)){burbuja.style.display='none';}},8000);
+  if(!bestCat){const top=Object.entries(cmM).sort((a,b)=>b[1]-a[1])[0];if(top){bestCat=top[0];bestPct=0;}}
+
+  // Mensaje contextual: saldo negativo tiene prioridad
+  let msg='',query='';
+  if(sal<0){
+    msg=`⚠️ Este mes gastaste más de lo que ingresaste. Saldo: ${fmt(sal)}`;
+    query=`Analizá por qué el saldo de ${nombreMes(mes)} es negativo (${fmt(sal)}) y qué podemos ajustar.`;
+  } else if(bestCat){
+    msg=bestPct>0?`📊 ${bestCat} subió ${bestPct}% este mes. ¿Querés analizarlo?`:`💡 Tu mayor gasto fue ${bestCat}. ¿Querés que lo analice?`;
+    query=bestPct>0?`¿Por qué subió tanto ${bestCat} este mes comparado con ${mesCorto(prev)}? Dame el detalle.`:`Analizame en detalle el gasto en ${bestCat} este mes.`;
+  } else return;
+
+  txt.textContent=msg;
+  burbuja._catMsg=query;
+
+  // Chips rápidos en la burbuja
+  if(chipsEl){
+    const chips=[
+      {label:'Este mes',q:'¿Cómo venimos este mes comparado con el anterior?'},
+      {label:'Excesos',q:'¿En qué categorías estamos gastando de más este mes?'},
+      {label:'Tips',q:'Dame 3 recomendaciones concretas para ahorrar más'}
+    ];
+    chipsEl.innerHTML=chips.map(c=>`<button class="burbuja-chip" onclick="burbujaChip('${c.q.replace(/'/g,"\\'")}')">${c.label}</button>`).join('');
+  }
+
+  setTimeout(()=>{
+    if(!sessionStorage.getItem('burbuja-cerrada-'+mes)){
+      burbuja.style.display='block';
+      setTimeout(()=>{if(burbuja.style.display!=='none'&&!sessionStorage.getItem('burbuja-cerrada-'+mes)){burbuja.style.display='none';}},10000);
+    }
+  },3000);
 }
+window.burbujaChip=q=>{const m=mesSel||'';sessionStorage.setItem('burbuja-cerrada-'+m,'1');document.getElementById('fab-burbuja').style.display='none';if(!_agenteOpen)toggleAgente();setTimeout(()=>chipAgente(q),400);};
 window.cerrarBurbuja=e=>{e.stopPropagation();const m=mesSel||'';sessionStorage.setItem('burbuja-cerrada-'+m,'1');document.getElementById('fab-burbuja').style.display='none';};
 window.onBurbujaClick=e=>{
-  if(e.target.classList.contains('burbuja-close'))return;
   const burbuja=document.getElementById('fab-burbuja');
   const msg=burbuja._catMsg||'';
   const m=mesSel||'';sessionStorage.setItem('burbuja-cerrada-'+m,'1');
   burbuja.style.display='none';
   if(!_agenteOpen)toggleAgente();
   setTimeout(()=>{if(msg)chipAgente(msg);},400);
+};
+
+// ── FINA CARD ──
+function renderFinaCard(mes,ing,fij,vrs,sal){
+  const el=document.getElementById('fina-resumen');if(!el)return;
+  const cacheKey='fina-card-'+mes;
+  const cached=sessionStorage.getItem(cacheKey);
+  el.innerHTML=`<div class="card" style="background:#f0fdf4;border-color:#86efac;margin-bottom:10px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+      <div style="font-size:13px;font-weight:700;color:#15803d">💬 Fina dice</div>
+      <button onclick="fetchFinaInsight('${mes}',${ing},${fij},${vrs},${sal},true)" style="font-size:11px;color:#15803d;background:#dcfce7;border:0.5px solid #86efac;border-radius:6px;padding:3px 8px;cursor:pointer">↻ Actualizar</button>
+    </div>
+    <div id="fina-card-txt" style="font-size:13px;line-height:1.6;color:#1a1a1a">${cached?cached:'<span style="color:#888;font-style:italic">Analizando tus finanzas del mes...</span>'}</div>
+  </div>`;
+  if(!cached)fetchFinaInsight(mes,ing,fij,vrs,sal,false);
+}
+window.fetchFinaInsight=async(mes,ing,fij,vrs,sal,force)=>{
+  const txtEl=document.getElementById('fina-card-txt');
+  if(!txtEl)return;
+  if(force)txtEl.innerHTML='<span style="color:#888;font-style:italic">Analizando...</span>';
+  const prev=mesAnterior(mes);
+  const ingP=sumarMes(prev,'Ingreso'),fijP=sumarMes(prev,'Gasto fijo'),vrsP=sumarMes(prev,'Gasto variable');
+  const salP=ingP-fijP-vrsP;
+  const gA=gastos.filter(g=>g.mes===mes&&g.tipo==='Gasto variable');
+  const topVars=Object.entries(gA.reduce((a,g)=>{a[g.categoria]=(a[g.categoria]||0)+(g.monto||0);return a},{})).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([c,v])=>`${c}: ${fmtK(v)}`).join(', ');
+  const ctx=`Sos Fina, agente financiera personal de Sebas y Male. En ${nombreMes(mes)}: ingresos ${fmt(ing)}, gastos fijos ${fmt(fij)}, gastos variables ${fmt(vrs)}, saldo neto ${fmt(sal)}. Mes anterior: ingresos ${fmt(ingP)}, saldo ${fmt(salP)}. Top gastos variables: ${topVars||'sin datos'}. Dá exactamente UN insight concreto y accionable en máximo 2 oraciones cortas. En español rioplatense. Sin saludos, sin emojis, directo al punto.`;
+  try{
+    const r=await fetch('/.netlify/functions/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:120,system:ctx,messages:[{role:'user',content:'Dame el insight del mes.'}]})});
+    const data=await r.json();
+    const text=data.content?.[0]?.text||'Sin datos suficientes para analizar.';
+    sessionStorage.setItem('fina-card-'+mes,text);
+    const el=document.getElementById('fina-card-txt');if(el)el.textContent=text;
+  }catch(e){const el=document.getElementById('fina-card-txt');if(el)el.textContent='Sin conexión con el agente.';}
 };
 
 // ── RESUMEN ──
@@ -1760,6 +1827,7 @@ function renderResumenMes(mes){
   const uM=gastos.filter(g=>g.mes===mes&&(g.categoria==='Compra USD'||g.tipoIngreso==='Sueldo USD')).reduce((s,g)=>s+(g.montoDolar||0),0)-gastos.filter(g=>g.mes===mes&&g.tipoIngreso==='Venta USD').reduce((s,g)=>s+(g.montoDolar||0),0);
   const uP=gastos.filter(g=>g.mes===prev&&(g.categoria==='Compra USD'||g.tipoIngreso==='Sueldo USD')).reduce((s,g)=>s+(g.montoDolar||0),0)-gastos.filter(g=>g.mes===prev&&g.tipoIngreso==='Venta USD').reduce((s,g)=>s+(g.montoDolar||0),0);
   document.getElementById('usd-resumen').innerHTML=`<div class="usd-card"><div><div style="font-size:13px;font-weight:700">Saldo USD acumulado</div><div class="usd-sub" style="margin-top:3px">este mes: ${uM>=0?'+':''}${fmtUSD(uM)} ${varBadge(uM,uP,false)}</div>${dolarBlue.compra?`<div style="font-size:10px;color:#bbb;margin-top:3px">blue $${dolarBlue.compra.toLocaleString('es-AR')}${dolarBlue.fechaStr?' · '+dolarBlue.fechaStr:''}</div>`:''}</div><div><div class="usd-val">${fmtUSD(saldoUSD)}</div></div></div>`;
+  renderFinaCard(mes,ing,fij,vrs,sal);
   renderPersonas(gastos.filter(g=>g.mes===mes),gastos.filter(g=>g.mes===prev));
 }
 
@@ -2123,18 +2191,29 @@ window.enviar=async()=>{
     return`${mes}: Ing ${fmtK(i)} (${topIng||'sin detalle'}), Fijos ${fmtK(f)} (${topFij||'sin detalle'}), Vars ${fmtK(v)}, Ahorro ${fmtK(a)}, Saldo ${fmtK(s)}, TasaAhorro ${p}%`;
   }).join('\n');
   const gA=gastos.filter(g=>g.mes===mA&&g.tipo==='Gasto variable');
-  const tC=Object.entries(gA.reduce((a,g)=>{a[g.categoria]=(a[g.categoria]||0)+(g.monto||0);return a},{})).sort((a,b)=>b[1]-a[1]).slice(0,8).map(([c,v])=>`${c}:${fmtK(v)}`).join(', ');
+  const varMap=gA.reduce((a,g)=>{a[g.categoria]=(a[g.categoria]||0)+(g.monto||0);return a},{});
+  const tC=Object.entries(varMap).sort((a,b)=>b[1]-a[1]).map(([c,v])=>`${c}:${fmtK(v)}`).join(', ');
   const sUSD=calcSaldoUSD();
   const arsBlue=dolarBlue.compra?`Saldo USD: ${fmtUSD(sUSD)} ≈ ${fmt(Math.round(sUSD*dolarBlue.compra))} (blue $${dolarBlue.compra})`:`Saldo USD: ${fmtUSD(sUSD)}`;
   const tPlan=planItems.length?'\nCompromisos futuros:\n'+planItems.map(it=>`- ${it.nombre}: ${it.cuotas>1?it.cuotas+' cuotas de '+fmt(it.cuotaMensual)+'/mes, total '+fmt(it.monto):fmt(it.monto)} desde ${MESES_FULL[it.mesInicio.slice(5)]} ${it.mesInicio.slice(0,4)}`).join('\n'):'\nSin compromisos futuros cargados.';
   const tPres=Object.keys(presupuestos).length?'\nPresupuestos mensuales: '+Object.entries(presupuestos).map(([k,v])=>`${k}: ${fmt(v)}`).join(', '):'\nSin presupuestos configurados.';
+  // Datos puntuales del mes activo para contexto claro
+  const ingA=sumarMes(mA,'Ingreso'),fijA=sumarMes(mA,'Gasto fijo'),vrsA=sumarMes(mA,'Gasto variable'),salA=ingA-fijA-vrsA;
+  const prevA=mesAnterior(mA);
+  const ingPA=sumarMes(prevA,'Ingreso'),fijPA=sumarMes(prevA,'Gasto fijo'),vrsPA=sumarMes(prevA,'Gasto variable'),salPA=ingPA-fijPA-vrsPA;
   const ctx=`Sos el agente financiero personal de Sebas y Male, una pareja argentina. Montos en pesos argentinos (ARS).
 Mes activo: ${nombreMes(mA||'')}. Total movimientos históricos: ${gastos.length}.
 ${arsBlue}
-Historial completo por mes (con detalle de ingresos y fijos):
-${res}
-Top gastos variables en ${nombreMes(mA||'')}: ${tC}${tPlan}${tPres}
-IMPORTANTE: Antes de responder, revisá TODOS los meses disponibles. No asumas que los ingresos proyectados son 0 si hay datos reales. Usá los datos reales de ingresos y gastos fijos para proyecciones.
+
+DATOS DEL MES ACTIVO (${nombreMes(mA||'')}):
+- Ingresos reales: ${fmt(ingA)} | Gastos fijos: ${fmt(fijA)} | Gastos variables: ${fmt(vrsA)} | Saldo neto: ${fmt(salA)} | Tasa ahorro: ${ingA>0?Math.round(salA/ingA*100):0}%
+- Mes anterior (${nombreMes(prevA)}): Ingresos ${fmt(ingPA)}, Fijos ${fmt(fijPA)}, Variables ${fmt(vrsPA)}, Saldo ${fmt(salPA)}
+- Gastos variables por categoría: ${tC||'sin datos'}
+
+HISTORIAL COMPLETO (todos los meses disponibles):
+${res}${tPlan}${tPres}
+
+IMPORTANTE: Usá los datos reales de ingresos y gastos fijos. No asumas valores ni proyectes con 0 si hay datos disponibles.
 Respondé en español rioplatense, directo y con números reales. Máximo 5 oraciones. Formato argentino ($1.200.000).
 Si el usuario quiere agregar algo al tablero, terminá con: AGREGAR_TABLERO: {"nombre":"...","monto":000000,"cuotas":1,"mesInicio":"YYYY-MM","tipo":"unico|cuotas|viaje"}`;
   try{
