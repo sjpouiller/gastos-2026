@@ -407,162 +407,13 @@ select,input[type=text],input[type=number],input[type=date],input[type=month]{pa
 </div>
 
 <!-- ONBOARDING -->
-<div id="onboarding-screen" style="display:none;min-height:100vh;background:#f5f5f3;padding:0">
-  <div style="max-width:420px;margin:0 auto;padding:40px 24px 32px">
-    <!-- Progress dots -->
-    <div id="ob-dots" style="display:flex;gap:6px;justify-content:center;margin-bottom:32px"></div>
-
-    <!-- Paso 1: Bienvenida -->
-    <div id="ob-step-1">
-      <div style="font-size:56px;text-align:center;margin-bottom:16px">👋</div>
-      <h2 id="ob-saludo" style="font-size:22px;font-weight:700;text-align:center;margin-bottom:8px">¡Hola!</h2>
-      <p style="font-size:14px;color:#666;text-align:center;margin-bottom:28px">Vamos a configurar tu espacio en 5 pasos.</p>
-      <div style="margin-bottom:14px">
-        <label style="font-size:12px;font-weight:600;color:#888;display:block;margin-bottom:6px">TU NOMBRE</label>
-        <input id="ob-nombre" type="text" placeholder="Ej: Juan" style="width:100%;padding:12px 14px;border:0.5px solid #d1d5db;border-radius:12px;font-size:15px;background:#fff;box-sizing:border-box">
-      </div>
-      <div style="margin-bottom:28px">
-        <label style="font-size:12px;font-weight:600;color:#888;display:block;margin-bottom:6px">NOMBRE DEL HOGAR</label>
-        <input id="ob-hogar" type="text" placeholder="Ej: Familia García, Casa Palermo..." style="width:100%;padding:12px 14px;border:0.5px solid #d1d5db;border-radius:12px;font-size:15px;background:#fff;box-sizing:border-box">
-      </div>
-      <button onclick="obNext(1)" style="width:100%;padding:14px;background:#1a1a1a;color:#fff;border:none;border-radius:14px;font-size:15px;font-weight:600;cursor:pointer">Siguiente →</button>
-    </div>
-
-    <!-- Paso 2: Tipo de uso -->
-    <div id="ob-step-2" style="display:none">
-      <h2 style="font-size:22px;font-weight:700;text-align:center;margin-bottom:8px">¿Cómo vas a usar la app?</h2>
-      <p style="font-size:14px;color:#666;text-align:center;margin-bottom:28px">Podés cambiarlo después.</p>
-      <div id="ob-tipo-solo" onclick="selObTipo('solo')" style="padding:18px;border:0.5px solid #e5e5e0;border-radius:14px;background:#fff;cursor:pointer;margin-bottom:12px;transition:all .15s">
-        <div style="font-size:24px;margin-bottom:6px">🧍</div>
-        <div style="font-size:15px;font-weight:700">Solo</div>
-        <div style="font-size:13px;color:#888;margin-top:2px">Seguimiento personal de mis finanzas</div>
-      </div>
-      <div id="ob-tipo-familiar" onclick="selObTipo('familiar')" style="padding:18px;border:0.5px solid #e5e5e0;border-radius:14px;background:#fff;cursor:pointer;margin-bottom:28px;transition:all .15s">
-        <div style="font-size:24px;margin-bottom:6px">👫</div>
-        <div style="font-size:15px;font-weight:700">En pareja o familiar</div>
-        <div style="font-size:13px;color:#888;margin-top:2px">Gastos compartidos con otra persona</div>
-      </div>
-      <div style="display:flex;gap:10px">
-        <button onclick="obBack(2)" style="flex:1;padding:14px;background:#f0f0ee;color:#1a1a1a;border:none;border-radius:14px;font-size:15px;font-weight:600;cursor:pointer">← Volver</button>
-        <button onclick="obNext(2)" style="flex:2;padding:14px;background:#1a1a1a;color:#fff;border:none;border-radius:14px;font-size:15px;font-weight:600;cursor:pointer">Siguiente →</button>
-      </div>
-    </div>
-
-    <!-- Paso 3: Objetivo de ahorro -->
-    <div id="ob-step-3" style="display:none">
-      <h2 style="font-size:22px;font-weight:700;text-align:center;margin-bottom:8px">¿Cuánto querés ahorrar?</h2>
-      <p style="font-size:14px;color:#666;text-align:center;margin-bottom:28px">Podés ajustarlo cuando quieras.</p>
-      <div style="text-align:center;margin-bottom:8px">
-        <span id="ob-ahorro-pct" style="font-size:48px;font-weight:700">20%</span>
-      </div>
-      <div style="text-align:center;margin-bottom:6px;font-size:14px;color:#666">
-        <span id="ob-ahorro-ars">$200.000 / mes</span>
-        <span style="font-size:12px;color:#aaa"> sobre $1M de ingresos</span>
-      </div>
-      <input type="range" id="ob-ahorro" min="5" max="50" value="20" step="5" oninput="actualizarSliderAhorro()" style="width:100%;margin:20px 0 12px;accent-color:#1a1a1a">
-      <div style="display:flex;justify-content:space-between;font-size:12px;color:#aaa;margin-bottom:16px"><span>5%</span><span>50%</span></div>
-      <div id="ob-ahorro-tip" style="background:#f0f4ff;border:0.5px solid #bfdbfe;border-radius:10px;padding:10px 14px;font-size:13px;color:#1d4ed8;margin-bottom:28px">💡 Buen punto de partida. La mayoría de las familias apunta al 20%.</div>
-      <div style="display:flex;gap:10px">
-        <button onclick="obBack(3)" style="flex:1;padding:14px;background:#f0f0ee;color:#1a1a1a;border:none;border-radius:14px;font-size:15px;font-weight:600;cursor:pointer">← Volver</button>
-        <button onclick="obNext(3)" style="flex:2;padding:14px;background:#1a1a1a;color:#fff;border:none;border-radius:14px;font-size:15px;font-weight:600;cursor:pointer">Siguiente →</button>
-      </div>
-    </div>
-
-    <!-- Paso 4: Categorías -->
-    <div id="ob-step-4" style="display:none">
-      <h2 style="font-size:22px;font-weight:700;text-align:center;margin-bottom:8px">¿Qué categorías usás más?</h2>
-      <p style="font-size:14px;color:#666;text-align:center;margin-bottom:20px">Pre-seleccionamos las más comunes.</p>
-      <div id="ob-cats-container" style="max-height:340px;overflow-y:auto;padding-bottom:4px"></div>
-      <div style="display:flex;gap:10px;margin-top:20px">
-        <button onclick="obBack(4)" style="flex:1;padding:14px;background:#f0f0ee;color:#1a1a1a;border:none;border-radius:14px;font-size:15px;font-weight:600;cursor:pointer">← Volver</button>
-        <button onclick="obNext(4)" style="flex:2;padding:14px;background:#1a1a1a;color:#fff;border:none;border-radius:14px;font-size:15px;font-weight:600;cursor:pointer">Siguiente →</button>
-      </div>
-    </div>
-
-    <!-- Paso 5: Pagadores y formas de pago -->
-    <div id="ob-step-5" style="display:none">
-      <h2 style="font-size:22px;font-weight:700;text-align:center;margin-bottom:8px">¿Quiénes registran gastos?</h2>
-      <p style="font-size:14px;color:#666;text-align:center;margin-bottom:20px">Podés agregar o quitar personas y formas de pago. Se puede cambiar después en Configuración.</p>
-      <div style="margin-bottom:16px">
-        <div style="font-size:12px;font-weight:700;color:#888;margin-bottom:8px">PERSONAS</div>
-        <div id="ob-pagadores-list" style="margin-bottom:8px"></div>
-        <div style="display:flex;gap:8px">
-          <input id="ob-new-pagador" type="text" placeholder="Agregar persona..." style="flex:1;padding:10px 12px;border:0.5px solid #d1d5db;border-radius:10px;font-size:14px">
-          <button onclick="obAgregarPagador()" style="padding:10px 16px;background:#1a1a1a;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer">+</button>
-        </div>
-      </div>
-      <div style="margin-bottom:20px">
-        <div style="font-size:12px;font-weight:700;color:#888;margin-bottom:8px">FORMAS DE PAGO</div>
-        <div id="ob-fps-list" style="margin-bottom:8px"></div>
-        <div style="display:flex;gap:8px">
-          <input id="ob-new-fp" type="text" placeholder="Agregar forma de pago..." style="flex:1;padding:10px 12px;border:0.5px solid #d1d5db;border-radius:10px;font-size:14px">
-          <button onclick="obAgregarFP()" style="padding:10px 16px;background:#1a1a1a;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer">+</button>
-        </div>
-      </div>
-      <div style="display:flex;gap:10px">
-        <button onclick="obBack(5)" style="flex:1;padding:14px;background:#f0f0ee;color:#1a1a1a;border:none;border-radius:14px;font-size:15px;font-weight:600;cursor:pointer">← Volver</button>
-        <button onclick="obNext(5)" style="flex:2;padding:14px;background:#1a1a1a;color:#fff;border:none;border-radius:14px;font-size:15px;font-weight:600;cursor:pointer">Siguiente →</button>
-      </div>
-    </div>
-
-    <!-- Paso 6: Invitar co-usuario -->
-    <div id="ob-step-6" style="display:none">
-      <h2 style="font-size:22px;font-weight:700;text-align:center;margin-bottom:8px">¿Querés invitar a alguien?</h2>
-      <p style="font-size:14px;color:#666;text-align:center;margin-bottom:28px">Vas a compartir todos los gastos con esta persona.</p>
-      <div style="margin-bottom:14px">
-        <label style="font-size:12px;font-weight:600;color:#888;display:block;margin-bottom:6px">EMAIL DEL CO-USUARIO</label>
-        <input id="ob-email-coinquilino" type="email" placeholder="Ej: maria@gmail.com" style="width:100%;padding:12px 14px;border:0.5px solid #d1d5db;border-radius:12px;font-size:15px;background:#fff;box-sizing:border-box">
-      </div>
-      <div id="ob-invite-link" style="display:none;background:#f0fdf4;border:0.5px solid #86efac;border-radius:10px;padding:12px 14px;margin-bottom:16px">
-        <div style="font-size:12px;font-weight:600;color:#16a34a;margin-bottom:6px">🔗 Link de invitación</div>
-        <div id="ob-invite-link-text" style="font-size:12px;color:#333;word-break:break-all;margin-bottom:8px"></div>
-        <button onclick="copiarLinkInvitacion()" style="width:100%;padding:8px;background:#16a34a;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer">📋 Copiar link</button>
-        <div id="ob-invite-email-status" style="font-size:11px;color:#666;margin-top:6px;text-align:center">📧 Si cargaste un email, ya se lo mandamos automáticamente</div>
-      </div>
-      <button onclick="generarLinkInvitacion()" id="ob-btn-generar-link" style="width:100%;padding:12px;background:#f0f0ee;color:#1a1a1a;border:none;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;margin-bottom:10px">🔗 Generar link de invitación</button>
-      <div style="display:flex;gap:10px;margin-top:8px">
-        <button onclick="obBack(6)" style="flex:1;padding:14px;background:#f0f0ee;color:#1a1a1a;border:none;border-radius:14px;font-size:15px;font-weight:600;cursor:pointer">← Volver</button>
-        <button onclick="obNext(6)" style="flex:2;padding:14px;background:#1a1a1a;color:#fff;border:none;border-radius:14px;font-size:15px;font-weight:600;cursor:pointer">Siguiente →</button>
-      </div>
-      <button onclick="obNext(6)" style="width:100%;margin-top:10px;padding:10px;background:none;border:none;font-size:13px;color:#aaa;cursor:pointer">Saltar por ahora</button>
-    </div>
-
-    <!-- Paso 7: Ahorros existentes -->
-    <div id="ob-step-7" style="display:none">
-      <h2 style="font-size:22px;font-weight:700;text-align:center;margin-bottom:8px">¿Tenés ahorros?</h2>
-      <p style="font-size:14px;color:#666;text-align:center;margin-bottom:24px">Así se ven reflejados desde el primer día. Podés actualizarlos después.</p>
-      <div style="margin-bottom:14px">
-        <label style="font-size:12px;font-weight:600;color:#888;display:block;margin-bottom:6px">💵 DÓLARES (USD)</label>
-        <input id="ob-ahorro-usd" type="number" placeholder="0" min="0" style="width:100%;padding:12px 14px;border:0.5px solid #d1d5db;border-radius:12px;font-size:15px;background:#fff;box-sizing:border-box">
-        <div style="font-size:11px;color:#aaa;margin-top:4px">Saldo actual en dólares (billetes, cuenta bancaria en USD, etc.)</div>
-      </div>
-      <div style="margin-bottom:14px">
-        <label style="font-size:12px;font-weight:600;color:#888;display:block;margin-bottom:6px">📈 INVERSIONES (ARS)</label>
-        <input id="ob-ahorro-inv" type="number" placeholder="0" min="0" style="width:100%;padding:12px 14px;border:0.5px solid #d1d5db;border-radius:12px;font-size:15px;background:#fff;box-sizing:border-box">
-        <div style="font-size:11px;color:#aaa;margin-top:4px">FCI, acciones, plazos fijos, etc. (valor en pesos)</div>
-      </div>
-      <div style="margin-bottom:24px">
-        <label style="font-size:12px;font-weight:600;color:#888;display:block;margin-bottom:6px">🏦 OTROS AHORROS (ARS)</label>
-        <input id="ob-ahorro-otros" type="number" placeholder="0" min="0" style="width:100%;padding:12px 14px;border:0.5px solid #d1d5db;border-radius:12px;font-size:15px;background:#fff;box-sizing:border-box">
-        <div style="font-size:11px;color:#aaa;margin-top:4px">Caja de ahorro, efectivo en pesos, etc.</div>
-      </div>
-      <div style="display:flex;gap:10px">
-        <button onclick="obBack(7)" style="flex:1;padding:14px;background:#f0f0ee;color:#1a1a1a;border:none;border-radius:14px;font-size:15px;font-weight:600;cursor:pointer">← Volver</button>
-        <button onclick="obNext(7)" style="flex:2;padding:14px;background:#1a1a1a;color:#fff;border:none;border-radius:14px;font-size:15px;font-weight:600;cursor:pointer">Siguiente →</button>
-      </div>
-      <button onclick="obNext(7)" style="width:100%;margin-top:10px;padding:10px;background:none;border:none;font-size:13px;color:#aaa;cursor:pointer">No tengo ahorros, saltar</button>
-    </div>
-
-    <!-- Paso 8: Éxito -->
-    <div id="ob-step-8" style="display:none;text-align:center">
-      <div style="font-size:64px;margin-bottom:16px">🎉</div>
-      <h2 style="font-size:22px;font-weight:700;margin-bottom:12px">¡Todo listo!</h2>
-      <div id="ob-resumen" style="background:#fff;border:0.5px solid #e5e5e0;border-radius:14px;padding:16px;text-align:left;margin-bottom:28px;font-size:14px;line-height:2"></div>
-      <div style="display:flex;gap:10px">
-        <button onclick="obBack(8)" style="flex:1;padding:14px;background:#f0f0ee;color:#1a1a1a;border:none;border-radius:14px;font-size:15px;font-weight:600;cursor:pointer">← Volver</button>
-        <button onclick="finalizarOnboarding()" style="flex:2;padding:14px;background:#1a1a1a;color:#fff;border:none;border-radius:14px;font-size:15px;font-weight:600;cursor:pointer">Ir a la app →</button>
-      </div>
-    </div>
+<div id="onboarding-screen" style="display:none;min-height:100vh;background:#f5f5f3">
+  <div style="height:3px;background:#e5e5e0;position:fixed;top:0;left:0;right:0;z-index:10"><div id="ob-progress-fill" style="height:100%;background:#1a1a1a;transition:width .4s ease;width:0%"></div></div>
+  <div style="max-width:420px;margin:0 auto;padding:24px 20px 200px">
+    <div id="ob-messages" style="display:flex;flex-direction:column;gap:16px"></div>
+  </div>
+  <div style="position:fixed;bottom:0;left:0;right:0;background:#f5f5f3;border-top:0.5px solid #e5e5e0;padding:14px 20px 28px;z-index:5">
+    <div style="max-width:420px;margin:0 auto" id="ob-input-wrap"></div>
   </div>
 </div>
 
@@ -1385,10 +1236,6 @@ onAuthStateChanged(auth,async user=>{
       document.getElementById('login-screen').style.display='none';
       document.getElementById('invite-screen').style.display='none';
       document.getElementById('onboarding-screen').style.display='block';
-      const saludo=document.getElementById('ob-saludo');
-      if(saludo)saludo.textContent=`¡Hola, ${user.displayName?.split(' ')[0]||''}!`;
-      const obNombre=document.getElementById('ob-nombre');
-      if(obNombre&&user.displayName)obNombre.value=user.displayName.split(' ')[0];
       iniciarOnboarding();
       return;
     }
@@ -1417,10 +1264,6 @@ onAuthStateChanged(auth,async user=>{
         document.getElementById('login-screen').style.display='none';
         document.getElementById('invite-screen').style.display='none';
         document.getElementById('onboarding-screen').style.display='block';
-        const saludo=document.getElementById('ob-saludo');
-        if(saludo)saludo.textContent=`¡Hola, ${user.displayName?.split(' ')[0]||''}!`;
-        const obNombre=document.getElementById('ob-nombre');
-        if(obNombre&&user.displayName)obNombre.value=user.displayName.split(' ')[0];
         iniciarOnboarding();
         return;
       }
@@ -1440,10 +1283,6 @@ onAuthStateChanged(auth,async user=>{
       document.getElementById('login-screen').style.display='none';
       document.getElementById('invite-screen').style.display='none';
       document.getElementById('onboarding-screen').style.display='block';
-      const saludo=document.getElementById('ob-saludo');
-      if(saludo)saludo.textContent=`¡Hola, ${user.displayName?.split(' ')[0]||''}!`;
-      const obNombre=document.getElementById('ob-nombre');
-      if(obNombre&&user.displayName)obNombre.value=user.displayName.split(' ')[0];
       iniciarOnboarding();
     }
   }else{
@@ -3218,56 +3057,170 @@ const OB_CATS_COMUNES={
 };
 let _obStep=1;
 let _obTipo='familiar';
+let _obData={};
 let _obCatsSeleccionadas=new Set([...OB_CATS_COMUNES['Gasto variable'],...OB_CATS_COMUNES['Gasto fijo']]);
 let _obInviteLink=null;
+let _obPagadores=[...(window.QUIENES_PAGAN_DEFAULT||['Yo'])];
+let _obFormasPago=[...(window.FORMAS_PAGO_DEFAULT||['Transferencia','Efectivo','Tarjeta Débito','Tarjeta Credito CUOTAS'])];
+
+// ── ONBOARDING HELPERS ──
+function _obAddFina(msg){
+  const msgs=document.getElementById('ob-messages');if(!msgs)return;
+  const wrap=document.createElement('div');
+  wrap.style.cssText='display:flex;align-items:flex-start;gap:10px;animation:fadeSlideIn .35s ease';
+  wrap.innerHTML=`<div style="width:36px;height:36px;border-radius:50%;background:#1a1a1a;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">🤖</div><div style="background:#fff;border-radius:4px 16px 16px 16px;padding:12px 14px;font-size:14px;line-height:1.55;color:#1a1a1a;max-width:calc(100% - 56px);box-shadow:0 1px 4px rgba(0,0,0,.08)">${msg}</div>`;
+  msgs.appendChild(wrap);_obScrollBottom();
+}
+function _obAddUser(msg){
+  const msgs=document.getElementById('ob-messages');if(!msgs)return;
+  const wrap=document.createElement('div');
+  wrap.style.cssText='display:flex;justify-content:flex-end;animation:fadeSlideIn .25s ease';
+  wrap.innerHTML=`<div style="background:#1a1a1a;color:#fff;border-radius:16px 4px 16px 16px;padding:10px 14px;font-size:14px;max-width:75%;word-break:break-word">${msg}</div>`;
+  msgs.appendChild(wrap);_obScrollBottom();
+}
+function _obSetInput(html){const w=document.getElementById('ob-input-wrap');if(w)w.innerHTML=html;}
+function _obProgress(step){const bar=document.getElementById('ob-progress-fill');if(bar)bar.style.width=((step-1)/6*100)+'%';}
+function _obScrollBottom(){const c=document.querySelector('#onboarding-screen > div:nth-child(2)');if(c)setTimeout(()=>c.scrollTop=c.scrollHeight,60);}
 
 function iniciarOnboarding(){
-  _obStep=1;
-  renderObDots();
-  renderObCats();
-  selObTipo('familiar');
+  _obData={};_obStep=1;_obInviteLink=null;_obTipo='familiar';
+  _obPagadores=[...(window.QUIENES_PAGAN_DEFAULT||['Yo'])];
+  const msgs=document.getElementById('ob-messages');if(msgs)msgs.innerHTML='';
+  _obSetInput('');_obProgress(1);
+  const googleNombre=window._authUser?.displayName?.split(' ')[0]||'';
+  setTimeout(()=>{
+    _obAddFina('¡Hola! Soy <strong>Fina</strong>, tu asistente financiera 💡<br>Te voy a ayudar a ordenar tus finanzas.<br>¿Cómo te llamás?');
+    _obSetInput(`<div style="display:flex;gap:8px">
+      <input id="ob-inp" type="text" value="${googleNombre.replace(/"/g,'&quot;')}" placeholder="Tu nombre" autocomplete="off" autocorrect="off" style="flex:1;padding:13px 14px;border-radius:12px;border:1.5px solid #e5e5e0;font-size:16px;background:#fff;outline:none;-webkit-text-size-adjust:none" onfocus="this.style.borderColor='#1a1a1a'" onblur="this.style.borderColor='#e5e5e0'" onkeydown="if(event.key==='Enter')obSubmit(1)">
+      <button onclick="obSubmit(1)" style="padding:13px 18px;background:#1a1a1a;color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer">→</button>
+    </div>`);
+    setTimeout(()=>document.getElementById('ob-inp')?.focus(),150);
+  },400);
 }
 
-function renderObDots(){
-  const dots=document.getElementById('ob-dots');
-  if(!dots)return;
-  dots.innerHTML=[1,2,3,4,5,6,7,8].map(i=>`<div style="width:${_obStep===i?20:8}px;height:8px;border-radius:99px;background:${_obStep===i?'#1a1a1a':'#d1d5db'};transition:all .2s"></div>`).join('');
-}
-
-function renderObCats(){
-  const c=document.getElementById('ob-cats-container');
-  if(!c)return;
-  c.innerHTML=Object.entries(OB_CATS_COMUNES).map(([tipo,cats],idx)=>`
-    <div style="margin-bottom:14px">
-      <div style="font-size:11px;font-weight:700;color:#aaa;letter-spacing:.08em;margin-bottom:8px;cursor:pointer" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'flex':'none'">
-        ${tipo.toUpperCase()} ${idx<2?'▼':'▶'}
-      </div>
-      <div style="display:${idx<2?'flex':'none'};flex-wrap:wrap;gap:6px">
-        ${cats.map(cat=>`<button onclick="toggleObCat(this,'${cat.replace(/'/g,"\\'")}')" style="padding:6px 12px;border-radius:99px;border:0.5px solid ${_obCatsSeleccionadas.has(cat)?'#1a1a1a':'#e5e5e0'};background:${_obCatsSeleccionadas.has(cat)?'#1a1a1a':'#fff'};color:${_obCatsSeleccionadas.has(cat)?'#fff':'#666'};font-size:12px;font-weight:600;cursor:pointer">${cat}</button>`).join('')}
-      </div>
-    </div>`).join('');
-}
-
-window.toggleObCat=(btn,cat)=>{
-  if(_obCatsSeleccionadas.has(cat)){_obCatsSeleccionadas.delete(cat);btn.style.background='#fff';btn.style.color='#666';btn.style.borderColor='#e5e5e0';}
-  else{_obCatsSeleccionadas.add(cat);btn.style.background='#1a1a1a';btn.style.color='#fff';btn.style.borderColor='#1a1a1a';}
+window.obSubmit=function(step){
+  if(step===1){
+    const v=(document.getElementById('ob-inp')?.value||'').trim();
+    if(!v){document.getElementById('ob-inp')?.focus();return;}
+    _obData.nombre=v;
+    _obAddUser(v);_obSetInput('');
+    _obStep=2;_obProgress(2);
+    setTimeout(()=>{
+      _obAddFina(`¡Buenísimo, <strong>${v}</strong>! 🙌<br>¿Cómo llamamos a tu espacio?<br><span style="font-size:12px;color:#999">Ej: "Casa García", "Mis finanzas"</span>`);
+      _obSetInput(`<div style="display:flex;gap:8px">
+        <input id="ob-inp" type="text" placeholder="Nombre del hogar" autocomplete="off" autocorrect="off" style="flex:1;padding:13px 14px;border-radius:12px;border:1.5px solid #e5e5e0;font-size:16px;background:#fff;outline:none;-webkit-text-size-adjust:none" onfocus="this.style.borderColor='#1a1a1a'" onblur="this.style.borderColor='#e5e5e0'" onkeydown="if(event.key==='Enter')obSubmit(2)">
+        <button onclick="obSubmit(2)" style="padding:13px 18px;background:#1a1a1a;color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer">→</button>
+      </div>`);
+      setTimeout(()=>document.getElementById('ob-inp')?.focus(),150);
+    },600);
+  }
+  else if(step===2){
+    const v=(document.getElementById('ob-inp')?.value||'').trim();
+    if(!v){document.getElementById('ob-inp')?.focus();return;}
+    _obData.hogar=v;
+    _obAddUser(v);_obSetInput('');
+    _obStep=3;_obProgress(3);
+    setTimeout(()=>{
+      _obAddFina('Perfecto 🏠<br>¿Registrás los gastos <strong>solo/a</strong> o <strong>con alguien más</strong>?');
+      _obSetInput(`<div style="display:flex;flex-direction:column;gap:10px">
+        <button onclick="obSelTipo('solo')" style="padding:16px;background:#fff;border:1.5px solid #e5e5e0;border-radius:14px;font-size:15px;font-weight:600;cursor:pointer;text-align:left;transition:border-color .15s">🧍 Solo/a</button>
+        <button onclick="obSelTipo('familiar')" style="padding:16px;background:#fff;border:1.5px solid #e5e5e0;border-radius:14px;font-size:15px;font-weight:600;cursor:pointer;text-align:left;transition:border-color .15s">👫 Con alguien más</button>
+      </div>`);
+    },600);
+  }
+  else if(step==='3partner'){
+    const coN=(document.getElementById('ob-co-nombre')?.value||'').trim();
+    const coE=(document.getElementById('ob-co-email')?.value||'').trim();
+    if(!coN){document.getElementById('ob-co-nombre')?.focus();return;}
+    _obData.coNombre=coN;_obData.coEmail=coE;
+    _obPagadores=[_obData.nombre||'Yo',coN];
+    _obAddUser(coN+(coE?' ('+coE+')':''));_obSetInput('');
+    _obGoStep4();
+  }
+  else if(step===4){
+    const v=parseInt(document.getElementById('ob-ahorro-slider')?.value||20);
+    _obData.ahorroPct=v;
+    _obAddUser(`Quiero ahorrar el ${v}% 🎯`);_obSetInput('');
+    _obStep=5;_obProgress(5);
+    setTimeout(()=>{
+      _obAddFina('¡Excelente meta! 💪<br>¿Ya tenés ahorros? Podés registrarlos acá.');
+      _obSetInput(`<div style="display:flex;flex-direction:column;gap:10px">
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <label style="font-size:12px;color:#666;font-weight:600">🟡 Dólares (U$S)</label>
+          <input id="ob-usd" type="number" placeholder="0" min="0" inputmode="decimal" style="padding:11px 14px;border-radius:10px;border:1.5px solid #e5e5e0;font-size:15px;background:#fff;outline:none" onfocus="this.style.borderColor='#1a1a1a'" onblur="this.style.borderColor='#e5e5e0'">
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <label style="font-size:12px;color:#666;font-weight:600">📈 Inversiones ($ARS)</label>
+          <input id="ob-inv" type="number" placeholder="0" min="0" inputmode="decimal" style="padding:11px 14px;border-radius:10px;border:1.5px solid #e5e5e0;font-size:15px;background:#fff;outline:none" onfocus="this.style.borderColor='#1a1a1a'" onblur="this.style.borderColor='#e5e5e0'">
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <label style="font-size:12px;color:#666;font-weight:600">💵 Otros pesos</label>
+          <input id="ob-otros" type="number" placeholder="0" min="0" inputmode="decimal" style="padding:11px 14px;border-radius:10px;border:1.5px solid #e5e5e0;font-size:15px;background:#fff;outline:none" onfocus="this.style.borderColor='#1a1a1a'" onblur="this.style.borderColor='#e5e5e0'">
+        </div>
+        <div style="display:flex;gap:8px;margin-top:4px">
+          <button onclick="obSubmit(5)" style="flex:1;padding:13px;background:#1a1a1a;color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer">Guardar →</button>
+          <button onclick="obSubmit('5skip')" style="padding:13px 14px;background:#f5f5f3;color:#666;border:1.5px solid #e5e5e0;border-radius:12px;font-size:13px;font-weight:600;cursor:pointer">Saltar</button>
+        </div>
+      </div>`);
+    },600);
+  }
+  else if(step===5){
+    const usd=parseFloat(document.getElementById('ob-usd')?.value)||0;
+    const inv=parseFloat(document.getElementById('ob-inv')?.value)||0;
+    const otros=parseFloat(document.getElementById('ob-otros')?.value)||0;
+    _obData.ahorroUSD=usd;_obData.ahorroInv=inv;_obData.ahorroOtros=otros;
+    const partes=[];if(usd>0)partes.push(`U$S ${usd.toLocaleString('es-AR')}`);if(inv>0)partes.push(`$${Math.round(inv).toLocaleString('es-AR')} inv.`);if(otros>0)partes.push(`$${Math.round(otros).toLocaleString('es-AR')} ARS`);
+    _obAddUser(partes.length?partes.join(' · '):'(sin ahorros)');_obSetInput('');
+    _obGoStep6();
+  }
+  else if(step==='5skip'){
+    _obData.ahorroUSD=0;_obData.ahorroInv=0;_obData.ahorroOtros=0;
+    _obAddUser('No tengo ahorros por ahora');_obSetInput('');
+    _obGoStep6();
+  }
 };
 
-window.selObTipo=(tipo)=>{
-  _obTipo=tipo;
-  const solo=document.getElementById('ob-tipo-solo');
-  const fam=document.getElementById('ob-tipo-familiar');
-  if(solo){solo.style.border=tipo==='solo'?'2px solid #1a1a1a':'0.5px solid #e5e5e0';solo.style.background=tipo==='solo'?'#f5f5f3':'#fff';}
-  if(fam){fam.style.border=tipo==='familiar'?'2px solid #1a1a1a':'0.5px solid #e5e5e0';fam.style.background=tipo==='familiar'?'#f5f5f3':'#fff';}
+window.obSelTipo=function(tipo){
+  _obData.tipo=tipo;_obTipo=tipo;
+  if(tipo==='solo'){
+    _obAddUser('Solo/a 🧍');
+    _obPagadores=[_obData.nombre||'Yo'];
+    _obSetInput('');
+    _obGoStep4();
+  } else {
+    _obAddUser('Con alguien más 👫');
+    setTimeout(()=>{
+      _obAddFina('¡Qué bueno compartir! 🙌<br>¿Cómo se llama esa persona?');
+      _obSetInput(`<div style="display:flex;flex-direction:column;gap:10px">
+        <input id="ob-co-nombre" type="text" placeholder="Nombre de tu compañero/a" autocomplete="off" style="padding:13px 14px;border-radius:12px;border:1.5px solid #e5e5e0;font-size:16px;background:#fff;outline:none;-webkit-text-size-adjust:none" onfocus="this.style.borderColor='#1a1a1a'" onblur="this.style.borderColor='#e5e5e0'">
+        <input id="ob-co-email" type="email" placeholder="Email (opcional — para invitarle)" autocomplete="off" style="padding:13px 14px;border-radius:12px;border:1.5px solid #e5e5e0;font-size:16px;background:#fff;outline:none;-webkit-text-size-adjust:none" onfocus="this.style.borderColor='#1a1a1a'" onblur="this.style.borderColor='#e5e5e0'" onkeydown="if(event.key==='Enter')obSubmit('3partner')">
+        <button onclick="obSubmit('3partner')" style="padding:13px;background:#1a1a1a;color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer">Continuar →</button>
+      </div>`);
+      setTimeout(()=>document.getElementById('ob-co-nombre')?.focus(),150);
+    },600);
+  }
 };
 
-window.actualizarSliderAhorro=()=>{
-  const v=parseInt(document.getElementById('ob-ahorro')?.value||20);
-  const p=document.getElementById('ob-ahorro-pct');
-  const a=document.getElementById('ob-ahorro-ars');
+function _obGoStep4(){
+  _obStep=4;_obProgress(4);
+  setTimeout(()=>{
+    _obAddFina('¿Cuánto de tus ingresos querés ahorrar cada mes?');
+    _obSetInput(`<div style="display:flex;flex-direction:column;gap:14px">
+      <div style="display:flex;align-items:center;gap:14px">
+        <input id="ob-ahorro-slider" type="range" min="5" max="50" step="5" value="20" oninput="obAhorroUpdate()" style="flex:1;accent-color:#1a1a1a;height:4px">
+        <div id="ob-ahorro-val" style="font-size:26px;font-weight:800;min-width:56px;text-align:right;color:#1a1a1a">20%</div>
+      </div>
+      <div id="ob-ahorro-tip" style="font-size:12px;color:#888;line-height:1.5">💡 Buen punto de partida. La mayoría de las familias apunta al 20%.</div>
+      <button onclick="obSubmit(4)" style="padding:13px;background:#1a1a1a;color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer">Continuar →</button>
+    </div>`);
+  },600);
+}
+
+window.obAhorroUpdate=function(){
+  const v=parseInt(document.getElementById('ob-ahorro-slider')?.value||20);
+  const val=document.getElementById('ob-ahorro-val');
   const tip=document.getElementById('ob-ahorro-tip');
-  if(p)p.textContent=v+'%';
-  if(a)a.textContent='$'+Math.round(v*10000).toLocaleString('es-AR')+' / mes';
+  if(val)val.textContent=v+'%';
   if(tip){
     if(v<=10)tip.textContent='💡 Cualquier ahorro suma. Empezá de a poco.';
     else if(v<=20)tip.textContent='💡 Buen punto de partida. La mayoría de las familias apunta al 20%.';
@@ -3276,90 +3229,46 @@ window.actualizarSliderAhorro=()=>{
   }
 };
 
-window.obNext=async(paso)=>{
-  if(paso===1){
-    const nombre=document.getElementById('ob-nombre')?.value.trim();
-    const hogar=document.getElementById('ob-hogar')?.value.trim();
-    if(!nombre||!hogar){toast('Completá tu nombre y el del hogar','warn',2500);return;}
-  }
-  if(paso===5){renderObPagadores();}
-  _obStep=paso+1;
-  [1,2,3,4,5,6,7,8].forEach(i=>{const el=document.getElementById(`ob-step-${i}`);if(el)el.style.display=i===_obStep?'block':'none';});
-  renderObDots();
-  if(_obStep===8)mostrarObResumen();
-};
-
-window.obBack=(paso)=>{
-  _obStep=paso-1;
-  [1,2,3,4,5,6,7,8].forEach(i=>{const el=document.getElementById(`ob-step-${i}`);if(el)el.style.display=i===_obStep?'block':'none';});
-  renderObDots();
-};
-
-// Vars temporales onboarding pagadores/fps
-let _obPagadores=[...(window.QUIENES_PAGAN_DEFAULT||['Yo'])];
-let _obFormasPago=[...(window.FORMAS_PAGO_DEFAULT||['Transferencia','Efectivo','Tarjeta Débito','Tarjeta Credito CUOTAS'])];
-
-function renderObPagadores(){
-  const pList=document.getElementById('ob-pagadores-list');
-  const fpList=document.getElementById('ob-fps-list');
-  if(pList)pList.innerHTML=_obPagadores.map((p,i)=>`<div style="display:flex;align-items:center;padding:6px 0;border-bottom:0.5px solid #f0f0ee"><span style="flex:1;font-size:14px">${p}</span><button onclick="_obPagadores.splice(${i},1);renderObPagadores()" style="background:none;border:none;color:#f87171;font-size:16px;cursor:pointer">×</button></div>`).join('');
-  if(fpList)fpList.innerHTML=_obFormasPago.filter(f=>f!=='Tarjeta Credito CUOTAS').map((f,i)=>`<div style="display:flex;align-items:center;padding:6px 0;border-bottom:0.5px solid #f0f0ee"><span style="flex:1;font-size:14px">${f}</span><button onclick="_obFormasPago.splice(${i},1);renderObPagadores()" style="background:none;border:none;color:#f87171;font-size:16px;cursor:pointer">×</button></div>`).join('');
+function _obGoStep6(){
+  _obStep=6;_obProgress(6);
+  const nombre=_obData.nombre||'';
+  setTimeout(()=>{
+    _obAddFina(`¡Todo listo, <strong>${nombre}</strong>! 🎉<br>Ya podés empezar a registrar tus finanzas.<br><br><span style="font-size:12px;color:#aaa">Siempre podés ajustar todo desde Configuración.</span>`);
+    _obSetInput(`<button onclick="window.finalizarOnboarding()" style="width:100%;padding:16px;background:#1a1a1a;color:#fff;border:none;border-radius:14px;font-size:16px;font-weight:700;cursor:pointer;letter-spacing:.01em">Ir a la app →</button>`);
+    if(_obData.coEmail&&!_obInviteLink)_obGenerarLinkAuto();
+  },700);
 }
-window.obAgregarPagador=()=>{
-  const inp=document.getElementById('ob-new-pagador');
-  const val=inp?.value.trim();
-  if(!val)return;
-  if(!_obPagadores.includes(val))_obPagadores.push(val);
-  inp.value='';renderObPagadores();
-};
-window.obAgregarFP=()=>{
-  const inp=document.getElementById('ob-new-fp');
-  const val=inp?.value.trim();
-  if(!val)return;
-  if(!_obFormasPago.includes(val))_obFormasPago.push(val);
-  inp.value='';renderObPagadores();
-};
 
-function mostrarObResumen(){
-  const nombre=document.getElementById('ob-nombre')?.value.trim()||'';
-  const hogar=document.getElementById('ob-hogar')?.value.trim()||'';
-  const ahorro=document.getElementById('ob-ahorro')?.value||20;
-  const email=document.getElementById('ob-email-coinquilino')?.value.trim()||'';
-  const usd=parseFloat(document.getElementById('ob-ahorro-usd')?.value)||0;
-  const inv=parseFloat(document.getElementById('ob-ahorro-inv')?.value)||0;
-  const otros=parseFloat(document.getElementById('ob-ahorro-otros')?.value)||0;
-  const r=document.getElementById('ob-resumen');
-  const ahorrosStr=usd>0||inv>0||otros>0?`<br>💰 Ahorros: ${usd>0?`U$S ${usd.toLocaleString('es-AR')} `:''} ${inv>0?`$${Math.round(inv).toLocaleString('es-AR')} inv. `:''}${otros>0?`$${Math.round(otros).toLocaleString('es-AR')} otros`:''}`.trim():'';
-  if(r)r.innerHTML=`🏠 <strong>${hogar}</strong><br>👤 ${nombre}<br>🎯 Objetivo de ahorro: <strong>${ahorro}%</strong>${_obInviteLink?`<br>🔗 Link de invitación generado`:(email?`<br>📧 Co-usuario: ${email}`:'')}<br>🗂️ ${_obCatsSeleccionadas.size} categorías seleccionadas<br>👥 ${_obPagadores.join(', ')}${ahorrosStr}`;
+async function _obGenerarLinkAuto(){
+  const email=_obData.coEmail;const nombre=_obData.nombre;const hogar=_obData.hogar||'Mi hogar';
+  const user=window._authUser;if(!user||!email)return;
+  const token=[...Array(32)].map(()=>Math.random().toString(36)[2]).join('');
+  try{
+    await window._setDoc(window._doc('invitaciones',token),{
+      hogarId:user.uid,emailInvitado:email,emailInvitante:user.email,
+      nombreInvitante:nombre||user.displayName||user.email,nombreHogar:hogar,
+      status:'pendiente',expiresAt:Date.now()+(7*24*60*60*1000),creadoEn:window._serverTimestamp()
+    });
+    _obInviteLink=`${window.location.origin}/?invite=${token}`;
+    fetch('/.netlify/functions/invitacion',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({emailInvitado:email,nombreInvitante:nombre||user.displayName||user.email,nombreHogar:hogar,link:_obInviteLink})}).catch(()=>{});
+  }catch(e){console.warn('Link auto-gen failed',e);}
 }
 
 window.generarLinkInvitacion=async()=>{
-  const email=document.getElementById('ob-email-coinquilino')?.value.trim();
-  const nombre=document.getElementById('ob-nombre')?.value.trim()||'';
-  const hogar=document.getElementById('ob-hogar')?.value.trim()||'Mi hogar';
+  const email=_obData.coEmail||'';
+  const nombre=_obData.nombre||(window._authUser?.displayName||'');
+  const hogar=_obData.hogar||'Mi hogar';
   const user=window._authUser;
   if(!user){toast('Error: no hay usuario','err',2000);return;}
   const token=[...Array(32)].map(()=>Math.random().toString(36)[2]).join('');
-  const futurHogarId=user.uid;
   try{
     await window._setDoc(window._doc('invitaciones',token),{
-      hogarId:futurHogarId,
-      emailInvitado:email||'',
-      emailInvitante:user.email,
-      nombreInvitante:nombre||user.displayName||user.email,
-      nombreHogar:hogar,
-      status:'pendiente',
-      expiresAt:Date.now()+(7*24*60*60*1000),
-      creadoEn:window._serverTimestamp()
+      hogarId:user.uid,emailInvitado:email||'',emailInvitante:user.email,
+      nombreInvitante:nombre||user.displayName||user.email,nombreHogar:hogar,
+      status:'pendiente',expiresAt:Date.now()+(7*24*60*60*1000),creadoEn:window._serverTimestamp()
     });
     const link=`${window.location.origin}/?invite=${token}`;
     _obInviteLink=link;
-    const linkDiv=document.getElementById('ob-invite-link');
-    const linkText=document.getElementById('ob-invite-link-text');
-    if(linkDiv)linkDiv.style.display='block';
-    if(linkText)linkText.textContent=link;
-    document.getElementById('ob-btn-generar-link').style.display='none';
-    // Enviar email de invitación si hay email cargado
     if(email){
       fetch('/.netlify/functions/invitacion',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({emailInvitado:email,nombreInvitante:nombre||user.displayName||user.email,nombreHogar:hogar,link})})
         .then(r=>r.ok?toast('✓ Link generado y email enviado a '+email,'ok',3000):toast('✓ Link generado (email no pudo enviarse)','ok',2500))
@@ -3375,7 +3284,6 @@ window.copiarLinkInvitacion=()=>{
 };
 
 window.finalizarOnboarding=async()=>{
-  // Modo preview (?onboarding=1): no guarda nada, vuelve a la app normal
   if(window._onboardingPreview){
     window._onboardingPreview=false;
     window.history.replaceState({},'','/');
@@ -3384,9 +3292,9 @@ window.finalizarOnboarding=async()=>{
   }
   const user=window._authUser;
   if(!user)return;
-  const nombre=document.getElementById('ob-nombre')?.value.trim()||user.displayName||'';
-  const hogar=document.getElementById('ob-hogar')?.value.trim()||'Mi hogar';
-  const ahorro=parseInt(document.getElementById('ob-ahorro')?.value||20);
+  const nombre=_obData.nombre||user.displayName||'';
+  const hogar=_obData.hogar||'Mi hogar';
+  const ahorro=_obData.ahorroPct||20;
   const newHogarId=user.uid;
   try{
     await window._setDoc(window._doc('hogares',newHogarId,'metadata','info'),{
@@ -3399,14 +3307,12 @@ window.finalizarOnboarding=async()=>{
       rol:'owner',creadoEn:window._serverTimestamp()
     });
     window._setHogarId(newHogarId);
-    // Guardar preferencias de pagadores y formas de pago del onboarding
     window._setFormasDePago(_obFormasPago);
     window._setQuienesPagan(_obPagadores);
     await window.guardarPreferencias();
-    // Guardar ahorros iniciales
-    const usd=parseFloat(document.getElementById('ob-ahorro-usd')?.value)||0;
-    const inv=parseFloat(document.getElementById('ob-ahorro-inv')?.value)||0;
-    const otros=parseFloat(document.getElementById('ob-ahorro-otros')?.value)||0;
+    const usd=_obData.ahorroUSD||0;
+    const inv=_obData.ahorroInv||0;
+    const otros=_obData.ahorroOtros||0;
     if(usd>0||inv>0||otros>0){
       await window._setDoc(window._doc('hogares',newHogarId,'config','ahorros_iniciales'),{usd,inversiones:inv,otros,actualizadoEn:window._serverTimestamp()});
     }
