@@ -3068,7 +3068,7 @@ function _obAddFina(msg){
   const msgs=document.getElementById('ob-messages');if(!msgs)return;
   const wrap=document.createElement('div');
   wrap.style.cssText='display:flex;align-items:flex-start;gap:10px;animation:fadeSlideIn .35s ease';
-  wrap.innerHTML=`<div style="width:36px;height:36px;border-radius:50%;background:#1a1a1a;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">🤖</div><div style="background:#fff;border-radius:4px 16px 16px 16px;padding:12px 14px;font-size:14px;line-height:1.55;color:#1a1a1a;max-width:calc(100% - 56px);box-shadow:0 1px 4px rgba(0,0,0,.08)">${msg}</div>`;
+  wrap.innerHTML=`<div style="width:36px;height:36px;border-radius:50%;background:#1a1a1a;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">🤖</div><div style="background:#1a1a1a;border-radius:4px 12px 12px 12px;padding:12px 14px;font-size:14px;line-height:1.55;color:#fff;max-width:calc(100% - 56px)">${msg}</div>`;
   msgs.appendChild(wrap);_obScrollBottom();
 }
 function _obAddUser(msg){
@@ -3141,9 +3141,13 @@ window.obSubmit=function(step){
     const v=parseInt(document.getElementById('ob-ahorro-slider')?.value||20);
     _obData.ahorroPct=v;
     _obAddUser(`Quiero ahorrar el ${v}% 🎯`);_obSetInput('');
-    _obStep=5;_obProgress(5);
+    _obGoStepCats();
+  }
+  else if(step==='cats'){
+    _obAddUser(`${_obCatsSeleccionadas.size} categorías seleccionadas ✓`);_obSetInput('');
+    _obStep=6;_obProgress(6);
     setTimeout(()=>{
-      _obAddFina('¡Excelente meta! 💪<br>¿Ya tenés ahorros? Podés registrarlos acá.');
+      _obAddFina('¿Ya tenés ahorros? Así los veo reflejados desde el primer día.');
       _obSetInput(`<div style="display:flex;flex-direction:column;gap:10px">
         <div style="display:flex;flex-direction:column;gap:6px">
           <label style="font-size:12px;color:#666;font-weight:600">🟡 Dólares (U$S)</label>
@@ -3216,6 +3220,30 @@ function _obGoStep4(){
   },600);
 }
 
+function _obGoStepCats(){
+  _obStep=5;_obProgress(5);
+  setTimeout(()=>{
+    _obAddFina('¿Qué categorías usás más? Podés agregar o quitar las que quieras después.');
+    const html=Object.entries(OB_CATS_COMUNES).map(([tipo,cats])=>`
+      <div style="margin-bottom:10px">
+        <div style="font-size:10px;font-weight:700;color:#aaa;letter-spacing:.08em;margin-bottom:6px">${tipo.toUpperCase()}</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px">${cats.map(cat=>`<button onclick="obToggleCat(this,'${cat.replace(/'/g,"\\'")}' )" style="padding:6px 12px;border-radius:99px;border:1.5px solid ${_obCatsSeleccionadas.has(cat)?'#1a1a1a':'#e5e5e0'};background:${_obCatsSeleccionadas.has(cat)?'#1a1a1a':'#fff'};color:${_obCatsSeleccionadas.has(cat)?'#fff':'#666'};font-size:12px;font-weight:600;cursor:pointer;transition:all .15s">${cat}</button>`).join('')}</div>
+      </div>`).join('');
+    _obSetInput(`<div style="display:flex;flex-direction:column;gap:2px;max-height:260px;overflow-y:auto;padding-bottom:4px">${html}</div>
+      <button onclick="obSubmit('cats')" style="width:100%;margin-top:10px;padding:13px;background:#1a1a1a;color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer">Continuar →</button>`);
+  },600);
+}
+
+window.obToggleCat=(btn,cat)=>{
+  if(_obCatsSeleccionadas.has(cat)){
+    _obCatsSeleccionadas.delete(cat);
+    btn.style.background='#fff';btn.style.color='#666';btn.style.borderColor='#e5e5e0';
+  } else {
+    _obCatsSeleccionadas.add(cat);
+    btn.style.background='#1a1a1a';btn.style.color='#fff';btn.style.borderColor='#1a1a1a';
+  }
+};
+
 window.obAhorroUpdate=function(){
   const v=parseInt(document.getElementById('ob-ahorro-slider')?.value||20);
   const val=document.getElementById('ob-ahorro-val');
@@ -3230,7 +3258,8 @@ window.obAhorroUpdate=function(){
 };
 
 function _obGoStep6(){
-  _obStep=6;_obProgress(6);
+  _obStep=7;
+  const bar=document.getElementById('ob-progress-fill');if(bar)bar.style.width='100%';
   const nombre=_obData.nombre||'';
   setTimeout(()=>{
     _obAddFina(`¡Todo listo, <strong>${nombre}</strong>! 🎉<br>Ya podés empezar a registrar tus finanzas.<br><br><span style="font-size:12px;color:#aaa">Siempre podés ajustar todo desde Configuración.</span>`);
