@@ -3426,13 +3426,13 @@ window.cfgGenerarInvite=async()=>{
   const hogarId=window.hogarId||user.uid;
   const nombre=document.getElementById('perfil-inp-nombre')?.value.trim()||user.displayName||'';
   let hogarNombre='Mi hogar';
-  try{const s=await getDoc(doc(db,'hogares',hogarId,'metadata','info'));if(s.exists())hogarNombre=s.data().nombre||hogarNombre;}catch(e){}
+  try{const s=await window._getDoc(window._doc('hogares',hogarId,'metadata','info'));if(s.exists())hogarNombre=s.data().nombre||hogarNombre;}catch(e){}
   const token=[...Array(32)].map(()=>Math.random().toString(36)[2]).join('');
   try{
-    await setDoc(doc(db,'invitaciones',token),{
+    await window._setDoc(window._doc('invitaciones',token),{
       hogarId,emailInvitado:email,emailInvitante:user.email,
       nombreInvitante:nombre,nombreHogar:hogarNombre,
-      status:'pendiente',expiresAt:Date.now()+(7*24*60*60*1000),creadoEn:serverTimestamp()
+      status:'pendiente',expiresAt:Date.now()+(7*24*60*60*1000),creadoEn:window._serverTimestamp()
     });
     _cfgInviteLink=`${window.location.origin}/?invite=${token}`;
     const res=document.getElementById('cfg-invite-result');
