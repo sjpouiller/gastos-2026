@@ -1063,7 +1063,7 @@ select,input[type=text],input[type=number],input[type=date],input[type=month]{pa
 </div>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, onSnapshot, query, orderBy, serverTimestamp, setDoc, getDoc, getDocs, where, arrayUnion } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, onSnapshot, query, orderBy, serverTimestamp, setDoc, getDoc, getDocs, where, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 const cfg={apiKey:"AIzaSyBAZJ1VfbW4fUiZmKLrIJHoodqEelE8iIA",authDomain:"gastos-sebas-male.firebaseapp.com",projectId:"gastos-sebas-male",storageBucket:"gastos-sebas-male.firebasestorage.app",messagingSenderId:"966248890085",appId:"1:966248890085:web:b7cae55e5af740989a9e0c"};
@@ -3391,15 +3391,18 @@ async function renderPerfilSubpage(){
   // Movimientos
   const mc=document.getElementById('perfil-mov-count');
   if(mc)mc.textContent=window.gastos?.length?window.gastos.length+' movimientos':'—';
-  // Co-usuario
-  const coVal=document.getElementById('perfil-co-usuario-val');
-  if(coVal){
+  // Co-usuarios
+  const coRow=document.getElementById('perfil-co-usuario-row');
+  if(coRow){
     try{
       const hogarSnap=await getDoc(doc(db,'hogares',window.hogarId,'metadata','info'));
       const coUsuarios=hogarSnap.data()?.coUsuarios||[];
-      coVal.textContent=coUsuarios.length?coUsuarios.map(c=>c.nombre||c.email||c).join(', '):'Ninguno';
-      coVal.style.fontWeight=coUsuarios.length?'600':'normal';
-    }catch(e){coVal.textContent='—';}
+      if(coUsuarios.length===0){
+        coRow.innerHTML=`<span class="row-cat">Co-usuarios</span><span style="font-size:12px;color:#aaa">Ninguno</span>`;
+      } else {
+        coRow.innerHTML=`<span class="row-cat">Co-usuarios</span><div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">${coUsuarios.map(email=>`<div style="display:flex;align-items:center;gap:8px"><span style="font-size:12px;font-weight:600">${email}</span><button onclick="eliminarCoUsuario('${email.replace(/'/g,"\\'")}' )" style="background:none;border:none;color:#f87171;font-size:14px;cursor:pointer;padding:0;line-height:1" title="Eliminar">×</button></div>`).join('')}</div>`;
+      }
+    }catch(e){coRow.innerHTML=`<span class="row-cat">Co-usuarios</span><span style="font-size:12px;color:#aaa">—</span>`;}
   }
 }
 let _cfgInviteLink=null;
@@ -3433,6 +3436,18 @@ window.cfgGenerarInvite=async()=>{
 };
 window.cfgCopiarInvite=()=>{
   if(_cfgInviteLink)navigator.clipboard.writeText(_cfgInviteLink).then(()=>toast('✓ Link copiado','ok',2000));
+};
+window.eliminarCoUsuario=async(email)=>{
+  if(!confirm(`¿Eliminar a ${email} del hogar?`))return;
+  const hogarId=window.hogarId;
+  try{
+    await updateDoc(doc(db,'hogares',hogarId,'metadata','info'),{coUsuarios:arrayRemove(email)});
+    // También desvinculamos su documento de usuario si existe
+    const q=await getDocs(query(collection(db,'usuarios'),where('hogarId','==',hogarId),where('email','==',email)));
+    for(const d of q.docs)await deleteDoc(d.ref);
+    toast('✓ Co-usuario eliminado','ok',2000);
+    renderPerfilSubpage();
+  }catch(e){toast('Error: '+e.message,'err',3000);}
 };
 
 window.guardarPerfil=async()=>{
