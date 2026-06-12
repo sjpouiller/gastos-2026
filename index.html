@@ -2162,9 +2162,12 @@ const CATEGORIAS={'Ingreso':['Aguinaldo','Freelance','Otros ingresos','Sueldo','
 window.CATEGORIAS=CATEGORIAS;
 const CATS_USD=['Compra USD','Sueldo USD','Venta USD'];
 function getCatsConCustom(tipo){
-  const base=CATEGORIAS[tipo]||CATEGORIAS['Gasto variable'];
   const key=tipo==='Gasto fijo'?'fijo':tipo==='Gasto variable'?'variable':tipo==='Ingreso'?'ingreso':'ahorro';
-  const custom=(window.catCustom||{})[key]||[];
+  const cc=window.catCustom||{};
+  // Si _isComplete=true las cats son la lista total (onboarding nuevo), no extras
+  if(cc._isComplete&&cc[key]?.length){return [...cc[key]].sort();}
+  const base=CATEGORIAS[tipo]||CATEGORIAS['Gasto variable'];
+  const custom=cc[key]||[];
   return [...new Set([...base,...custom])].sort();
 }
 function actualizarCategorias(){const t=document.getElementById('inp-tipo').value;const s=document.getElementById('inp-cat');if(!s)return;s.innerHTML=getCatsConCustom(t).map(c=>`<option value="${c}">${c}</option>`).join('');toggleDolarField();}
@@ -2646,8 +2649,10 @@ window.renderConfigSection=async()=>{
 // renderObjetivos está definida en el script regular — no sobreescribir
 
 function getCatsActivas(tipoKey){
+  const cc=window.catCustom||{};
+  if(cc._isComplete&&cc[tipoKey]?.length){return [...cc[tipoKey]].sort();}
   const base=tipoKey==='fijo'?CATEGORIAS['Gasto fijo']:CATEGORIAS['Gasto variable'];
-  const custom=catCustom[tipoKey]||[];
+  const custom=cc[tipoKey]||[];
   return [...new Set([...base,...custom])].sort();
 }
 
@@ -3065,15 +3070,15 @@ window.confirmarImport=async()=>{
 
 // ── ONBOARDING ──
 const OB_CATS_COMUNES={
-  'Gasto variable':['Supermercado','Nafta','Delivery','Salidas a comer','Farmacia','Uber / Taxi','Cafe'],
-  'Gasto fijo':['Expensas','Internet','Servicios - Luz','Servicios - Gas','Obra social / Prepaga'],
-  'Ingreso':['Sueldo','Freelance'],
-  'Ahorro':['Ahorro general','Compra USD']
+  'Gasto fijo':['Expensas','Internet','Obra social / Prepaga','Servicios - Luz','Servicios - Gas'],
+  'Gasto variable':['Supermercado','Delivery','Salidas a comer','Farmacia','Nafta','Uber / Taxi','Otros'],
+  'Ingreso':['Sueldo','Freelance','Otros ingresos'],
+  'Ahorro':['Ahorro general']
 };
 let _obStep=1;
 let _obTipo='familiar';
 let _obData={};
-let _obCatsSeleccionadas=new Set([...OB_CATS_COMUNES['Gasto variable'],...OB_CATS_COMUNES['Gasto fijo']]);
+let _obCatsSeleccionadas=new Set([...OB_CATS_COMUNES['Gasto fijo'],...OB_CATS_COMUNES['Gasto variable']]);
 let _obInviteLink=null;
 let _obPagadores=[...(window.QUIENES_PAGAN_DEFAULT||['Yo'])];
 let _obFormasPago=[...(window.FORMAS_PAGO_DEFAULT||['Transferencia','Efectivo','Tarjeta Débito','Tarjeta Credito CUOTAS'])];
@@ -3354,6 +3359,15 @@ window.finalizarOnboarding=async()=>{
     window._setFormasDePago(_obFormasPago);
     window._setQuienesPagan(_obPagadores);
     await window.guardarPreferencias();
+    // Guardar cats del onboarding en config/categorias (mismo formato que catCustom)
+    // Solo afecta hogares nuevos — usuarios legacy/existentes no pasan por acá
+    await window._setDoc(window._doc('hogares',newHogarId,'config','categorias'),{
+      fijo:[..._obCatsSeleccionadas].filter(c=>OB_CATS_COMUNES['Gasto fijo'].includes(c)),
+      variable:[..._obCatsSeleccionadas].filter(c=>OB_CATS_COMUNES['Gasto variable'].includes(c)),
+      ingreso:[..._obCatsSeleccionadas].filter(c=>OB_CATS_COMUNES['Ingreso'].includes(c)),
+      ahorro:[..._obCatsSeleccionadas].filter(c=>OB_CATS_COMUNES['Ahorro'].includes(c)),
+      _isComplete:true
+    });
     const usd=_obData.ahorroUSD||0;
     const inv=_obData.ahorroInv||0;
     const otros=_obData.ahorroOtros||0;
