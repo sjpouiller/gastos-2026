@@ -594,7 +594,22 @@ select,input[type=text],input[type=number],input[type=date],input[type=month]{pa
         <div class="card" style="margin-top:12px">
           <div class="card-title">Cuenta</div>
           <div class="row-item"><span class="row-cat">Movimientos cargados</span><span id="perfil-mov-count" style="font-size:12px;color:#aaa">—</span></div>
-          <div class="row-item"><span class="row-cat">Co-usuario</span><span style="font-size:12px;font-weight:600">Male ✓</span></div>
+          <div id="perfil-co-usuario-row" class="row-item"><span class="row-cat">Co-usuario</span><span id="perfil-co-usuario-val" style="font-size:12px;color:#aaa">—</span></div>
+        </div>
+        <!-- Invitar co-usuario -->
+        <div class="card" style="margin-top:12px" id="cfg-invite-card">
+          <div class="card-title">Invitar a alguien</div>
+          <div style="font-size:13px;color:#666;margin-bottom:12px;line-height:1.5">Generá un link para que otra persona se una a tu espacio.</div>
+          <div style="display:flex;gap:8px;margin-bottom:10px">
+            <input type="email" id="cfg-invite-email" placeholder="Email (opcional)" autocomplete="off" style="flex:1;padding:10px 12px;font-size:14px;border:0.5px solid #d1d5db;border-radius:10px;background:#fff">
+            <button onclick="cfgGenerarInvite()" style="padding:10px 16px;background:#1a1a1a;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap">Generar link</button>
+          </div>
+          <div id="cfg-invite-result" style="display:none">
+            <div style="display:flex;align-items:center;gap:8px;padding:10px 12px;background:#f5f5f3;border-radius:10px;border:0.5px solid #e5e5e0">
+              <span id="cfg-invite-link-text" style="flex:1;font-size:12px;color:#1a1a1a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
+              <button onclick="cfgCopiarInvite()" style="padding:6px 12px;background:#1a1a1a;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;flex-shrink:0">Copiar</button>
+            </div>
+          </div>
         </div>
         <button class="btn-secondary" onclick="logout()" style="color:#dc2626;border-color:#fca5a5;margin-top:8px">Cerrar sesión</button>
       </div>
@@ -3376,7 +3391,50 @@ async function renderPerfilSubpage(){
   // Movimientos
   const mc=document.getElementById('perfil-mov-count');
   if(mc)mc.textContent=window.gastos?.length?window.gastos.length+' movimientos':'—';
+  // Co-usuario
+  const coVal=document.getElementById('perfil-co-usuario-val');
+  if(coVal){
+    try{
+      const hogarSnap=await getDoc(doc(db,'hogares',window.hogarId,'metadata','info'));
+      const coUsuarios=hogarSnap.data()?.coUsuarios||[];
+      coVal.textContent=coUsuarios.length?coUsuarios.map(c=>c.nombre||c.email||c).join(', '):'Ninguno';
+      coVal.style.fontWeight=coUsuarios.length?'600':'normal';
+    }catch(e){coVal.textContent='—';}
+  }
 }
+let _cfgInviteLink=null;
+window.cfgGenerarInvite=async()=>{
+  const email=document.getElementById('cfg-invite-email')?.value.trim()||'';
+  const user=window._authUser;if(!user){toast('No hay sesión activa','err',2000);return;}
+  const hogarId=window.hogarId||user.uid;
+  const nombre=document.getElementById('perfil-inp-nombre')?.value.trim()||user.displayName||'';
+  let hogarNombre='Mi hogar';
+  try{const s=await getDoc(doc(db,'hogares',hogarId,'metadata','info'));if(s.exists())hogarNombre=s.data().nombre||hogarNombre;}catch(e){}
+  const token=[...Array(32)].map(()=>Math.random().toString(36)[2]).join('');
+  try{
+    await setDoc(doc(db,'invitaciones',token),{
+      hogarId,emailInvitado:email,emailInvitante:user.email,
+      nombreInvitante:nombre,nombreHogar:hogarNombre,
+      status:'pendiente',expiresAt:Date.now()+(7*24*60*60*1000),creadoEn:serverTimestamp()
+    });
+    _cfgInviteLink=`${window.location.origin}/?invite=${token}`;
+    const res=document.getElementById('cfg-invite-result');
+    const txt=document.getElementById('cfg-invite-link-text');
+    if(txt)txt.textContent=_cfgInviteLink;
+    if(res)res.style.display='block';
+    if(email){
+      fetch('/.netlify/functions/invitacion',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({emailInvitado:email,nombreInvitante:nombre,nombreHogar:hogarNombre,link:_cfgInviteLink})})
+        .then(r=>r.ok?toast('✓ Link generado y email enviado','ok',3000):toast('✓ Link generado (email no enviado)','ok',2500))
+        .catch(()=>toast('✓ Link generado (email no enviado)','ok',2500));
+    } else {
+      toast('✓ Link generado — copialo para compartir','ok',2500);
+    }
+  }catch(e){toast('Error: '+e.message,'err',3000);}
+};
+window.cfgCopiarInvite=()=>{
+  if(_cfgInviteLink)navigator.clipboard.writeText(_cfgInviteLink).then(()=>toast('✓ Link copiado','ok',2000));
+};
+
 window.guardarPerfil=async()=>{
   const nombre=document.getElementById('perfil-inp-nombre')?.value.trim()||'';
   const tel=document.getElementById('perfil-inp-tel')?.value.trim()||'';
