@@ -599,16 +599,15 @@ select,input[type=text],input[type=number],input[type=date],input[type=month]{pa
         <!-- Invitar co-usuario -->
         <div class="card" style="margin-top:12px" id="cfg-invite-card">
           <div class="card-title">Invitar a alguien</div>
-          <div style="font-size:13px;color:#666;margin-bottom:12px;line-height:1.5">Generá un link para que otra persona se una a tu espacio.</div>
-          <div style="display:flex;gap:8px;margin-bottom:10px">
-            <input type="email" id="cfg-invite-email" placeholder="Email (opcional)" autocomplete="off" style="flex:1;padding:10px 12px;font-size:14px;border:0.5px solid #d1d5db;border-radius:10px;background:#fff">
-            <button onclick="cfgGenerarInvite()" style="padding:10px 16px;background:#1a1a1a;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap">Generar link</button>
-          </div>
-          <div id="cfg-invite-result" style="display:none">
+          <div style="font-size:13px;color:#666;margin-bottom:12px;line-height:1.5">Ingresá el email de la persona o generá un link para compartir por donde quieras.</div>
+          <input type="email" id="cfg-invite-email" placeholder="Email (opcional)" autocomplete="off" oninput="cfgInviteUpdate()" style="width:100%;padding:10px 12px;font-size:14px;border:0.5px solid #d1d5db;border-radius:10px;background:#fff;margin-bottom:10px;box-sizing:border-box">
+          <button id="cfg-invite-btn" onclick="cfgGenerarInvite()" style="width:100%;padding:12px;background:#1a1a1a;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer">Generar link para compartir</button>
+          <div id="cfg-invite-result" style="display:none;margin-top:10px">
             <div style="display:flex;align-items:center;gap:8px;padding:10px 12px;background:#f5f5f3;border-radius:10px;border:0.5px solid #e5e5e0">
               <span id="cfg-invite-link-text" style="flex:1;font-size:12px;color:#1a1a1a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
               <button onclick="cfgCopiarInvite()" style="padding:6px 12px;background:#1a1a1a;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;flex-shrink:0">Copiar</button>
             </div>
+            <div style="font-size:11px;color:#aaa;margin-top:6px;text-align:center">Compartilo por WhatsApp, email o como quieras · Expira en 7 días</div>
           </div>
         </div>
         <button class="btn-secondary" onclick="logout()" style="color:#dc2626;border-color:#fca5a5;margin-top:8px">Cerrar sesión</button>
@@ -3420,6 +3419,11 @@ async function renderPerfilSubpage(){
   }
 }
 let _cfgInviteLink=null;
+window.cfgInviteUpdate=()=>{
+  const email=document.getElementById('cfg-invite-email')?.value.trim()||'';
+  const btn=document.getElementById('cfg-invite-btn');
+  if(btn)btn.textContent=email?'Enviar invitación por email':'Generar link para compartir';
+};
 window.cfgGenerarInvite=async()=>{
   const email=document.getElementById('cfg-invite-email')?.value.trim()||'';
   const user=window._authUser;if(!user){toast('No hay sesión activa','err',2000);return;}
