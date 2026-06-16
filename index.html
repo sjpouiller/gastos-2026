@@ -328,7 +328,7 @@ select,input[type=text],input[type=number],input[type=date],input[type=month]{pa
 @keyframes inv-pulse{0%,100%{opacity:1}50%{opacity:.5}}
 .inv-skeleton{background:#e9e9e7;animation:inv-pulse 1.4s ease-in-out infinite}
 .inv-star.active{color:#f59e0b!important}
-.inv-panel-hidden{visibility:hidden;position:absolute;top:0;left:0;right:0;pointer-events:none;overflow:hidden}
+.inv-panel-hidden{display:none}
 .inv-panels-wrap{position:relative}
 .nav-badge-nuevo{margin-left:auto;font-size:9px;padding:2px 6px;border-radius:99px;background:#dcfce7;color:#15803d;font-weight:600}
 /* ── SIDEBAR DESKTOP ── */
@@ -3850,7 +3850,7 @@ async function _activoDoSearch(q){
   const locales=ACTIVOS_LOCALES.filter(a=>a.symbol.includes(qU)||a.nombre.toLowerCase().includes(q.toLowerCase())).slice(0,4);
   const cryptos=Object.keys(CRIPTO_NOMBRES||{}).filter(k=>k.includes(qU)||(CRIPTO_NOMBRES[k]||'').toLowerCase().includes(q.toLowerCase())).slice(0,4).map(sym=>({symbol:sym,nombre:CRIPTO_NOMBRES[sym],tipo:'crypto',tienePrecio:true}));
   let stocks=(typeof INV_STOCKS!=='undefined'?INV_STOCKS:[]).filter(s=>s.includes(qU)).map(sym=>({symbol:sym,nombre:(typeof INV_STOCK_META!=='undefined'?INV_STOCK_META[sym]?.sub:'')||sym,tipo:'stock',tienePrecio:true}));
-  if(stocks.length<3){try{const res=await _fetchStockSearch(q);const extra=res.filter(s=>s.type==='Common Stock'||s.type==='ETP').slice(0,5).map(s=>({symbol:s.symbol,nombre:s.description,tipo:'stock',tienePrecio:true}));stocks=[...stocks,...extra.filter(e=>!stocks.find(s=>s.symbol===e.symbol))].slice(0,5);}catch(e){}}
+  if(stocks.length<3){try{const res=await _fetchStockSearch(q);const extra=res.filter(s=>s.type==='Common Stock'||s.type==='ETP').slice(0,5).map(s=>({symbol:s.symbol,nombre:s.name,tipo:'stock',tienePrecio:true}));stocks=[...stocks,...extra.filter(e=>!stocks.find(s=>s.symbol===e.symbol))].slice(0,5);}catch(e){}}
   _activoRenderGroups([{label:'🇦🇷 Instrumentos locales',items:locales},{label:'₿ Criptomonedas',items:cryptos},{label:'📈 Acciones / CEDEARs',items:stocks.slice(0,4)}]);
 }
 window.activoSeleccionar=(idx)=>{
@@ -4002,7 +4002,7 @@ async function _invDoSearch(q){
   const localCryptos=Object.keys(CRIPTO_NOMBRES).filter(k=>(k.includes(qU)||CRIPTO_NOMBRES[k].toLowerCase().includes(q.toLowerCase()))&&!_isFav(k));
   const stocks=await _fetchStockSearch(q);
   const filteredStocks=stocks.filter(s=>(s.type==='Common Stock'||s.type==='ETP')&&!_isFav(s.symbol)).slice(0,5);
-  const results=[...localCryptos.map(sym=>({symbol:sym,nombre:CRIPTO_NOMBRES[sym],tipo:'crypto',mercado:'Crypto'})),...filteredStocks.map(s=>({symbol:s.symbol,nombre:s.description,tipo:'stock',mercado:s.type}))].slice(0,8);
+  const results=[...localCryptos.map(sym=>({symbol:sym,nombre:CRIPTO_NOMBRES[sym],tipo:'crypto',mercado:'Crypto'})),...filteredStocks.map(s=>({symbol:s.symbol,nombre:s.name,tipo:'stock',mercado:s.type}))].slice(0,8);
   if(!results.length){el.innerHTML='<div style="padding:10px 14px;color:#aaa;font-size:12px">Sin resultados</div>';return;}
   el.innerHTML=results.map(r=>`<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:0.5px solid #f3f3f0" onmouseover="this.style.background='#f9f9f7'" onmouseout="this.style.background=''"><div style="flex:1"><div style="font-size:13px;font-weight:700">${r.symbol}</div><div style="font-size:11px;color:#aaa">${r.nombre} · ${r.mercado}</div></div><button onclick="_invAgregarFav('${r.symbol}','${r.tipo}',\`${r.nombre.replace(/`/g,"'")}\`)" style="padding:5px 12px;background:#16a34a;color:#fff;border:none;border-radius:8px;font-size:11px;cursor:pointer;font-weight:600">+ Agregar</button></div>`).join('');
 }
