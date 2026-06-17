@@ -1128,7 +1128,7 @@ window.fmt=fmt;window.fmtK=fmtK;window.toast=toast;window.mesActualStr=mesActual
 function mesActualStr(){const h=new Date();return`${h.getFullYear()}-${pad(h.getMonth()+1)}`;}
 function mesAnterior(mes){const[y,m]=mes.split('-').map(Number);const d=new Date(y,m-2,1);return`${d.getFullYear()}-${pad(d.getMonth()+1)}`;}
 function sumarMes(mes,tipo){return gastos.filter(g=>g.mes===mes&&(tipo?g.tipo===tipo:true)).reduce((s,g)=>s+(g.monto||0),0);}
-window.sumarMes=sumarMes;
+window.sumarMes=sumarMes;window.calcSaldoUSD=calcSaldoUSD;
 function calcSaldoUSD(){const c=gastos.filter(g=>g.categoria==='Compra USD'||g.tipoIngreso==='Sueldo USD').reduce((s,g)=>s+(g.montoDolar||0),0);const v=gastos.filter(g=>g.tipoIngreso==='Venta USD').reduce((s,g)=>s+(g.montoDolar||0),0);const base=hogarId==='sjpouiller'?USD_INICIAL:ahorrosIniciales.usd;return base+c-v;}
 function varBadge(actual,anterior,invertido=false){if(!anterior||anterior===0)return'<span class="badge-neu">nuevo</span>';const pct=Math.round((actual-anterior)/anterior*100);if(Math.abs(pct)<1)return'<span class="badge-neu">sin cambio</span>';const sube=pct>0;const esBueno=invertido?!sube:sube;const cls=esBueno?'badge-down':'badge-up';return`<span class="${cls}">${sube?'▲':'▼'}${Math.abs(pct)}%</span>`;}
 let _tt;
