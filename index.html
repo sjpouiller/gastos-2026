@@ -4038,12 +4038,12 @@ function _invCalcCartera(){
   const usdARS=totalUSD*blueV;
   const totalARS=usdARS+totalInvARS+totalOtrosARS;
   const totalUSDEq=blueV>0?totalARS/blueV:0;
-  return{totalUSD,totalInvARS,totalOtrosARS,usdARS,totalARS,totalUSDEq,blueV,catMap,ai,simboloMap};
+  return{totalUSD,totalInvARS,totalOtrosARS,usdARS,totalARS,totalUSDEq,blueV,catMap,ai,simboloMap,sinActivo};
 }
 
 function renderInvCartera(){
   const el=document.getElementById('inv-cartera');if(!el)return;
-  const{totalUSD,totalInvARS,totalOtrosARS,usdARS,totalARS,totalUSDEq,blueV,catMap,ai,simboloMap}=_invCalcCartera();
+  const{totalUSD,totalInvARS,totalOtrosARS,usdARS,totalARS,totalUSDEq,blueV,catMap,ai,simboloMap,sinActivo}=_invCalcCartera();
   const blueStr=blueV?`$${Math.round(blueV).toLocaleString('es-AR')}`:'—';
   if(!totalARS){el.innerHTML=`<div class="inv-card" style="text-align:center;padding:32px 16px"><div style="font-size:36px;margin-bottom:10px">💼</div><div style="font-size:14px;font-weight:700;margin-bottom:6px">Todavía no registraste ahorros</div><div style="font-size:12px;color:#aaa;margin-bottom:16px;line-height:1.6">Cargá un movimiento de tipo <strong>Ahorro</strong> o configurá tus ahorros iniciales en Configuración para ver tu cartera aquí.</div><button onclick="drawerNav('config')" style="padding:10px 20px;background:#1a1a1a;color:#fff;border:none;border-radius:10px;font-size:13px;cursor:pointer;font-weight:600">Ir a Configuración →</button></div>`;return;}
   // Calcular breakdown hero
