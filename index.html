@@ -3863,10 +3863,10 @@ document.addEventListener('click',e=>{const wrap=document.getElementById('grp-ac
 
 // ── MÓDULO INVERSIONES ──
 const INV_CRYPTOS=['BTC','ETH','USDT','SOL','BNB','XRP'];
-const INV_STOCKS=['IVV','MELI','GGAL'];
+const INV_STOCKS=['AAPL','MSFT','NVDA','TSLA','AMZN','GOOGL','KO','MELI','IVV','SPY','QQQ','GGAL','BMA','YPF','PAM','VIST','LOMA','SUPV'];
 const CRIPTO_NOMBRES={BTC:'Bitcoin',ETH:'Ethereum',USDT:'Tether',SOL:'Solana',BNB:'BNB',XRP:'XRP',USDC:'USD Coin',AVAX:'Avalanche',MATIC:'Polygon',DAI:'Dai'};
 const CRIPTO_COLORS={BTC:'#f59e0b',ETH:'#6366f1'};
-const INV_STOCK_META={IVV:{sub:'ETF · NYSE'},MELI:{sub:'CEDEAR · NASDAQ'},GGAL:{sub:'ADR · NASDAQ'}};
+const INV_STOCK_META={AAPL:{sub:'Apple · NASDAQ'},MSFT:{sub:'Microsoft · NASDAQ'},NVDA:{sub:'Nvidia · NASDAQ'},TSLA:{sub:'Tesla · NASDAQ'},AMZN:{sub:'Amazon · NASDAQ'},GOOGL:{sub:'Alphabet · NASDAQ'},KO:{sub:'Coca-Cola · NYSE'},MELI:{sub:'MercadoLibre · NASDAQ'},IVV:{sub:'ETF S&P500 · NYSE'},SPY:{sub:'ETF S&P500 · NYSE'},QQQ:{sub:'ETF Nasdaq100 · NASDAQ'},GGAL:{sub:'Galicia · ADR'},BMA:{sub:'Banco Macro · ADR'},YPF:{sub:'YPF · ADR'},PAM:{sub:'Pampa Energía · ADR'},VIST:{sub:'Vista Energy · ADR'},LOMA:{sub:'Loma Negra · ADR'},SUPV:{sub:'Supervielle · ADR'}};
 
 let _invActiveTab='mercado';
 let _invFavoritos=[];
@@ -3979,8 +3979,20 @@ function renderInvMercado(){
     const stockFavs=_invFavoritos.filter(f=>f.tipo==='stock');
     const stockList=stockFavs.length>0?stockFavs.map(f=>f.symbol):INV_STOCKS;
     const stockFallback=stockFavs.length===0;
+    // Tarjeta individual reutilizable
+    const stockCard=(sym,fixedW)=>{const data=_invStocks[sym];const fav=_isFav(sym);const nombre=stockFavs.find(f=>f.symbol===sym)?.nombre||sym;const meta=INV_STOCK_META[sym]||{sub:'Acción'};if(!data){return `<div${fixedW?' style="min-width:150px"':''}>${_invSkel('130px')}</div>`;}const precio=data.c||0;const vari=data.dp||0;return `<div class="inv-card"${fixedW?' style="min-width:150px;flex-shrink:0"':''}><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px"><div><div style="font-size:14px;font-weight:700">${sym}</div><div style="font-size:10px;color:#aaa">${meta.sub||nombre}</div></div><button class="inv-star" data-sym="${sym}" onclick="toggleFavorito('${sym}','stock','${nombre}')" style="background:none;border:none;cursor:pointer;font-size:16px;padding:0;color:${fav?'#f59e0b':'#ccc'}">${fav?'★':'☆'}</button></div><div style="font-size:16px;font-weight:700;margin-bottom:1px">${_invFmtUSD(precio)}</div><div style="font-size:10px;color:#aaa;margin-bottom:5px">USD</div>${_invVarBadge(vari)}${_invSpark(vari)}</div>`;};
+    // TOP MOVERS — ordenar por |variación| los que ya tienen data
+    const conData=stockList.filter(s=>_invStocks[s]&&typeof _invStocks[s].dp==='number');
+    const topMovers=[...conData].sort((a,b)=>Math.abs(_invStocks[b].dp||0)-Math.abs(_invStocks[a].dp||0)).slice(0,6);
+    if(topMovers.length>=3){
+      h+=`<div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px"><div style="font-size:10px;font-weight:700;color:#aaa;letter-spacing:.08em">🔥 LOS MÁS MOVIDOS DEL DÍA</div><div style="font-size:10px;color:#bbb">por variación</div></div>`;
+      h+=`<div style="display:flex;gap:10px;overflow-x:auto;padding-bottom:8px;margin-bottom:20px;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch">`;
+      topMovers.forEach(sym=>{h+=stockCard(sym,true);});
+      h+=`</div>`;
+    }
+    // GRILLA COMPLETA
     h+=`<div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px"><div style="font-size:10px;font-weight:700;color:#aaa;letter-spacing:.08em">ACCIONES & CEDEARs</div><div style="font-size:10px;color:#bbb">Fuente: Finnhub</div></div><div class="inv-grid-3" style="margin-bottom:${stockFallback?'4px':'0'}">`;
-    stockList.forEach(sym=>{const data=_invStocks[sym];const fav=_isFav(sym);const nombre=stockFavs.find(f=>f.symbol===sym)?.nombre||sym;const meta=INV_STOCK_META[sym]||{sub:'Acción'};if(!data){h+=`<div>${_invSkel('130px')}</div>`;return;}const precio=data.c||0;const vari=data.dp||0;h+=`<div class="inv-card"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px"><div><div style="font-size:14px;font-weight:700">${sym}</div><div style="font-size:10px;color:#aaa">${meta.sub||nombre}</div></div><button class="inv-star" data-sym="${sym}" onclick="toggleFavorito('${sym}','stock','${nombre}')" style="background:none;border:none;cursor:pointer;font-size:16px;padding:0;color:${fav?'#f59e0b':'#ccc'}">${fav?'★':'☆'}</button></div><div style="font-size:16px;font-weight:700;margin-bottom:1px">${_invFmtUSD(precio)}</div><div style="font-size:10px;color:#aaa;margin-bottom:5px">USD</div>${_invVarBadge(vari)}${_invSpark(vari)}</div>`;});
+    stockList.forEach(sym=>{h+=stockCard(sym,false);});
     h+=`</div>`;
     if(stockFallback)h+=`<div style="font-size:11px;color:#aaa;margin-top:4px">Mostrando activos default · <button onclick="invTab('favoritos')" style="background:none;border:none;color:#16a34a;font-size:11px;font-weight:600;cursor:pointer;padding:0">Agregá favoritos →</button></div>`;
   }
