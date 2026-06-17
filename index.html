@@ -3944,34 +3944,48 @@ function _dolarCompra(v){if(!v)return 0;if(v.bid)return v.bid;return 0;}
 // ── TAB MERCADO ──
 function renderInvMercado(){
   const el=document.getElementById('inv-mercado');if(!el)return;
+  const filtro=window._invMercadoFiltro||'acciones';
   const sec=_invLastFetch?Math.round((new Date()-_invLastFetch)/1000):null;
   const tsText=sec!==null?(sec<5?'ahora':`hace ${sec} seg.`):'cargando...';
   let h=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><span id="inv-timestamp" style="font-size:12px;color:#aaa">Actualizado: ${tsText}</span><button onclick="invRefresh()" style="font-size:12px;font-weight:600;color:#16a34a;background:#f0fdf4;border:none;cursor:pointer;padding:5px 10px;border-radius:8px">↻ Actualizar</button></div>`;
+  // CHIPS DE FILTRO
+  const chips=[{id:'dolar',label:'💵 Dólar'},{id:'acciones',label:'📈 Acciones'},{id:'cripto',label:'₿ Cripto'}];
+  h+=`<div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">`;
+  chips.forEach(c=>{
+    const active=filtro===c.id;
+    h+=`<button onclick="window._invMercadoFiltro='${c.id}';renderInvMercado()" style="padding:7px 16px;border-radius:999px;font-size:12px;font-weight:700;border:1.5px solid ${active?'#1a1a1a':'#e5e5e0'};background:${active?'#1a1a1a':'#fff'};color:${active?'#fff':'#888'};cursor:pointer">${c.label}</button>`;
+  });
+  h+=`</div>`;
   // DÓLAR
-  h+=`<div style="font-size:10px;font-weight:700;color:#aaa;letter-spacing:.08em;margin-bottom:8px">DÓLAR HOY</div><div class="inv-grid-4" style="margin-bottom:20px">`;
   const blueV=_dolarPrecio(_invDolar?.blue)||0;
-  if(!_invDolar){h+=[0,1,2,3].map(()=>`<div>${_invSkel('95px')}</div>`).join('');}
-  else{const d=_invDolar;[{key:'blue',label:'BLUE',sub:`Compra $${Math.round(_dolarCompra(d.blue)||0).toLocaleString('es-AR')}`},{key:'mep',label:'MEP',sub:'Vía bonos'},{key:'ccl',label:'CCL',sub:'Cable'},{key:'oficial',label:'OFICIAL',sub:'Banco Nación'}].forEach(({key,label,sub})=>{const v=d[key];if(!v){h+=`<div>${_invSkel('95px')}</div>`;return;}const precio=_dolarPrecio(v);const vari=_dolarVari(v);h+=`<div class="inv-card"><div style="font-size:10px;font-weight:700;color:#aaa;letter-spacing:.05em;margin-bottom:5px">${label}</div><div style="font-size:19px;font-weight:700;line-height:1.1">$${Math.round(precio).toLocaleString('es-AR')}</div><div style="font-size:10px;color:#aaa;margin-bottom:5px">ARS</div>${_invVarBadge(vari)}<div style="font-size:10px;color:#bbb;margin-top:4px">${sub}</div></div>`;});}
-  h+='</div>';
-  // CRIPTO — muestra favoritos crypto; fallback a lista default
-  const cryptoFavs=_invFavoritos.filter(f=>f.tipo==='crypto');
-  const cryptoList=cryptoFavs.length>0?cryptoFavs.map(f=>f.symbol):INV_CRYPTOS;
-  const cryptoFallback=cryptoFavs.length===0;
-  h+=`<div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px"><div style="font-size:10px;font-weight:700;color:#aaa;letter-spacing:.08em">CRIPTO</div><div style="font-size:10px;color:#bbb">Fuente: CriptoYa · actualiza cada 1 min</div></div><div class="inv-grid-3" style="margin-bottom:${cryptoFallback?'4px':'20px'}">`;
-  cryptoList.forEach(coin=>{const data=_invCriptos[coin];const fav=_isFav(coin);const nombre=CRIPTO_NOMBRES[coin]||coin;const col=CRIPTO_COLORS[coin]||'#1a1a1a';if(!data){h+=`<div>${_invSkel('130px')}</div>`;return;}const precio=data.totalAsk||data.ask||0;const precioUSD=blueV>0?precio/blueV:0;const vari=data.variation24h||0;h+=`<div class="inv-card"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px"><div><div style="font-size:14px;font-weight:700;color:${col}">${coin}</div><div style="font-size:10px;color:#aaa">${nombre}</div></div><button class="inv-star" data-sym="${coin}" onclick="toggleFavorito('${coin}','crypto','${nombre}')" style="background:none;border:none;cursor:pointer;font-size:16px;padding:0;color:${fav?'#f59e0b':'#ccc'}">${fav?'★':'☆'}</button></div><div style="font-size:16px;font-weight:700;color:${col};margin-bottom:1px">${_invFmtARS(precio)}</div><div style="font-size:10px;color:#aaa;margin-bottom:5px">≈ ${_invFmtUSD(precioUSD)}</div>${_invVarBadge(vari)}${_invSpark(vari)}</div>`;});
-  h+='</div>';
-  if(cryptoFallback)h+=`<div style="font-size:11px;color:#aaa;margin-bottom:20px;margin-top:4px">Mostrando activos default · <button onclick="invTab('favoritos')" style="background:none;border:none;color:#16a34a;font-size:11px;font-weight:600;cursor:pointer;padding:0">Agregá favoritos →</button></div>`;
-  // ACCIONES — muestra favoritos stocks; fallback a lista default
-  const stockFavs=_invFavoritos.filter(f=>f.tipo==='stock');
-  const stockList=stockFavs.length>0?stockFavs.map(f=>f.symbol):INV_STOCKS;
-  const stockFallback=stockFavs.length===0;
-  h+=`<div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px"><div style="font-size:10px;font-weight:700;color:#aaa;letter-spacing:.08em">ACCIONES & CEDEARs</div><div style="font-size:10px;color:#bbb">Fuente: Finnhub</div></div><div class="inv-grid-3" style="margin-bottom:${stockFallback?'4px':'0'}">`;
-  stockList.forEach(sym=>{const data=_invStocks[sym];const fav=_isFav(sym);const nombre=stockFavs.find(f=>f.symbol===sym)?.nombre||sym;const meta=INV_STOCK_META[sym]||{sub:'Acción'};if(!data){h+=`<div>${_invSkel('130px')}</div>`;return;}const precio=data.c||0;const vari=data.dp||0;h+=`<div class="inv-card"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px"><div><div style="font-size:14px;font-weight:700">${sym}</div><div style="font-size:10px;color:#aaa">${meta.sub||nombre}</div></div><button class="inv-star" data-sym="${sym}" onclick="toggleFavorito('${sym}','stock','${nombre}')" style="background:none;border:none;cursor:pointer;font-size:16px;padding:0;color:${fav?'#f59e0b':'#ccc'}">${fav?'★':'☆'}</button></div><div style="font-size:16px;font-weight:700;margin-bottom:1px">${_invFmtUSD(precio)}</div><div style="font-size:10px;color:#aaa;margin-bottom:5px">USD</div>${_invVarBadge(vari)}${_invSpark(vari)}</div>`;});
-  h+='</div>';
-  if(stockFallback)h+=`<div style="font-size:11px;color:#aaa;margin-top:4px">Mostrando activos default · <button onclick="invTab('favoritos')" style="background:none;border:none;color:#16a34a;font-size:11px;font-weight:600;cursor:pointer;padding:0">Agregá favoritos →</button></div>`;
+  if(filtro==='dolar'||filtro==='acciones'||filtro==='cripto'){
+    h+=`<div style="font-size:10px;font-weight:700;color:#aaa;letter-spacing:.08em;margin-bottom:8px">DÓLAR HOY</div><div class="inv-grid-4" style="margin-bottom:20px">`;
+    if(!_invDolar){h+=[0,1,2,3].map(()=>`<div>${_invSkel('95px')}</div>`).join('');}
+    else{const d=_invDolar;[{key:'blue',label:'BLUE',sub:`Compra $${Math.round(_dolarCompra(d.blue)||0).toLocaleString('es-AR')}`},{key:'mep',label:'MEP',sub:'Vía bonos'},{key:'ccl',label:'CCL',sub:'Cable'},{key:'oficial',label:'OFICIAL',sub:'Banco Nación'}].forEach(({key,label,sub})=>{const v=d[key];if(!v){h+=`<div>${_invSkel('95px')}</div>`;return;}const precio=_dolarPrecio(v);const vari=_dolarVari(v);h+=`<div class="inv-card"><div style="font-size:10px;font-weight:700;color:#aaa;letter-spacing:.05em;margin-bottom:5px">${label}</div><div style="font-size:19px;font-weight:700;line-height:1.1">$${Math.round(precio).toLocaleString('es-AR')}</div><div style="font-size:10px;color:#aaa;margin-bottom:5px">ARS</div>${_invVarBadge(vari)}<div style="font-size:10px;color:#bbb;margin-top:4px">${sub}</div></div>`;});}
+    h+=`</div>`;
+  }
+  // CRIPTO
+  if(filtro==='cripto'){
+    const cryptoFavs=_invFavoritos.filter(f=>f.tipo==='crypto');
+    const cryptoList=cryptoFavs.length>0?cryptoFavs.map(f=>f.symbol):INV_CRYPTOS;
+    const cryptoFallback=cryptoFavs.length===0;
+    h+=`<div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px"><div style="font-size:10px;font-weight:700;color:#aaa;letter-spacing:.08em">CRIPTO</div><div style="font-size:10px;color:#bbb">Fuente: CriptoYa · actualiza cada 1 min</div></div><div class="inv-grid-3" style="margin-bottom:${cryptoFallback?'4px':'20px'}">`;
+    cryptoList.forEach(coin=>{const data=_invCriptos[coin];const fav=_isFav(coin);const nombre=CRIPTO_NOMBRES[coin]||coin;const col=CRIPTO_COLORS[coin]||'#1a1a1a';if(!data){h+=`<div>${_invSkel('130px')}</div>`;return;}const precio=data.totalAsk||data.ask||0;const precioUSD=blueV>0?precio/blueV:0;const vari=data.variation24h||0;h+=`<div class="inv-card"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px"><div><div style="font-size:14px;font-weight:700;color:${col}">${coin}</div><div style="font-size:10px;color:#aaa">${nombre}</div></div><button class="inv-star" data-sym="${coin}" onclick="toggleFavorito('${coin}','crypto','${nombre}')" style="background:none;border:none;cursor:pointer;font-size:16px;padding:0;color:${fav?'#f59e0b':'#ccc'}">${fav?'★':'☆'}</button></div><div style="font-size:16px;font-weight:700;color:${col};margin-bottom:1px">${_invFmtARS(precio)}</div><div style="font-size:10px;color:#aaa;margin-bottom:5px">≈ ${_invFmtUSD(precioUSD)}</div>${_invVarBadge(vari)}${_invSpark(vari)}</div>`;});
+    h+=`</div>`;
+    if(cryptoFallback)h+=`<div style="font-size:11px;color:#aaa;margin-bottom:20px;margin-top:4px">Mostrando activos default · <button onclick="invTab('favoritos')" style="background:none;border:none;color:#16a34a;font-size:11px;font-weight:600;cursor:pointer;padding:0">Agregá favoritos →</button></div>`;
+  }
+  // ACCIONES & CEDEARs
+  if(filtro==='acciones'){
+    const stockFavs=_invFavoritos.filter(f=>f.tipo==='stock');
+    const stockList=stockFavs.length>0?stockFavs.map(f=>f.symbol):INV_STOCKS;
+    const stockFallback=stockFavs.length===0;
+    h+=`<div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px"><div style="font-size:10px;font-weight:700;color:#aaa;letter-spacing:.08em">ACCIONES & CEDEARs</div><div style="font-size:10px;color:#bbb">Fuente: Finnhub</div></div><div class="inv-grid-3" style="margin-bottom:${stockFallback?'4px':'0'}">`;
+    stockList.forEach(sym=>{const data=_invStocks[sym];const fav=_isFav(sym);const nombre=stockFavs.find(f=>f.symbol===sym)?.nombre||sym;const meta=INV_STOCK_META[sym]||{sub:'Acción'};if(!data){h+=`<div>${_invSkel('130px')}</div>`;return;}const precio=data.c||0;const vari=data.dp||0;h+=`<div class="inv-card"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px"><div><div style="font-size:14px;font-weight:700">${sym}</div><div style="font-size:10px;color:#aaa">${meta.sub||nombre}</div></div><button class="inv-star" data-sym="${sym}" onclick="toggleFavorito('${sym}','stock','${nombre}')" style="background:none;border:none;cursor:pointer;font-size:16px;padding:0;color:${fav?'#f59e0b':'#ccc'}">${fav?'★':'☆'}</button></div><div style="font-size:16px;font-weight:700;margin-bottom:1px">${_invFmtUSD(precio)}</div><div style="font-size:10px;color:#aaa;margin-bottom:5px">USD</div>${_invVarBadge(vari)}${_invSpark(vari)}</div>`;});
+    h+=`</div>`;
+    if(stockFallback)h+=`<div style="font-size:11px;color:#aaa;margin-top:4px">Mostrando activos default · <button onclick="invTab('favoritos')" style="background:none;border:none;color:#16a34a;font-size:11px;font-weight:600;cursor:pointer;padding:0">Agregá favoritos →</button></div>`;
+  }
   el.innerHTML=h;
 }
-
 // ── TAB FAVORITOS ──
 function renderInvFavoritos(){
   const el=document.getElementById('inv-favoritos');if(!el)return;
