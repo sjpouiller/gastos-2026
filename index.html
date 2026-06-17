@@ -4032,7 +4032,7 @@ function _invCalcCartera(){
   // Totales legacy para compatibilidad
   const invMovARS=movAhorro.filter(g=>g.categoria==='Inversiones').reduce((s,g)=>s+(g.monto||0),0);
   const totalInvARS=invMovARS+(ai.inversiones||0);
-  const catExcl=new Set(['Compra USD','Inversiones']);
+  const catExcl=new Set(['Compra USD','Compra dolares','Inversiones']);
   const otrosMovARS=sinActivo.filter(g=>!catExcl.has(g.categoria)).reduce((s,g)=>s+(g.monto||0),0);
   const totalOtrosARS=otrosMovARS+(ai.otros||0);
   const usdARS=totalUSD*blueV;
