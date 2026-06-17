@@ -4020,7 +4020,7 @@ function _invCalcCartera(){
   const ai=window.ahorrosIniciales||{usd:0,inversiones:0,otros:0};
   const blueV=_dolarPrecio(_invDolar?.blue)||0;
   const movAhorro=gastos.filter(g=>g.tipo==='Ahorro');
-  const movCompraUSD=movAhorro.filter(g=>g.categoria==='Compra USD'||g.categoria==='Compra dolares');const totalUSD=movCompraUSD.reduce((s,g)=>s+(g.montoDolar||Math.round(g.monto/blueV)||0),0);
+  const totalUSD=typeof calcSaldoUSD==='function'?calcSaldoUSD():movAhorro.filter(g=>g.categoria==='Compra USD').reduce((s,g)=>s+(g.montoDolar||0),0);
   // Agrupar por activo.symbol si existe
   const simboloMap={};
   const sinActivo=[];
