@@ -529,6 +529,7 @@ select,input[type=text],input[type=number],input[type=date],input[type=month]{pa
         <button class="btn-sm" onclick="exportarCSV()">📋 CSV</button>
       </div>
       <div id="fijos-pendientes"></div>
+      <div id="gasto-detalle-chart"></div>
       <div id="gastos-list"></div>
     </div>
     <!-- CARGAR (sección legacy vacía, el form está en el sheet) -->
@@ -1866,6 +1867,7 @@ window.renderGastos=()=>{
   const oF=document.getElementById('fil-fecha')?.value||'desc';
   const oM=document.getElementById('fil-monto')?.value||'';
   const buscar=(document.getElementById('fil-buscar')?.value||'').toLowerCase().trim();
+  try{renderGastoDetalle(buscar);}catch(e){}
   const mF=mesSel==='todo'?null:mesSel;
   let d;
   if(mF){
@@ -1885,6 +1887,91 @@ window.renderGastos=()=>{
   const cmap=d.reduce((a,g)=>{const k=(g.categoria||g.tipoIngreso||'?')+'|||'+g.pago;a[k]=(a[k]||0)+(g.monto||0);return a},{});
   if(!d.length){document.getElementById('gastos-list').innerHTML='<div class="empty-state">📭<br>Sin movimientos</div>';return;}
   document.getElementById('gastos-list').innerHTML=`<div class="gastos-list">${d.slice(0,200).map(g=>{const tc=g.tipo==='Ingreso'?'tag-ing':g.tipo==='Gasto fijo'?'tag-fijo':g.tipo==='Ahorro'?'tag-aho':'tag-var';const cat=g.categoria||g.tipoIngreso||g.tipo;const f=g.fecha?g.fecha.slice(8)+'/'+g.fecha.slice(5,7):'';const k=cat+'|||'+g.pago;const badge=prevMes&&pmap[k]>0?varBadge(cmap[k]||0,pmap[k],g.tipo!=='Ingreso'):'';const uE=g.montoDolar?`<span style="font-size:10px;color:#1d4ed8;font-weight:600">U$S ${g.montoDolar}</span>`:'';const cuotaTag=g.esCuota&&g.cuotaNum&&g.cuotasTotal?`<span style="font-size:10px;font-weight:600;color:#0369a1;background:#e0f2fe;border-radius:4px;padding:1px 5px">cuota ${g.cuotaNum}/${g.cuotasTotal}</span>`:'';return`<div class="gasto-item"><div class="gasto-info"><div class="gasto-cat">${cat}</div><div class="gasto-meta">${f} · <span class="tag ${tc}">${g.tipo}</span> · ${g.pago}${cuotaTag?' · '+cuotaTag:''}</div>${g.comentario?`<div style="font-size:10px;color:#94a3b8;font-style:italic;margin-top:2px">💬 ${g.comentario}</div>`:''}</div><div class="gasto-right" style="display:flex;flex-direction:column;align-items:flex-end;gap:3px"><div class="gasto-monto ${g.tipo==='Ingreso'?'pos':''}">${g.tipo==='Ingreso'?'+':''}${fmt(g.monto)}</div>${uE}${badge?`<div class="gasto-var">${badge} vs ${prevMes?mesCorto(prevMes):''}</div>`:''}<div style="display:flex;gap:4px"><button onclick="abrirEdicion('${g.id}')" style="font-size:15px;background:none;border:none;cursor:pointer;padding:2px 4px;color:#aaa">✏️</button><button onclick="confirmarEliminar('${g.id}')" style="font-size:15px;background:none;border:none;cursor:pointer;padding:2px 4px;color:#f87171">🗑️</button></div></div></div>`;}).join('')}</div>`;
+};
+
+
+window._gastoDetalleChart = null;
+window.renderGastoDetalle = function(buscar){
+  var cont = document.getElementById('gasto-detalle-chart');
+  if(!cont) return;
+  buscar = (buscar||'').toLowerCase().trim();
+  if(!buscar){ cont.innerHTML=''; cont.style.display='none'; if(window._gastoDetalleChart){try{window._gastoDetalleChart.destroy();}catch(e){} window._gastoDetalleChart=null;} return; }
+  var match = function(g){
+    return (g.categoria||'').toLowerCase().includes(buscar) ||
+           (g.comentario||'').toLowerCase().includes(buscar) ||
+           (g.formaPago||g.pago||'').toLowerCase().includes(buscar);
+  };
+  var esGasto = function(g){ return g.tipo==='Gasto fijo'||g.tipo==='Gasto variable'; };
+  var anio = (typeof anioSel!=='undefined'&&anioSel)?anioSel:String(new Date().getFullYear());
+  var totMes = {};
+  for(var i=1;i<=12;i++){ totMes[anio+'-'+pad(i)]=0; }
+  var totalAnio=0, nMovs=0;
+  gastos.forEach(function(g){
+    if(!g.mes || !g.mes.startsWith(anio)) return;
+    if(!esGasto(g)) return;
+    if(!match(g)) return;
+    if(totMes[g.mes]===undefined) totMes[g.mes]=0;
+    totMes[g.mes]+= (g.monto||0);
+    totalAnio += (g.monto||0);
+    nMovs++;
+  });
+  if(nMovs===0){
+    cont.style.display='block';
+    cont.innerHTML='<div class="card" style="margin-bottom:12px;padding:14px"><div style="font-size:13px;color:#6b7280">📊 Sin gastos que coincidan con <b>"'+buscar+'"</b> en '+anio+'.</div></div>';
+    if(window._gastoDetalleChart){try{window._gastoDetalleChart.destroy();}catch(e){} window._gastoDetalleChart=null;}
+    return;
+  }
+  var meses = Object.keys(totMes).sort();
+  var labels = meses.map(function(m){return mesCorto(m);});
+  var values = meses.map(function(m){return Math.round(totMes[m]);});
+  var conDato = values.filter(function(v){return v>0;});
+  var prom = conDato.length? Math.round(conDato.reduce(function(a,b){return a+b;},0)/conDato.length):0;
+  var maxV = Math.max.apply(null,values);
+  var maxIdx = values.indexOf(maxV);
+  var maxMesNom = maxV>0? nombreMes(meses[maxIdx]) : '-';
+  var idxConDato = [];
+  values.forEach(function(v,i){ if(v>0) idxConDato.push(i); });
+  var tendHtml='';
+  if(idxConDato.length>=2){
+    var u=values[idxConDato[idxConDato.length-1]];
+    var prev=values[idxConDato[idxConDato.length-2]];
+    if(prev>0){
+      var pct=Math.round((u-prev)/prev*100);
+      var col = pct>0?'#dc2626':(pct<0?'#16a34a':'#6b7280');
+      var fl = pct>0?'▲':(pct<0?'▼':'·');
+      tendHtml='<span style="color:'+col+';font-weight:700">'+fl+' '+Math.abs(pct)+'%</span> <span style="color:#9ca3af;font-size:11px">vs mes ant.</span>';
+    }
+  }
+  var hoyMes = mesActualStr();
+  cont.style.display='block';
+  cont.innerHTML =
+    '<div class="card" style="margin-bottom:12px;padding:14px">'+
+      '<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;margin-bottom:10px">'+
+        '<div>'+
+          '<div style="font-size:14px;font-weight:700;color:#1a1a1a">📊 "'+buscar+'" · '+anio+'</div>'+
+          '<div style="font-size:11px;color:#9ca3af;margin-top:2px">'+nMovs+' movimiento'+(nMovs!==1?'s':'')+' · gasto total '+fmt(totalAnio)+'</div>'+
+        '</div>'+
+        '<div style="text-align:right">'+(tendHtml||'')+'</div>'+
+      '</div>'+
+      '<div style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:12px">'+
+        '<div><div style="font-size:10px;color:#9ca3af;text-transform:uppercase;letter-spacing:.5px">Promedio/mes</div><div style="font-size:15px;font-weight:700;color:#1a1a1a">'+fmt(prom)+'</div></div>'+
+        '<div><div style="font-size:10px;color:#9ca3af;text-transform:uppercase;letter-spacing:.5px">Mes más caro</div><div style="font-size:15px;font-weight:700;color:#1a1a1a">'+maxMesNom+' · '+fmtK(maxV)+'</div></div>'+
+      '</div>'+
+      '<div style="height:170px;position:relative"><canvas id="gasto-detalle-canvas"></canvas></div>'+
+    '</div>';
+  var drawIt = function(){
+    var cv=document.getElementById('gasto-detalle-canvas');
+    if(!cv) return;
+    var ctx=cv.getContext('2d');
+    if(window._gastoDetalleChart){try{window._gastoDetalleChart.destroy();}catch(e){}}
+    window._gastoDetalleChart = new Chart(ctx,{
+      type:'bar',
+      data:{labels:labels,datasets:[{data:values,backgroundColor:values.map(function(v,i){return i===maxIdx&&v>0?'#f59e0b':(meses[i]===hoyMes?'#3b82f6':'#cbd5e1');}),borderRadius:6,borderSkipped:false}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return fmt(c.raw);}}}},scales:{y:{beginAtZero:true,ticks:{callback:function(v){return fmtK(v);},font:{size:10},color:'#9ca3af'},grid:{color:'#f1f5f9'}},x:{ticks:{font:{size:10},color:'#9ca3af'},grid:{display:false}}},animation:{duration:350}}
+    });
+  };
+  if(window.Chart){ drawIt(); }
+  else { var s=document.createElement('script'); s.src='https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js'; s.onload=drawIt; document.head.appendChild(s); }
 };
 
 // ── CASHFLOW ──
