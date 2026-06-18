@@ -505,6 +505,8 @@ select,input[type=text],input[type=number],input[type=date],input[type=month]{pa
       <div style="margin-bottom:10px">
         <input id="fil-buscar" type="search" placeholder="Buscar por categoría, comentario..." oninput="renderGastos()" style="width:100%;padding:9px 12px;font-size:13px;border:0.5px solid #d1d5db;border-radius:10px;background:#fff;color:#1a1a1a;box-sizing:border-box">
       </div>
+      <button type="button" onclick="toggleBusquedaAvanzada()" id="btn-busq-avz" style="background:none;border:none;color:#6b7280;font-size:12px;cursor:pointer;padding:0;margin-bottom:10px;display:flex;align-items:center;gap:5px">🔍 Búsqueda avanzada <span id="busq-avz-chev" style="display:inline-block;transition:transform .15s">▾</span></button>
+      <div id="busqueda-avanzada" style="display:none">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
         <select id="fil-tipo" onchange="renderGastos()" style="padding:9px 10px;font-size:12px;border:0.5px solid #d1d5db;border-radius:10px;background:#fff;color:#1a1a1a;appearance:none;-webkit-appearance:none">
           <option value="">Todos los tipos</option><option value="Gasto fijo">Fijos</option>
@@ -519,6 +521,7 @@ select,input[type=text],input[type=number],input[type=date],input[type=month]{pa
         <select id="fil-monto" onchange="renderGastos()" style="padding:9px 10px;font-size:12px;border:0.5px solid #d1d5db;border-radius:10px;background:#fff;color:#1a1a1a;appearance:none;-webkit-appearance:none">
           <option value="">Monto: sin ordenar</option><option value="desc">Monto: mayor → menor</option><option value="asc">Monto: menor → mayor</option>
         </select>
+      </div>
       </div>
       <div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:10px">
         <button class="btn-sm" onclick="exportarPDF()">📄 PDF</button>
@@ -1763,21 +1766,24 @@ function _fijoMesObjetivo(){
   const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
 }
 function _fijoFmt(n){ try{ return '$'+Math.round(n).toLocaleString('es-AR'); }catch(e){ return '$'+Math.round(n); } }
+function _fijoNorm(s){ return (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ').trim(); }
 function detectFijosPendientes(){
   const g=window.gastos||[];
   const mesObj=_fijoMesObjetivo();
-  const fijos=g.filter(x=>x.tipo==='Gasto fijo' && !x.esCuota && x.mes && x.mes<mesObj);
+  const fijos=g.filter(x=>x.tipo==='Gasto fijo' && !x.esCuota && x.mes);
   const groups={};
   fijos.forEach(x=>{
-    const key=(x.categoria||'')+'||'+((x.comentario||'').toLowerCase().trim());
-    if(!groups[key]) groups[key]={categoria:x.categoria||'',comentario:x.comentario||'',formaPago:x.formaPago||'Transferencia',pago:x.pago||'',meses:{}};
-    groups[key].meses[x.mes]=x.monto;
-    if(x.formaPago) groups[key].formaPago=x.formaPago;
-    if(x.pago) groups[key].pago=x.pago;
+    const cat=x.categoria||''; if(!cat) return;
+    const key=_fijoNorm(cat);
+    if(!groups[key]) groups[key]={display:cat,categoria:cat,meses:{},comentario:'',formaPago:'Transferencia',pago:''};
+    groups[key].meses[x.mes]=(groups[key].meses[x.mes]||0)+x.monto;
+    if(x.mes<mesObj){ groups[key].display=cat; groups[key].categoria=cat; if(x.comentario) groups[key].comentario=x.comentario; if(x.formaPago) groups[key].formaPago=x.formaPago; if(x.pago) groups[key].pago=x.pago; }
   });
-  const recur=Object.values(groups).filter(grp=>Object.keys(grp.meses).length>=3);
+  // recurrente = aparece en 3+ meses distintos ANTES del mes objetivo
+  const recur=Object.values(groups).filter(grp=>Object.keys(grp.meses).filter(m=>m<mesObj).length>=3);
+  // pendiente = NO tiene ningun movimiento en el mes objetivo (misma categoria normalizada)
   const items=recur.filter(grp=>!(mesObj in grp.meses)).map(grp=>{
-    const meses=Object.keys(grp.meses).sort();
+    const meses=Object.keys(grp.meses).filter(m=>m<mesObj).sort();
     const ultMes=meses[meses.length-1];
     return {categoria:grp.categoria,comentario:grp.comentario,formaPago:grp.formaPago,pago:grp.pago,ultMonto:grp.meses[ultMes],ultMes,nMeses:meses.length};
   }).sort((a,b)=>b.ultMonto-a.ultMonto);
@@ -1789,7 +1795,7 @@ function cargarFijoPendiente(idx){
   if(!it) return;
   if(!window._cargaOpen && typeof toggleCarga==='function') toggleCarga();
   setTimeout(function(){
-    var f=document.getElementById('inp-fecha'); if(f){ var d=new Date(); var mo=r.mesObj; f.value=mo+'-'+String(d.getDate()).padStart(2,'0'); }
+    var f=document.getElementById('inp-fecha'); if(f){ var d=new Date(); f.value=r.mesObj+'-'+String(d.getDate()).padStart(2,'0'); }
     var t=document.getElementById('inp-tipo'); if(t){ t.value='Gasto fijo'; if(typeof toggleTipo==='function') toggleTipo(); }
     setTimeout(function(){
       var c=document.getElementById('inp-cat'); if(c){ for(var i=0;i<c.options.length;i++){ if(c.options[i].value===it.categoria){ c.selectedIndex=i; break; } } if(typeof toggleDolarField==='function') toggleDolarField(); }
@@ -1800,7 +1806,13 @@ function cargarFijoPendiente(idx){
   },120);
 }
 window.cargarFijoPendiente=cargarFijoPendiente;
-function descartarFijosPendientes(){
+function toggleFijosPendientes(){
+  window._fijosOpen=!window._fijosOpen;
+  renderFijosPendientes();
+}
+window.toggleFijosPendientes=toggleFijosPendientes;
+function descartarFijosPendientes(ev){
+  if(ev && ev.stopPropagation) ev.stopPropagation();
   var r=detectFijosPendientes();
   try{ localStorage.setItem('fijosDismiss_'+r.mesObj,'1'); }catch(e){}
   var el=document.getElementById('fijos-pendientes'); if(el) el.innerHTML='';
@@ -1811,23 +1823,40 @@ function renderFijosPendientes(){
   var r=detectFijosPendientes();
   var dismissed=false; try{ dismissed=localStorage.getItem('fijosDismiss_'+r.mesObj)==='1'; }catch(e){}
   if(!r.items.length || dismissed){ el.innerHTML=''; return; }
+  var open=!!window._fijosOpen;
   var nombreMesObj=(typeof nombreMes==='function')?nombreMes(r.mesObj):r.mesObj;
-  var rows=r.items.map(function(it,i){
-    var sub=it.comentario?('<span style="color:#999;font-weight:400"> · '+it.comentario+'</span>'):'';
-    return '<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:0.5px solid #f0efe9">'
-      +'<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;color:#333">'+it.categoria+sub+'</div>'
-      +'<div style="font-size:11px;color:#b08900">'+nombreMes(it.ultMes)+': '+_fijoFmt(it.ultMonto)+'</div></div>'
-      +'<button onclick="cargarFijoPendiente('+i+')" style="background:#1a1a1a;color:#fff;border:none;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;flex-shrink:0">Cargar</button>'
-      +'</div>';
-  }).join('');
-  el.innerHTML='<div class="card" style="background:#fffbeb;border:0.5px solid #fde68a;margin-bottom:14px">'
-    +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">'
-    +'<div style="font-size:13px;font-weight:700;color:#92400e">📌 Pagos fijos pendientes · '+nombreMesObj+'</div>'
-    +'<button onclick="descartarFijosPendientes()" style="background:none;border:none;color:#b08900;font-size:11px;cursor:pointer">ocultar ✕</button></div>'
-    +'<div style="font-size:11px;color:#a16207;margin-bottom:8px">Gastos fijos que solés pagar todos los meses y todavía no cargaste. El monto del mes pasado es solo una referencia.</div>'
-    +rows+'</div>';
+  var n=r.items.length;
+  var header='<div onclick="toggleFijosPendientes()" style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:10px 12px">'
+    +'<span style="font-size:14px">📌</span>'
+    +'<div style="flex:1;min-width:0"><span style="font-size:13px;font-weight:600;color:#92400e">Tenés '+n+' pago'+(n>1?'s':'')+' fijo'+(n>1?'s':'')+' sin cargar en '+nombreMesObj+'</span></div>'
+    +'<span style="font-size:11px;color:#b08900">'+(open?'ocultar':'ver')+'</span>'
+    +'<span style="font-size:11px;color:#b08900;transform:rotate('+(open?'90':'0')+'deg);transition:transform .15s;display:inline-block">▶</span>'
+    +'<button onclick="descartarFijosPendientes(event)" title="No mostrar este mes" style="background:none;border:none;color:#cba53a;font-size:13px;cursor:pointer;padding:0 2px;margin-left:2px">✕</button>'
+    +'</div>';
+  var body='';
+  if(open){
+    var rows=r.items.map(function(it,i){
+      var sub=it.comentario?('<span style="color:#999;font-weight:400"> · '+it.comentario+'</span>'):'';
+      return '<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-top:0.5px solid #f3eccf">'
+        +'<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;color:#333">'+it.categoria+sub+'</div>'
+        +'<div style="font-size:11px;color:#b08900">'+nombreMes(it.ultMes)+': '+_fijoFmt(it.ultMonto)+'</div></div>'
+        +'<button onclick="cargarFijoPendiente('+i+')" style="background:#1a1a1a;color:#fff;border:none;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;flex-shrink:0">Cargar</button>'
+        +'</div>';
+    }).join('');
+    body='<div style="font-size:11px;color:#a16207;padding:0 12px 8px">El monto del mes pasado es solo una referencia.</div>'+rows;
+  }
+  el.innerHTML='<div style="background:#fffbeb;border:0.5px solid #fde68a;border-radius:12px;margin-bottom:12px;overflow:hidden">'+header+body+'</div>';
 }
 window.renderFijosPendientes=renderFijosPendientes;
+function toggleBusquedaAvanzada(){
+  var el=document.getElementById('busqueda-avanzada');
+  var chev=document.getElementById('busq-avz-chev');
+  if(!el) return;
+  var open=el.style.display==='none';
+  el.style.display=open?'block':'none';
+  if(chev) chev.style.transform=open?'rotate(180deg)':'rotate(0deg)';
+}
+window.toggleBusquedaAvanzada=toggleBusquedaAvanzada;
 
 window.renderGastos=()=>{
   renderGastosTabs();
