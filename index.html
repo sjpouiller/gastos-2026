@@ -1489,7 +1489,7 @@ window.toggleAgente=()=>{
       let bCat='',bPct=0;
       for(const [cat,monto] of Object.entries(cmM)){const pv=cmP[cat]||0;if(pv>0){const pct=Math.round((monto-pv)/pv*100);if(pct>30&&pct>bPct){bPct=pct;bCat=cat;}}}
       let welcome='';
-      if(sal<0){welcome=`Hola! Vi que ${mesCorto(mA)} cerró en rojo (${fmt(sal)}). ¿Arrancamos por ahí?`;}
+      if(sal<0){welcome=(mA===mesActualStr())?`Hola! Por ahora ${mesCorto(mA)} va en rojo (${fmt(sal)}), pero el mes sigue abierto. ¿Lo miramos juntos?`:`Hola! ${mesCorto(mA)} cerró en rojo (${fmt(sal)}). ¿Arrancamos por ahí?`;}
       else if(bCat){welcome=`Hola! Tus gastos en ${bCat} este mes están ${bPct}% más altos que el mes pasado. ¿Querés que los revisemos?`;}
       else if(sal>0&&ahP>10){welcome=`Hola! Van bien en ${mesCorto(mA)} — saldo positivo y ahorrando el ${ahP}%. ¿Qué querés analizar?`;}
       else{welcome=`Hola! Tengo acceso a todos tus movimientos en tiempo real. ¿Qué querés analizar?`;}
@@ -1647,7 +1647,7 @@ window.fetchFinaInsight=async(mes,ing,fij,vrs,sal,force)=>{
   const salP=ingP-fijP-vrsP;
   const gA=gastos.filter(g=>g.mes===mes&&g.tipo==='Gasto variable');
   const topVars=Object.entries(gA.reduce((a,g)=>{a[g.categoria]=(a[g.categoria]||0)+(g.monto||0);return a},{})).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([c,v])=>`${c}: ${fmtK(v)}`).join(', ');
-  const ctx=`Sos Fina, agente financiera personal de Sebas y Male. En ${nombreMes(mes)}: ingresos ${fmt(ing)}, gastos fijos ${fmt(fij)}, gastos variables ${fmt(vrs)}, saldo neto ${fmt(sal)}. Mes anterior: ingresos ${fmt(ingP)}, saldo ${fmt(salP)}. Top gastos variables: ${topVars||'sin datos'}. Dá exactamente UN insight concreto y accionable en máximo 2 oraciones cortas. En español rioplatense. Sin saludos, sin emojis, directo al punto.`;
+  const ctx=`Sos Fina, agente financiera personal de Sebas y Male. ${(mes===mesActualStr())?`OJO: \x60${nombreMes(mes)}\x60 es el mes EN CURSO (hoy \x60${new Date().toLocaleDateString('es-AR',{day:'numeric',month:'long'})}\x60, dia ${new Date().getDate()} de ${new Date(new Date().getFullYear(),new Date().getMonth()+1,0).getDate()}). Los numeros son PARCIALES, hablá en presente (\'vas\', \'estás\'), nunca como si el mes hubiera cerrado.`:`${nombreMes(mes)} es un mes ya cerrado, numeros finales.`} En ${nombreMes(mes)}: ingresos ${fmt(ing)}, gastos fijos ${fmt(fij)}, gastos variables ${fmt(vrs)}, saldo neto ${fmt(sal)}. Mes anterior: ingresos ${fmt(ingP)}, saldo ${fmt(salP)}. Top gastos variables: ${topVars||'sin datos'}. Dá exactamente UN insight concreto y accionable en máximo 2 oraciones cortas. En español rioplatense. Sin saludos, sin emojis, directo al punto.`;
   try{
     const r=await fetch('/.netlify/functions/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:120,system:ctx,messages:[{role:'user',content:'Dame el insight del mes.'}]})});
     const data=await r.json();
@@ -2189,6 +2189,17 @@ function _getFollowUpChips(resp){
 }
 
 // ── AGENTE ──
+// markdown liviano -> HTML para los mensajes del chat (negritas, saltos de linea)
+function _mdToHtml(s){
+  if(!s) return '';
+  var h=String(s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  h=h.replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>');
+  h=h.replace(/(^|[^*])\*([^*\n]+)\*(?!\*)/g,'$1<em>$2</em>');
+  h=h.replace(/\n/g,'<br>');
+  return h;
+}
+window._mdToHtml=_mdToHtml;
 window.enviar=async()=>{
   const inp=document.getElementById('chat-input');const txt=inp.value.trim();if(!txt)return;
   inp.value='';
@@ -2255,7 +2266,7 @@ Si el usuario quiere agregar algo al tablero, terminá con: AGREGAR_TABLERO: {"n
     const lineas=resp.split('\n');
     const lA=lineas.find(l=>l.startsWith('AGREGAR_TABLERO:'));
     const limpio=lineas.filter(l=>!l.startsWith('AGREGAR_TABLERO:')).join('\n').trim();
-    loader.className='msg msg-bot';loader.textContent=limpio;
+    loader.className='msg msg-bot';loader.innerHTML=_mdToHtml(limpio);
     // Chips de seguimiento contextuales
     const fChips=_getFollowUpChips(limpio);
     if(fChips.length){const cd=document.createElement('div');cd.style.cssText='display:flex;gap:6px;flex-wrap:wrap;padding:2px 0;max-width:100%';cd.innerHTML=fChips.map(c=>`<button class="chip" style="font-size:11px;padding:5px 10px" onclick="chipAgente('${c.q.replace(/'/g,"\\'")}')">${c.label}</button>`).join('');msgs.appendChild(cd);}
