@@ -2220,8 +2220,22 @@ window.enviar=async()=>{
   const ingA=sumarMes(mA,'Ingreso'),fijA=sumarMes(mA,'Gasto fijo'),vrsA=sumarMes(mA,'Gasto variable'),salA=ingA-fijA-vrsA;
   const prevA=mesAnterior(mA);
   const ingPA=sumarMes(prevA,'Ingreso'),fijPA=sumarMes(prevA,'Gasto fijo'),vrsPA=sumarMes(prevA,'Gasto variable'),salPA=ingPA-fijPA-vrsPA;
-  const ctx=`Sos el agente financiero personal de Sebas y Male, una pareja argentina. Montos en pesos argentinos (ARS).
-Mes activo: ${nombreMes(mA||'')}. Total movimientos históricos: ${gastos.length}.
+  // ---- contexto temporal (Fina debe saber en que dia del mes estamos) ----
+  const _agHoy=new Date();
+  const _agHoyISO=_agHoy.getFullYear()+'-'+String(_agHoy.getMonth()+1).padStart(2,'0');
+  const _agDiaMes=_agHoy.getDate();
+  const _agDiasEnMes=new Date(_agHoy.getFullYear(),_agHoy.getMonth()+1,0).getDate();
+  const _agDiasRestan=_agDiasEnMes-_agDiaMes;
+  const _agEsMesEnCurso=(mA===_agHoyISO);
+  const _agPctMes=Math.round(_agDiaMes/_agDiasEnMes*100);
+  // proyeccion de gasto variable a fin de mes segun ritmo actual (solo si es el mes en curso)
+  const _agProyVar=(_agEsMesEnCurso && _agDiaMes>0)?Math.round(vrsA/_agDiaMes*_agDiasEnMes):null;
+  const _agTemporal=_agEsMesEnCurso
+    ? `CONTEXTO TEMPORAL (CLAVE): Hoy es ${_agHoy.toLocaleDateString('es-AR',{day:'numeric',month:'long'})}. El mes EN CURSO es ${nombreMes(mA||'')} y TODAVIA NO TERMINO: vamos por el dia ${_agDiaMes} de ${_agDiasEnMes} (${_agPctMes}% del mes), faltan ${_agDiasRestan} dias. Los numeros del mes son PARCIALES, no finales. Nunca hables como si el mes ya hubiera cerrado. Si el ritmo de gasto variable se mantiene, proyectarias terminar el mes en ~${fmt(_agProyVar)} de variables. Podes usar esa proyeccion para anticipar, sugerir ajustes y motivar.`
+    : `CONTEXTO TEMPORAL: El usuario esta mirando ${nombreMes(mA||'')}, que es un mes ya cerrado (hoy es ${_agHoy.toLocaleDateString('es-AR',{day:'numeric',month:'long',year:'numeric'})}). Sus numeros son finales/historicos.`;
+  const ctx=`Sos Fina, la asistente financiera personal de Sebas y Male, una pareja argentina. Tu personalidad: cercana, directa, con buena onda y energia, como una amiga que sabe MUCHO de plata. Hablas en primera persona, te haces cargo de lo que decis y sos PROACTIVA: no solo respondes, tambien anticipas, alertas y propones. Montos siempre en pesos argentinos (ARS).
+${_agTemporal}
+Mes que se esta analizando: ${nombreMes(mA||'')}. Total movimientos históricos: ${gastos.length}.
 ${arsBlue}
 
 DATOS DEL MES ACTIVO (${nombreMes(mA||'')}):
@@ -2232,11 +2246,11 @@ DATOS DEL MES ACTIVO (${nombreMes(mA||'')}):
 HISTORIAL COMPLETO (todos los meses disponibles):
 ${res}${tPlan}${tPres}
 
-IMPORTANTE: Usá los datos reales de ingresos y gastos fijos. No asumas valores ni proyectes con 0 si hay datos disponibles.
-Respondé en español rioplatense, directo y con números reales. Máximo 5 oraciones. Formato argentino ($1.200.000).
+IMPORTANTE: Usá SIEMPRE los datos reales de ingresos y gastos. No asumas valores ni proyectes con 0 si hay datos. Respetá el contexto temporal: si el mes está en curso, hablá de números parciales y de lo que falta, nunca como si ya hubiera cerrado.
+Estilo: español rioplatense, cálido pero directo, con energía y números reales. Arrancá con lo más importante. Máximo 5 oraciones. Formato argentino ($1.200.000). Cuando tenga sentido, cerrá con una micro-acción concreta o una pregunta para seguir la charla.
 Si el usuario quiere agregar algo al tablero, terminá con: AGREGAR_TABLERO: {"nombre":"...","monto":000000,"cuotas":1,"mesInicio":"YYYY-MM","tipo":"unico|cuotas|viaje"}`;
   try{
-    const r=await fetch('/.netlify/functions/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:800,system:ctx,messages:[{role:'user',content:txt}]})});
+    const r=await fetch('/.netlify/functions/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:800,system:ctx,messages:[{role:'user',content:txt}]})});
     const data=await r.json();const resp=data.content?.[0]?.text||'Sin respuesta.';
     const lineas=resp.split('\n');
     const lA=lineas.find(l=>l.startsWith('AGREGAR_TABLERO:'));
@@ -2860,7 +2874,7 @@ window.pedirSugerenciaAgente=async()=>{
   const gastosCats=top.map(c=>{const g=gastos.filter(x=>x.mes===mes&&x.categoria===c&&x.tipo==='Gasto variable').reduce((s,x)=>s+(x.monto||0),0);const p=presupuestos[c]||0;return`${c}: gastado ${fmt(g)}, presupuesto actual ${fmt(p)}`;}).join('\n');
   const prompt=`Sos el agente financiero de Sebas y Male. Mes: ${nombreMes(mes)}. Ingresos: ${fmt(ing)}. Objetivo: ahorrar al menos el 20% (${fmt(Math.round(ing*0.2))}).\n\nGastos variables top y presupuestos actuales:\n${gastosCats}\n\nSugerí límites de presupuesto específicos para cada categoría para que puedan cumplir el objetivo del 20% de ahorro. Sé concreto con montos en pesos. Máximo 6 oraciones.`;
   try{
-    const r=await fetch('/.netlify/functions/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:600,system:'Sos el agente financiero de Sebas y Male, una pareja argentina. Respondé en español rioplatense, directo y con números reales en formato $1.200.000.',messages:[{role:'user',content:prompt}]})});
+    const r=await fetch('/.netlify/functions/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:600,system:'Sos el agente financiero de Sebas y Male, una pareja argentina. Respondé en español rioplatense, directo y con números reales en formato $1.200.000.',messages:[{role:'user',content:prompt}]})});
     const data=await r.json();
     const resp=data.content?.[0]?.text||'Sin respuesta.';
     panel.style.display='block';
@@ -4254,7 +4268,7 @@ window.invPedirSugerencia=async()=>{
   const prompt=`Patrimonio total: ${_invFmtARS(totalARS)} (≈ ${_invFmtUSD(blueV>0?totalARS/blueV:0)} al blue $${Math.round(blueV||0).toLocaleString('es-AR')}).
 USD: U$S ${Number((totalUSD||0).toFixed(0)).toLocaleString('es-AR')} (${blueV&&totalARS?Math.round((totalUSD*blueV)/totalARS*100):0}%). Inversiones ARS: ${_invFmtARS(totalInvARS)}. Otros: ${_invFmtARS(totalOtrosARS)}.
 Dáme una recomendación concreta de 2-3 acciones para optimizar mi cartera. Máximo 80 palabras, español rioplatense.`;
-  try{const r=await fetch('/.netlify/functions/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:250,messages:[{role:'user',content:prompt}]})});const d=await r.json();el.textContent=d.content?.[0]?.text||'No se pudo generar la sugerencia.';}
+  try{const r=await fetch('/.netlify/functions/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:250,messages:[{role:'user',content:prompt}]})});const d=await r.json();el.textContent=d.content?.[0]?.text||'No se pudo generar la sugerencia.';}
   catch(e){const{totalUSD:u,totalInvARS:i,totalARS:t,blueV:b}=_invCalcCartera();el.textContent=_invAgenteEstático(u,i,t,b);}
 };
 
