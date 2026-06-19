@@ -1462,7 +1462,7 @@ function calcTopCats(){
   return Object.entries(freq).filter(([,f])=>f>=2).sort((a,b)=>(total[b[0]]||0)-(total[a[0]]||0)).map(([c])=>c).slice(0,10);
 }
 function calcSugerido(cat){
-  const meses=[...new Set(gastos.filter(g=>g.mes?.startsWith(anioSel)&&g.tipo==='Gasto variable').map(g=>g.mes))].sort().slice(-3);
+  const _hoyM=mesActualStr();const meses=[...new Set(gastos.filter(g=>g.mes.startsWith(anioSel)&&g.mes<=_hoyM&&g.tipo==='Gasto variable').map(g=>g.mes))].sort().slice(-3);
   const vals=meses.map(m=>gastos.filter(g=>g.mes===m&&g.categoria===cat&&g.tipo==='Gasto variable').reduce((s,g)=>s+(g.monto||0),0)).filter(v=>v>0);
   if(!vals.length)return 0;
   return Math.round(vals.reduce((s,v)=>s+v,0)/vals.length/5000)*5000;
