@@ -1225,17 +1225,16 @@ async function procesarInvitacion(token,user){
     if(!invSnap.exists()){toast('Invitación inválida','err',3000);return false;}
     const inv=invSnap.data();
     if(Date.now()>inv.expiresAt){toast('La invitación expiró','err',3000);return false;}
-    // Crear usuario apuntando al hogar del invitante
+    // Lo crítico: vincular al usuario con el hogar del invitante
     await setDoc(doc(db,'usuarios',user.uid),{
       hogarId:inv.hogarId,nombre:user.displayName||user.email,
       email:user.email,rol:'couser',creadoEn:serverTimestamp()
     });
-    // Agregar al hogar
-    await updateDoc(doc(db,'hogares',inv.hogarId,'metadata','info'),{
-      coUsuarios:arrayUnion(user.email)
-    });
-    await updateDoc(doc(db,'invitaciones',token),{status:'aceptada'});
     hogarId=inv.hogarId;
+    // Best-effort: actualizar lista coUsuarios y marcar invite como aceptada
+    // Pueden fallar por reglas de Firestore sin romper el flujo principal
+    updateDoc(doc(db,'hogares',inv.hogarId,'metadata','info'),{coUsuarios:arrayUnion(user.email)}).catch(e=>console.warn('coUsuarios:',e));
+    updateDoc(doc(db,'invitaciones',token),{status:'aceptada'}).catch(()=>{});
     toast('✓ Te uniste al hogar correctamente','ok',3000);
     return true;
   }catch(e){console.error('procesarInvitacion:',e);toast('Error al procesar la invitación','err',3000);return false;}
