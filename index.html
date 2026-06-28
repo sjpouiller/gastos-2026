@@ -365,6 +365,13 @@ select,input[type=text],input[type=number],input[type=date],input[type=month]{pa
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
 <body>
+<!-- BANNER IN-APP BROWSER -->
+<div id="inapp-banner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:9999;background:#1a1a1a;color:#fff;padding:16px 20px;text-align:center">
+  <div style="font-size:14px;font-weight:600;margin-bottom:6px">Abrí en Safari para continuar</div>
+  <div style="font-size:12px;color:#aaa;margin-bottom:12px;line-height:1.5">El login con Google no funciona desde WhatsApp. Tocá el botón o copiá el link y pegalo en Safari.</div>
+  <button onclick="abrirEnSafari()" style="background:#fff;color:#1a1a1a;border:none;border-radius:10px;padding:10px 20px;font-size:14px;font-weight:700;cursor:pointer">Abrir en Safari</button>
+</div>
+
 <!-- LOGIN -->
 <div id="login-screen">
   <div class="login-icon">💰</div>
@@ -1156,15 +1163,48 @@ let _pendingInviteToken=null;
   }
 })();
 
+// Detectar in-app browser (WhatsApp, Instagram, Facebook, etc.)
+(()=>{
+  const ua=navigator.userAgent||'';
+  const isInApp=/FBAN|FBAV|Instagram|WhatsApp|Line|Twitter|Snapchat|MicroMessenger/i.test(ua);
+  if(isInApp){
+    const banner=document.getElementById('inapp-banner');
+    if(banner)banner.style.display='block';
+  }
+})();
+window.abrirEnSafari=()=>{
+  // En iOS, location.href abre en Safari cuando se usa x-safari-
+  const url=window.location.href;
+  window.location.href='safari-web-app-capable://'+url.replace(/^https?:\/\//,'');
+  // Fallback: mostrar instrucción de copiar
+  setTimeout(()=>{
+    const banner=document.getElementById('inapp-banner');
+    if(banner)banner.innerHTML=`<div style="font-size:14px;font-weight:600;margin-bottom:6px">Copiá este link y pegalo en Safari</div><div style="font-size:12px;background:#333;padding:8px 12px;border-radius:8px;word-break:break-all;margin-bottom:10px">${window.location.href}</div><button onclick="navigator.clipboard.writeText('${window.location.href}').then(()=>this.textContent='¡Copiado!')" style="background:#fff;color:#1a1a1a;border:none;border-radius:10px;padding:10px 20px;font-size:14px;font-weight:700;cursor:pointer">Copiar link</button>`;
+  },500);
+};
 window.loginGoogle=async()=>{
   const err=document.getElementById('login-error');
   err.textContent='';
   try{await signInWithPopup(auth,provider);}
-  catch(e){err.textContent='Error al iniciar sesión. Intentá de nuevo.';console.error(e);}
+  catch(e){
+    if(e.code==='auth/web-storage-unsupported'||e.message?.includes('sessionStorage')||e.message?.includes('initial state')){
+      const banner=document.getElementById('inapp-banner');
+      if(banner)banner.style.display='block';
+    } else {
+      err.textContent='Error al iniciar sesión. Intentá de nuevo.';
+    }
+    console.error(e);
+  }
 };
 window.loginYAceptar=async()=>{
   try{await signInWithPopup(auth,provider);}
-  catch(e){console.error(e);}
+  catch(e){
+    if(e.code==='auth/web-storage-unsupported'||e.message?.includes('sessionStorage')||e.message?.includes('initial state')){
+      const banner=document.getElementById('inapp-banner');
+      if(banner)banner.style.display='block';
+    }
+    console.error(e);
+  }
 };
 window.rechazarInvitacion=()=>{
   _pendingInviteToken=null;
