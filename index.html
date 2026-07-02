@@ -1103,7 +1103,8 @@ window.gastos=gastos;
 window.anioSel=anioSel;
 window._auth=auth;
 window._addGasto=(data)=>addDoc(gastosCol(),{...data,creadoEn:serverTimestamp()});
-window._setDoc=(ref,data)=>setDoc(ref,data);
+window._setDoc=(ref,data,opts)=>opts?setDoc(ref,data,opts):setDoc(ref,data);
+window._updateDoc=(ref,data)=>updateDoc(ref,data);
 window._doc=(...args)=>doc(db,...args);
 window._getDoc=(ref)=>getDoc(ref);
 window._serverTimestamp=()=>serverTimestamp();
@@ -3516,7 +3517,7 @@ window.guardarPerfil=async()=>{
     await window._setDoc(window._doc('hogares',window.hogarId,'config','perfil'),_perfilData);
     // Guardar teléfono también en usuarios/{uid} para que el bot de WhatsApp lo encuentre
     const uid=window._authUser?.uid;
-    if(uid&&tel)window._setDoc(window._doc('usuarios',uid),{telefono:tel},{merge:true}).catch(()=>{});
+    if(uid&&tel)window._updateDoc(window._doc('usuarios',uid),{telefono:tel,hogarId:window.hogarId}).catch(()=>{});
     if(msgEl)msgEl.innerHTML='<div class="alert alert-ok">✓ Perfil guardado</div>';
     setTimeout(()=>{if(msgEl)msgEl.innerHTML='';},2500);
   }catch(e){if(msgEl)msgEl.innerHTML=`<div class="alert alert-err">Error: ${e.message}</div>`;}
