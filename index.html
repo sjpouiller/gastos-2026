@@ -3517,7 +3517,7 @@ window.guardarPerfil=async()=>{
     await window._setDoc(window._doc('hogares',window.hogarId,'config','perfil'),_perfilData);
     // Guardar teléfono también en usuarios/{uid} para que el bot de WhatsApp lo encuentre
     const uid=window._authUser?.uid;
-    if(uid&&tel)window._updateDoc(window._doc('usuarios',uid),{telefono:tel,hogarId:window.hogarId}).catch(()=>{});
+    if(uid&&tel)window._setDoc(window._doc('usuarios',uid),{telefono:tel,hogarId:window.hogarId,email:window._authUser.email,nombre},{merge:true}).catch(()=>{});
     if(msgEl)msgEl.innerHTML='<div class="alert alert-ok">✓ Perfil guardado</div>';
     setTimeout(()=>{if(msgEl)msgEl.innerHTML='';},2500);
   }catch(e){if(msgEl)msgEl.innerHTML=`<div class="alert alert-err">Error: ${e.message}</div>`;}
