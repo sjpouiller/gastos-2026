@@ -58,16 +58,23 @@ async function transcribirAudio(mediaUrl) {
   if (!audioResp.ok) throw new Error(`Audio download failed: ${audioResp.status}`);
 
   const audioBuffer = Buffer.from(await audioResp.arrayBuffer());
-  const contentType = audioResp.headers.get('content-type') || 'audio/ogg';
+  // WhatsApp manda "audio/ogg; codecs=opus" — Whisper necesita solo "audio/ogg"
+  const rawContentType = audioResp.headers.get('content-type') || 'audio/ogg';
+  const baseContentType = rawContentType.split(';')[0].trim();
 
-  // Usar multipart/form-data manual con Buffer (más compatible en Node.js)
+  // Mapear content-type a extensión compatible con Whisper
+  const extMap = { 'audio/ogg': 'ogg', 'audio/mpeg': 'mp3', 'audio/mp4': 'mp4', 'audio/mp4a-latm': 'm4a', 'audio/wav': 'wav', 'audio/webm': 'webm', 'audio/flac': 'flac', 'audio/x-m4a': 'm4a' };
+  const ext = extMap[baseContentType] || 'ogg';
+  const filename = `audio.${ext}`;
+  const whisperContentType = baseContentType === 'audio/ogg' ? 'audio/ogg' : baseContentType;
+
+  console.log(`Audio: rawType=${rawContentType} → ${filename} (${whisperContentType})`);
+
   const boundary = '----FormBoundary' + Math.random().toString(36).slice(2);
-  const filename = contentType.includes('mp4') ? 'audio.mp4' : contentType.includes('mpeg') ? 'audio.mp3' : 'audio.ogg';
-
   const bodyParts = [
     `--${boundary}\r\nContent-Disposition: form-data; name="model"\r\n\r\nwhisper-1`,
     `--${boundary}\r\nContent-Disposition: form-data; name="language"\r\n\r\nes`,
-    `--${boundary}\r\nContent-Disposition: form-data; name="file"; filename="${filename}"\r\nContent-Type: ${contentType}\r\n\r\n`
+    `--${boundary}\r\nContent-Disposition: form-data; name="file"; filename="${filename}"\r\nContent-Type: ${whisperContentType}\r\n\r\n`
   ];
 
   const prefix = Buffer.from(bodyParts.join('\r\n') + '\r\n');
