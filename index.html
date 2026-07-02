@@ -3513,7 +3513,7 @@ window.guardarPerfil=async()=>{
   const msgEl=document.getElementById('perfil-save-msg');
   _perfilData={..._perfilData,nombre,telefono:tel};
   try{
-    await setDoc(cfgDoc('perfil'),_perfilData);
+    await window._setDoc(window._doc('hogares',window.hogarId,'config','perfil'),_perfilData);
     if(msgEl)msgEl.innerHTML='<div class="alert alert-ok">✓ Perfil guardado</div>';
     setTimeout(()=>{if(msgEl)msgEl.innerHTML='';},2500);
   }catch(e){if(msgEl)msgEl.innerHTML=`<div class="alert alert-err">Error: ${e.message}</div>`;}
