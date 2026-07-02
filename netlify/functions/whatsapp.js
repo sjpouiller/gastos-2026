@@ -71,15 +71,14 @@ async function transcribirAudio(mediaUrl) {
   console.log(`Audio: rawType=${rawContentType} → ${filename} (${whisperContentType})`);
 
   const boundary = '----FormBoundary' + Math.random().toString(36).slice(2);
-  const bodyParts = [
-    `--${boundary}\r\nContent-Disposition: form-data; name="model"\r\n\r\nwhisper-1`,
-    `--${boundary}\r\nContent-Disposition: form-data; name="language"\r\n\r\nes`,
-    `--${boundary}\r\nContent-Disposition: form-data; name="file"; filename="${filename}"\r\nContent-Type: ${whisperContentType}\r\n\r\n`
-  ];
-
-  const prefix = Buffer.from(bodyParts.join('\r\n') + '\r\n');
-  const suffix = Buffer.from(`\r\n--${boundary}--\r\n`);
-  const body = Buffer.concat([prefix, audioBuffer, suffix]);
+  // Construir multipart correctamente: cada campo texto termina en \r\n antes del próximo boundary
+  const body = Buffer.concat([
+    Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="model"\r\n\r\nwhisper-1\r\n`),
+    Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="language"\r\n\r\nes\r\n`),
+    Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="file"; filename="${filename}"\r\nContent-Type: ${whisperContentType}\r\n\r\n`),
+    audioBuffer,
+    Buffer.from(`\r\n--${boundary}--\r\n`)
+  ]);
 
   const whisperResp = await fetch('https://api.openai.com/v1/audio/transcriptions', {
     method: 'POST',
