@@ -3749,7 +3749,7 @@ let _perfilData={};
 async function renderPerfilSubpage(){
   const u=window._authUser;
   // Cargar datos guardados de Firestore
-  try{const s=await getDoc(cfgDoc('perfil'));if(s.exists())_perfilData=s.data();}catch(e){}
+  try{const s=await window._getDoc(window._doc('hogares',window.hogarId,'config','perfil'));if(s.exists())_perfilData=s.data();}catch(e){}
   // Iniciales / foto
   const nombre=_perfilData.nombre||u?.displayName||'';
   const email=u?.email||'';
