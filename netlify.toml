@@ -15,3 +15,6 @@
 
 [functions."bank-import"]
   timeout = 60
+
+[functions."inflacion"]
+  schedule = "0 10 20 * *"
