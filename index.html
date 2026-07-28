@@ -168,6 +168,7 @@ select,input[type=text],input[type=number],input[type=date],input[type=month]{pa
 .bnav-add .bnav-icon{width:46px;height:46px;background:#1a1a1a;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:22px;margin-top:-14px;box-shadow:0 4px 12px rgba(0,0,0,.25)}
 .bnav-add{color:#1a1a1a!important}
 /* PRESUPUESTO */
+.pres-scope-bar{display:flex;gap:6px;margin-bottom:10px}.pres-scope-pill{flex:1;padding:7px 0;font-size:12.5px;font-weight:600;border:1.5px solid #e2e8f0;border-radius:20px;background:#f8fafc;color:#64748b;cursor:pointer;transition:all .15s}.pres-scope-pill.active{background:#2563eb;color:#fff;border-color:#2563eb}
 .pres-tabs{display:flex;gap:6px;margin-bottom:14px}
 .pres-tab{flex:1;padding:8px;border-radius:10px;font-size:12px;font-weight:600;border:0.5px solid #e5e5e0;background:#fff;color:#888;cursor:pointer;text-align:center}
 .pres-tab.active{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
@@ -765,6 +766,11 @@ select,input[type=text],input[type=number],input[type=date],input[type=month]{pa
     </div>
     <!-- PRESUPUESTO -->
     <div id="sec-presupuesto" class="section">
+      <div class="pres-scope-bar">
+        <button class="pres-scope-pill active" data-scope="conjunto" onclick="setPresScope('conjunto')">🏠 Conjunto</button>
+        <button class="pres-scope-pill" data-scope="sebas" onclick="setPresScope('sebas')">👤 Sebas</button>
+        <button class="pres-scope-pill" data-scope="male" onclick="setPresScope('male')">👤 Male</button>
+      </div>
       <div class="pres-tabs">
         <button class="pres-tab active" onclick="presTabs('seg',this)">📊 Seguimiento</button>
         <button class="pres-tab" onclick="presTabs('edit',this)">✏️ Editar</button>
@@ -1104,6 +1110,7 @@ let presupuestos={};
 let catConfigActivas=[];
 let pctAhorroPres=20;
 let ingresoBasePres=null;
+let presScope='conjunto';
 let planItems=[];
 let tipoItemActual='unico';
 let dolarBlue={compra:null,venta:null,fechaStr:''};
@@ -1365,13 +1372,16 @@ onAuthStateChanged(auth,async user=>{
 const cfgDoc=(id)=>doc(db,'hogares',hogarId,'config',id);
 const gastosCol=()=>collection(db,'hogares',hogarId,'gastos');
 const gastosDoc=(id)=>doc(db,'hogares',hogarId,'gastos',id);
-async function cargarPresupuestos(){try{const s=await getDoc(doc(db,'hogares',hogarId,'presupuestos','config'));if(s.exists()){const d=s.data();presupuestos=d.montos||{};catConfigActivas=d.activas||[];if(typeof d.pctAhorro==='number')pctAhorroPres=d.pctAhorro;if(typeof d.ingresoBase==='number')ingresoBasePres=d.ingresoBase;}}catch(e){console.error(e);}}
-async function guardarPresupuestos(){try{await setDoc(doc(db,'hogares',hogarId,'presupuestos','config'),{montos:presupuestos,activas:catConfigActivas,pctAhorro:pctAhorroPres,ingresoBase:ingresoBasePres});}catch(e){console.error(e);}}
-function promedioIngresos3m(){var ms=[...new Set(gastos.filter(g=>g.tipo==='Ingreso').map(g=>g.mes))].sort().slice(-3);if(!ms.length)return 0;var vs=ms.map(m=>sumarMes(m,'Ingreso'));return Math.round(vs.reduce((s,v)=>s+v,0)/vs.length);}
+async function cargarPresupuestos(scope){scope=scope||presScope;const docId=scope==='conjunto'?'config':scope;try{const s=await getDoc(doc(db,'hogares',hogarId,'presupuestos',docId));if(s.exists()){const d=s.data();presupuestos=d.montos||{};catConfigActivas=d.activas||[];pctAhorroPres=typeof d.pctAhorro==='number'?d.pctAhorro:20;ingresoBasePres=typeof d.ingresoBase==='number'?d.ingresoBase:null;}else{presupuestos={};catConfigActivas=[];pctAhorroPres=20;ingresoBasePres=null;}}catch(e){console.error(e);}}
+async function guardarPresupuestos(){const docId=presScope==='conjunto'?'config':presScope;try{await setDoc(doc(db,'hogares',hogarId,'presupuestos',docId),{montos:presupuestos,activas:catConfigActivas,pctAhorro:pctAhorroPres,ingresoBase:ingresoBasePres});}catch(e){console.error(e);}}
+function promedioIngresos3m(){var gs=gastosScopeActual();var ms=[...new Set(gs.filter(g=>g.tipo==='Ingreso').map(g=>g.mes))].sort().slice(-3);if(!ms.length)return 0;var vs=ms.map(m=>gs.filter(g=>g.mes===m&&g.tipo==='Ingreso').reduce((s,g)=>s+(g.monto||0),0));return Math.round(vs.reduce((s,v)=>s+v,0)/vs.length);}
 function ingresoBaseEfectivo(){return (typeof ingresoBasePres==='number'&&ingresoBasePres>0)?ingresoBasePres:promedioIngresos3m();}
 window.setPctAhorro=function(v){var n=parseFloat(v);if(isNaN(n)||n<0)n=0;if(n>90)n=90;pctAhorroPres=Math.round(n);guardarPresupuestos();renderPresSeg();};
 window.setIngresoBase=function(v){var n=parseFloat(String(v).replace(/[^0-9]/g,''));ingresoBasePres=(isNaN(n)||n<=0)?null:Math.round(n);guardarPresupuestos();renderPresSeg();};
 window.resetIngresoBase=function(){ingresoBasePres=null;guardarPresupuestos();renderPresSeg();};
+function gastosScopeActual(){if(presScope==='conjunto')return gastos;const nombre=presScope==='sebas'?'Sebas':'Male';return gastos.filter(g=>g.pago===nombre);}
+function sumarMesScope(mes,tipo){return gastosScopeActual().filter(g=>g.mes===mes&&(tipo?g.tipo===tipo:true)).reduce((s,g)=>s+(g.monto||0),0);}
+window.setPresScope=async function(scope){presScope=scope;document.querySelectorAll('.pres-scope-pill').forEach(el=>el.classList.toggle('active',el.dataset.scope===scope));presupuestos={};catConfigActivas=[];pctAhorroPres=20;ingresoBasePres=null;await cargarPresupuestos(scope);const tab=document.querySelector('.pres-tab.active');const tabId=tab?(tab.getAttribute('onclick').match(/'(\w+)'/)?.[1]||'seg'):'seg';if(tabId==='edit')renderPresEdit();else renderPresSeg();};
 
 async function cargarPlanItems(){try{const s=await getDoc(doc(db,'hogares',hogarId,'plan_lista','config'));if(s.exists())planItems=s.data().items||[];}catch(e){console.error(e);}}
 async function cargarPreferencias(){
@@ -1501,14 +1511,16 @@ async function guardarPlanItems(){try{await setDoc(doc(db,'hogares',hogarId,'pla
 
 // ── TOP CATS ──
 function calcTopCats(){
-  const meses=[...new Set(gastos.filter(g=>g.mes?.startsWith(anioSel)&&g.tipo==='Gasto variable').map(g=>g.mes))].sort().slice(-3);
+  const gs=gastosScopeActual();
+  const meses=[...new Set(gs.filter(g=>g.mes?.startsWith(anioSel)&&g.tipo==='Gasto variable').map(g=>g.mes))].sort().slice(-3);
   const freq={},total={};
-  meses.forEach(m=>{gastos.filter(g=>g.mes===m&&g.tipo==='Gasto variable').forEach(g=>{freq[g.categoria]=(freq[g.categoria]||0)+1;total[g.categoria]=(total[g.categoria]||0)+(g.monto||0);});});
+  meses.forEach(m=>{gs.filter(g=>g.mes===m&&g.tipo==='Gasto variable').forEach(g=>{freq[g.categoria]=(freq[g.categoria]||0)+1;total[g.categoria]=(total[g.categoria]||0)+(g.monto||0);});});
   return Object.entries(freq).filter(([,f])=>f>=2).sort((a,b)=>(total[b[0]]||0)-(total[a[0]]||0)).map(([c])=>c).slice(0,10);
 }
 function calcSugerido(cat){
-  const _hoyM=mesActualStr();const meses=[...new Set(gastos.filter(g=>g.mes.startsWith(anioSel)&&g.mes<=_hoyM&&g.tipo==='Gasto variable').map(g=>g.mes))].sort().slice(-3);
-  const vals=meses.map(m=>gastos.filter(g=>g.mes===m&&g.categoria===cat&&g.tipo==='Gasto variable').reduce((s,g)=>s+(g.monto||0),0)).filter(v=>v>0);
+  const gs=gastosScopeActual();
+  const _hoyM=mesActualStr();const meses=[...new Set(gs.filter(g=>g.mes.startsWith(anioSel)&&g.mes<=_hoyM&&g.tipo==='Gasto variable').map(g=>g.mes))].sort().slice(-3);
+  const vals=meses.map(m=>gs.filter(g=>g.mes===m&&g.categoria===cat&&g.tipo==='Gasto variable').reduce((s,g)=>s+(g.monto||0),0)).filter(v=>v>0);
   if(!vals.length)return 0;
   return Math.round(vals.reduce((s,v)=>s+v,0)/vals.length/5000)*5000;
 }
@@ -2176,10 +2188,11 @@ window.presTabs=(id,btn)=>{
 function renderPresSeg(){
   const mes=mesSel==='todo'?mesActualStr():(mesSel||mesActualStr());
   const top=getTopActivas();
-  const cG=[...new Set(gastos.filter(g=>g.mes===mes&&g.tipo==='Gasto variable').map(g=>g.categoria))];
+  const _gsScope=gastosScopeActual();
+  const cG=[...new Set(_gsScope.filter(g=>g.mes===mes&&g.tipo==='Gasto variable').map(g=>g.categoria))];
   const resto=cG.filter(c=>!top.includes(c));
   const sinP=top.filter(c=>!presupuestos[c]||presupuestos[c]===0);
-  const gC=c=>gastos.filter(g=>g.mes===mes&&g.categoria===c&&g.tipo==='Gasto variable').reduce((s,g)=>s+(g.monto||0),0);
+  const gC=c=>_gsScope.filter(g=>g.mes===mes&&g.categoria===c&&g.tipo==='Gasto variable').reduce((s,g)=>s+(g.monto||0),0);
   const tTop=top.reduce((s,c)=>s+gC(c),0);
   const tResto=resto.reduce((s,c)=>s+gC(c),0);
   const tP=top.reduce((s,c)=>s+(presupuestos[c]||0),0);
@@ -2191,7 +2204,7 @@ function renderPresSeg(){
   if(pctT>=100)html+=`<div class="alert alert-err">🔴 Superaste el presupuesto total de categorías top.</div>`;
   else if(pctT>=80)html+=`<div class="alert alert-warn">🟡 Vas por el ${pctT}% del presupuesto total.</div>`;
   else if(pctT)html+=`<div class="alert alert-ok">🟢 Vas bien — ${pctT}% del presupuesto utilizado.</div>`;
-  const _ingR=ingresoBaseEfectivo();const _esOverride=(typeof ingresoBasePres==='number'&&ingresoBasePres>0);const _fij=sumarMes(mes,'Gasto fijo')||0;const _pctA=pctAhorroPres;const _ahObj=Math.round(_ingR*_pctA/100);const _disp=Math.max(0,_ingR-_fij-_ahObj);const _presTot=Object.keys(presupuestos).filter(c=>CATEGORIAS['Gasto variable'].includes(c)).reduce((s,c)=>s+(presupuestos[c]||0),0);if(_ingR>0){const _over=_presTot>_disp;const _pctD=_disp>0?Math.round(_presTot/_disp*100):(_presTot>0?999:0);html+=`<div class="card" style="border:1px solid ${_over?'#fecaca':'#dcfce7'};background:${_over?'#fef2f2':'#f0fdf4'}"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><span style="font-size:13px;font-weight:700">Disponible para variables</span><span style="font-size:15px;font-weight:800;color:${_over?'#dc2626':'#16a34a'}">${fmt(_disp)}</span></div>`;html+=`<div style="font-size:11px;color:#888;line-height:1.6">Ingreso base (prom. 3m${_esOverride?', editado':''}): <input type="text" value="${fmt(_ingR)}" onchange="setIngresoBase(this.value)" style="width:110px;border:1px solid #e2e8f0;border-radius:6px;padding:2px 6px;font-size:11px;text-align:right"> ${_esOverride?'<span onclick=\'resetIngresoBase()\' style="color:#2563eb;cursor:pointer;text-decoration:underline">usar promedio</span>':''}</div>`;html+=`<div style="font-size:11px;color:#888;line-height:1.8;margin-top:2px">− fijos ${fmt(_fij)} − ahorro <input type="number" min="0" max="90" value="${_pctA}" onchange="setPctAhorro(this.value)" style="width:46px;border:1px solid #e2e8f0;border-radius:6px;padding:2px 4px;font-size:11px;text-align:center">% (${fmt(_ahObj)})</div>`;html+=`<div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;padding-top:8px;border-top:0.5px solid #e2e8f0"><span style="font-size:12px;color:#555">Presupuestado (variables)</span><span style="font-size:13px;font-weight:700;color:${_over?'#dc2626':'#16a34a'}">${fmt(_presTot)}${_disp>0?' · '+_pctD+'%':''}</span></div>`;if(_over)html+=`<div style="margin-top:6px;font-size:11.5px;color:#dc2626;font-weight:600">⚠️ Tu presupuesto de variables supera lo disponible según tus ingresos. Bajalo o ajustá metas.</div>`;html+=`</div>`;}
+  const _ingR=ingresoBaseEfectivo();const _esOverride=(typeof ingresoBasePres==='number'&&ingresoBasePres>0);const _fij=sumarMesScope(mes,'Gasto fijo')||0;const _pctA=pctAhorroPres;const _ahObj=Math.round(_ingR*_pctA/100);const _disp=Math.max(0,_ingR-_fij-_ahObj);const _presTot=Object.keys(presupuestos).filter(c=>CATEGORIAS['Gasto variable'].includes(c)).reduce((s,c)=>s+(presupuestos[c]||0),0);if(_ingR>0){const _over=_presTot>_disp;const _pctD=_disp>0?Math.round(_presTot/_disp*100):(_presTot>0?999:0);html+=`<div class="card" style="border:1px solid ${_over?'#fecaca':'#dcfce7'};background:${_over?'#fef2f2':'#f0fdf4'}"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><span style="font-size:13px;font-weight:700">Disponible para variables</span><span style="font-size:15px;font-weight:800;color:${_over?'#dc2626':'#16a34a'}">${fmt(_disp)}</span></div>`;html+=`<div style="font-size:11px;color:#888;line-height:1.6">Ingreso base (prom. 3m${_esOverride?', editado':''}): <input type="text" value="${fmt(_ingR)}" onchange="setIngresoBase(this.value)" style="width:110px;border:1px solid #e2e8f0;border-radius:6px;padding:2px 6px;font-size:11px;text-align:right"> ${_esOverride?'<span onclick=\'resetIngresoBase()\' style="color:#2563eb;cursor:pointer;text-decoration:underline">usar promedio</span>':''}</div>`;html+=`<div style="font-size:11px;color:#888;line-height:1.8;margin-top:2px">− fijos ${fmt(_fij)} − ahorro <input type="number" min="0" max="90" value="${_pctA}" onchange="setPctAhorro(this.value)" style="width:46px;border:1px solid #e2e8f0;border-radius:6px;padding:2px 4px;font-size:11px;text-align:center">% (${fmt(_ahObj)})</div>`;html+=`<div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;padding-top:8px;border-top:0.5px solid #e2e8f0"><span style="font-size:12px;color:#555">Presupuestado (variables)</span><span style="font-size:13px;font-weight:700;color:${_over?'#dc2626':'#16a34a'}">${fmt(_presTot)}${_disp>0?' · '+_pctD+'%':''}</span></div>`;if(_over)html+=`<div style="margin-top:6px;font-size:11.5px;color:#dc2626;font-weight:600">⚠️ Tu presupuesto de variables supera lo disponible según tus ingresos. Bajalo o ajustá metas.</div>`;html+=`</div>`;}
   html+=`<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><span style="font-size:13px;font-weight:700">Variables · ${nombreMes(mes)}</span><span style="font-size:13px;font-weight:700;color:${colT}">${fmt(tTop+tResto)}${tP>0?' / '+fmt(tP):''}</span></div>`;
   if(pctT!=null)html+=`<div class="bar-bg"><div class="bar-fill ${pctT>=100?'bar-over':pctT>=80?'bar-warn':'bar-ok'}" style="width:${Math.min(pctT,100)}%"></div></div><div class="bar-pct">${pctT}% del presupuesto (categorías top)</div>`;
   html+=`<div style="margin-top:12px">`;
@@ -3094,7 +3107,7 @@ function alertasPresProgresivas(mes){
   const top=getTopActivas();
   const alertas=[];
   top.forEach(cat=>{
-    const gastado=gastos.filter(g=>g.mes===mes&&g.categoria===cat&&g.tipo==='Gasto variable').reduce((s,g)=>s+(g.monto||0),0);
+    const gastado=gastosScopeActual().filter(g=>g.mes===mes&&g.categoria===cat&&g.tipo==='Gasto variable').reduce((s,g)=>s+(g.monto||0),0);
     const presup=presupuestos[cat]||0;
     if(presup>0&&mitadMes){
       const pct=gastado/presup*100;
@@ -3112,7 +3125,7 @@ let presModoPorc=false;
 
 function getIngReferenciaEdit(){
   const mes=mesSel==='todo'?mesActualStr():(mesSel||mesActualStr());
-  const real=sumarMes(mes,'Ingreso');
+  const real=sumarMesScope(mes,'Ingreso');
   if(real>0)return real;
   return getIngProyectado(mes)||0;
 }
@@ -3124,9 +3137,10 @@ window.pedirSugerenciaAgente=async()=>{
   if(!btn||!panel)return;
   btn.disabled=true;btn.textContent='Consultando al agente...';
   const mes=mesSel==='todo'?mesActualStr():(mesSel||mesActualStr());
-  const ing=sumarMes(mes,'Ingreso')||getIngProyectado(mes)||0;
+  const ing=sumarMesScope(mes,'Ingreso')||getIngProyectado(mes)||0;
   const top=getTopActivas();
-  const gastosCats=top.map(c=>{const g=gastos.filter(x=>x.mes===mes&&x.categoria===c&&x.tipo==='Gasto variable').reduce((s,x)=>s+(x.monto||0),0);const p=presupuestos[c]||0;return`${c}: gastado ${fmt(g)}, presupuesto actual ${fmt(p)}`;}).join('\n');
+  const _gsSug=gastosScopeActual();
+  const gastosCats=top.map(c=>{const g=_gsSug.filter(x=>x.mes===mes&&x.categoria===c&&x.tipo==='Gasto variable').reduce((s,x)=>s+(x.monto||0),0);const p=presupuestos[c]||0;return`${c}: gastado ${fmt(g)}, presupuesto actual ${fmt(p)}`;}).join('\n');
   const prompt=`Sos el agente financiero de Sebas y Male. Mes: ${nombreMes(mes)}. Ingresos: ${fmt(ing)}. Objetivo: ahorrar al menos el 20% (${fmt(Math.round(ing*0.2))}).\n\nGastos variables top y presupuestos actuales:\n${gastosCats}\n\nSugerí límites de presupuesto específicos para cada categoría para que puedan cumplir el objetivo del 20% de ahorro. Sé concreto con montos en pesos. Máximo 6 oraciones.`;
   try{
     const r=await fetch('/.netlify/functions/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:600,system:'Sos el agente financiero de Sebas y Male, una pareja argentina. Respondé en español rioplatense, directo y con números reales en formato $1.200.000.',messages:[{role:'user',content:prompt}]})});
