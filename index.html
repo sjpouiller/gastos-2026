@@ -2142,9 +2142,11 @@ window.guardar=async()=>{
     btn.disabled=false;btn.textContent='Guardar movimiento';
     return;
   }
+  let _acumCatPersona=0;
   if(tipo!=='Ingreso'&&tipo!=='Ahorro'){
     const alertas=[];
     const acumCat=gastos.filter(g=>g.mes===mes&&(g.categoria===cat||g.tipoIngreso===cat)).reduce((s,g)=>s+(g.monto||0),0);
+    _acumCatPersona=gastos.filter(g=>g.mes===mes&&g.categoria===cat&&g.tipo==='Gasto variable'&&g.pago===quien).reduce((s,g)=>s+(g.monto||0),0);
     const prevCat=gastos.filter(g=>g.mes===prev&&(g.categoria===cat||g.tipoIngreso===cat)).reduce((s,g)=>s+(g.monto||0),0);
     const nuevoCat=acumCat+monto;
     if(prevCat>0){const pct=Math.round(nuevoCat/prevCat*100);if(pct>=100)alertas.push(`⚠️ <strong>${cat}:</strong> Con este gasto llegás al ${pct}% de lo gastado en ${nombreMes(prev)} (${fmt(prevCat)})`);else if(pct>=75)alertas.push(`🟡 <strong>${cat}:</strong> Ya vas por el ${pct}% de lo gastado en ${nombreMes(prev)} (${fmt(prevCat)})`);}
@@ -2162,6 +2164,8 @@ window.guardar=async()=>{
     if(comentario)dd.comentario=comentario;
     if(tipo==='Ahorro'&&window._activoSelected)dd.activo=window._activoSelected;
     await addDoc(gastosCol(),dd);
+    // Alerta de presupuesto por email (fire-and-forget, solo gastos variables)
+    if(tipo==='Gasto variable'&&quien)fetch('/.netlify/functions/email-presupuesto',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({persona:quien,categoria:cat,mes,monto,totalAntes:_acumCatPersona,hogarId,tipo})}).catch(()=>{});
     msgEl.innerHTML=`<div class="alert alert-ok">✓ ${cat} · ${fmt(monto)} guardado</div>`;
     document.getElementById('inp-monto').value='';const inpD=document.getElementById('inp-dolar');if(inpD)inpD.value='';document.getElementById('inp-comentario').value='';window._activoSelected=null;const inpA=document.getElementById('inp-activo');if(inpA)inpA.value='';
     if(mes!==mesActualStr())toast(`⚠️ Guardado en ${mes}, no en el mes actual (${mesActualStr()}). Chequeá que esté ok.`,'warn',6000);
