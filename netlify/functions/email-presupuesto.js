@@ -103,17 +103,19 @@ async function enviarAlerta({ asunto, emoji, colorBg, colorBorder, persona, cate
 </body>
 </html>`;
 
-  const res = await fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${process.env.RESEND_API_KEY}` },
-    body: JSON.stringify({
-      from: 'Fina 💰 <onboarding@resend.dev>',
-      to: ['sjpouiller@gmail.com', 'malelanusse@odiseaswimwear.com.ar'],
-      subject: `${emoji} ${asunto}`,
-      html
-    })
-  });
-  return res.json();
+  const DESTINATARIOS = ['sjpouiller@gmail.com', 'malelanusse@odiseaswimwear.com.ar'];
+  const resultados = [];
+  for (const to of DESTINATARIOS) {
+    const res = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${process.env.RESEND_API_KEY}` },
+      body: JSON.stringify({ from: 'Fina 💰 <onboarding@resend.dev>', to, subject: `${emoji} ${asunto}`, html })
+    });
+    const data = await res.json();
+    console.log(`Resend [${to}]:`, JSON.stringify(data));
+    resultados.push({ to, status: res.status, data });
+  }
+  return resultados;
 }
 
 exports.handler = async function(event) {
@@ -152,10 +154,10 @@ exports.handler = async function(event) {
       ? `${persona} superó el presupuesto mensual de "${categoria}" en ${mesNombre}.`
       : `${persona} llegó al ${pct}% del presupuesto de "${categoria}" en ${mesNombre}. Quedan ${fmt(presupuesto - totalNuevo)}.`);
 
-    await enviarAlerta({ ...config, persona, categoria, mesNombre, totalNuevo, presupuesto, pct, cuerpo });
+    const resendResult = await enviarAlerta({ ...config, persona, categoria, mesNombre, totalNuevo, presupuesto, pct, cuerpo });
 
     console.log(`Alerta enviada: ${nivel} | ${persona} | ${categoria} | ${pct}%`);
-    return { statusCode: 200, body: JSON.stringify({ sent: true, nivel, pct }) };
+    return { statusCode: 200, body: JSON.stringify({ sent: true, nivel, pct, resend: resendResult }) };
 
   } catch (e) {
     console.error('email-presupuesto error:', e);
