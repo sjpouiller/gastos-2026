@@ -1803,7 +1803,8 @@ function renderPersonas(gm,gmPrev){
     const top=Object.entries(cm).sort((a,b)=>b[1]-a[1]).slice(0,10);
     const maxV=top[0]?.[1]||1;const col=p==='Sebas'?'#3b82f6':'#f59e0b';
     const bodyHtml=top.map(([cat,monto])=>{const pct=Math.round(monto/maxV*100);const badge=gmPrev&&pmap[cat]>0?varBadge(monto,pmap[cat],true):'';return`<div class="row-item"><span class="row-cat" data-detalle-cat="${String(cat).replace(/&/g,'&amp;').replace(/"/g,'&quot;')}" style="cursor:pointer;border-bottom:1px dotted #cbd5e1">${cat}</span><div class="row-right"><span style="font-size:13px;font-weight:700">${fmt(monto)}</span>${badge}</div></div><div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${col}"></div></div>`;}).join('');
-    ph+=`<div class="persona-card"><div class="persona-header" onclick="this.closest('.persona-card').classList.toggle('expanded')"><div class="avatar ${p==='Sebas'?'av-s':'av-m'}">${p.slice(0,2).toUpperCase()}</div><div style="flex:1"><div class="persona-name">${p}</div><div class="persona-total">${fmt(tot)} ${gmPrev?varBadge(tot,totP,true):''}</div></div><span class="persona-toggle-icon">▼</span></div><div class="persona-body">${bodyHtml}</div></div>`;
+    const fpItem=`<div style="margin-top:12px;padding-top:10px;border-top:1.5px solid #ececea"><div class="row-item" style="cursor:pointer;border-bottom:none;padding:6px 0" onclick="abrirDetalleFormaPago('${p}')"><span style="font-weight:600;color:#444;font-size:13px">💳 Formas de pago</span><span style="color:#aaa;font-size:13px">›</span></div></div>`;
+    ph+=`<div class="persona-card"><div class="persona-header" onclick="this.closest('.persona-card').classList.toggle('expanded')"><div class="avatar ${p==='Sebas'?'av-s':'av-m'}">${p.slice(0,2).toUpperCase()}</div><div style="flex:1"><div class="persona-name">${p}</div><div class="persona-total">${fmt(tot)} ${gmPrev?varBadge(tot,totP,true):''}</div></div><span class="persona-toggle-icon">▼</span></div><div class="persona-body">${bodyHtml}${fpItem}</div></div>`;
   });
   document.getElementById('personas').innerHTML=ph;
 }
@@ -2572,6 +2573,101 @@ if(!window.__detalleCatDelegated){
     window.abrirDetalleCategoria(el.getAttribute('data-detalle-cat'), el.getAttribute('data-detalle-tipo')||'');
   });
 }
+
+window.abrirDetalleFormaPago = function(persona){
+  var modal = document.getElementById('metric-modal');
+  var titleEl = document.getElementById('metric-modal-title');
+  var bodyEl = document.getElementById('metric-modal-body');
+  if(!modal||!bodyEl) return;
+  var anio = (typeof anioSel!=='undefined'&&anioSel)?anioSel:String(new Date().getFullYear());
+  var movs = gastos.filter(function(g){
+    return g.mes && g.mes.startsWith(anio) && g.pago===persona && (g.tipo==='Gasto fijo'||g.tipo==='Gasto variable');
+  });
+  // Bucket assignment
+  var BUCKET_COLORS = {'Tarjeta de crédito':'#3b82f6','Efectivo':'#10b981','Transferencia':'#8b5cf6','Débito':'#f59e0b'};
+  var BUCKET_ORDER = ['Tarjeta de crédito','Transferencia','Efectivo','Débito'];
+  function getBucket(fp){
+    if(!fp) return 'Efectivo';
+    if(/credito|crédito/i.test(fp)) return 'Tarjeta de crédito';
+    if(/debito|débito/i.test(fp)) return 'Débito';
+    if(fp==='Transferencia') return 'Transferencia';
+    return 'Efectivo';
+  }
+  // Build per-month aggregates
+  var meses=[];
+  for(var i=1;i<=12;i++) meses.push(anio+'-'+(i<10?'0'+i:String(i)));
+  var monthBucket={}, monthDetail={};
+  meses.forEach(function(m){
+    monthBucket[m]={'Tarjeta de crédito':0,'Efectivo':0,'Transferencia':0,'Débito':0};
+    monthDetail[m]={};
+  });
+  movs.forEach(function(g){
+    if(!monthBucket[g.mes]) return;
+    var b=getBucket(g.formaPago);
+    monthBucket[g.mes][b]=(monthBucket[g.mes][b]||0)+(g.monto||0);
+    var fp=g.formaPago||'Efectivo';
+    monthDetail[g.mes][fp]=(monthDetail[g.mes][fp]||0)+(g.monto||0);
+  });
+  // Header: current month vs prev
+  var hoyMes=mesActualStr();
+  var prevMes=mesAnterior(hoyMes);
+  function totMes(m){ return Object.values(monthBucket[m]||{}).reduce(function(s,v){return s+v;},0); }
+  var tH=totMes(hoyMes), tP=totMes(prevMes);
+  var tendHtml='';
+  if(tP>0){var pct=Math.round((tH-tP)/tP*100);var col=pct>0?'#dc2626':'#16a34a';var fl=pct>0?'▲':'▼';tendHtml='<span style="color:'+col+';font-weight:700">'+fl+' '+Math.abs(pct)+'%</span> <span style="color:#9ca3af;font-size:11px">vs mes ant.</span>';}
+  // Legend
+  var legendHtml=BUCKET_ORDER.map(function(b){return'<div style="display:flex;align-items:center;gap:4px;font-size:11px;color:#555"><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:'+BUCKET_COLORS[b]+'"></span>'+b+'</div>';}).join('');
+  titleEl.textContent='💳 '+persona+' — Formas de pago';
+  bodyEl.innerHTML=
+    '<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;margin-bottom:10px">'+
+      '<div><div style="font-size:12px;color:#9ca3af">Pagos de '+persona+' en '+anio+'</div>'+
+      '<div style="font-size:18px;font-weight:800;color:#1a1a1a">'+fmt(tH)+' <span style="font-size:11px;font-weight:500;color:#9ca3af">este mes</span></div></div>'+
+      '<div style="text-align:right">'+(tendHtml||'')+'</div>'+
+    '</div>'+
+    '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">'+legendHtml+'</div>'+
+    '<div style="height:210px;position:relative"><canvas id="detalle-cat-canvas"></canvas></div>';
+  modal.classList.add('open');
+  var drawIt=function(){
+    var cv=document.getElementById('detalle-cat-canvas'); if(!cv) return;
+    var ctx=cv.getContext('2d');
+    if(window._detalleCatChart){try{window._detalleCatChart.destroy();}catch(e){}}
+    var labels=meses.map(function(m){return mesCorto(m);});
+    var datasets=BUCKET_ORDER.map(function(b){
+      return{label:b,data:meses.map(function(m){return Math.round(monthBucket[m][b]||0);}),backgroundColor:BUCKET_COLORS[b],borderRadius:3,borderSkipped:false};
+    });
+    window._detalleCatChart=new Chart(ctx,{
+      type:'bar',
+      data:{labels:labels,datasets:datasets},
+      options:{responsive:true,maintainAspectRatio:false,
+        plugins:{
+          legend:{display:false},
+          tooltip:{mode:'index',intersect:false,
+            callbacks:{
+              title:function(items){return nombreMes(meses[items[0].dataIndex]);},
+              label:function(){return null;},
+              afterBody:function(items){
+                if(!items.length) return [];
+                var m=meses[items[0].dataIndex];
+                var lines=[];
+                Object.entries(monthDetail[m]).sort(function(a,b){return b[1]-a[1];}).forEach(function(e){if(e[1]>0)lines.push(e[0]+': '+fmt(e[1]));});
+                var tot=totMes(m);
+                if(tot>0){lines.push('');lines.push('Total: '+fmt(tot));}
+                return lines;
+              }
+            }
+          }
+        },
+        scales:{
+          x:{stacked:true,ticks:{font:{size:10},color:'#9ca3af'},grid:{display:false}},
+          y:{stacked:true,beginAtZero:true,ticks:{callback:function(v){return fmtK(v);},font:{size:10},color:'#9ca3af'},grid:{color:'#f1f5f9'}}
+        },
+        animation:{duration:350}
+      }
+    });
+  };
+  if(window.Chart){drawIt();}
+  else{var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js';s.onload=drawIt;document.head.appendChild(s);}
+};
 
 window.abrirMetricModal=(tipo,mes,mesP)=>{
   const modal=document.getElementById('metric-modal');
