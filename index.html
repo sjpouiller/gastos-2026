@@ -498,7 +498,6 @@ select,input[type=text],input[type=number],input[type=date],input[type=month]{pa
         <div class="year-tabs" id="year-tabs"></div>
         <div class="mes-tabs" id="mes-tabs"></div>
       </div>
-      <div id="fina-resumen" style="margin-bottom:10px"></div>
       <div class="metric-grid" id="metrics"></div>
       <div id="dona-resumen"></div>
       <div id="ahorro-resumen"></div>
@@ -1690,38 +1689,6 @@ window.onBurbujaClick=e=>{
   setTimeout(()=>{if(msg)chipAgente(msg);},400);
 };
 
-// ── FINA CARD ──
-function renderFinaCard(mes,ing,fij,vrs,sal){
-  const el=document.getElementById('fina-resumen');if(!el)return;
-  const cacheKey='fina-card-'+mes;
-  const cached=sessionStorage.getItem(cacheKey);
-  el.innerHTML=`<div class="card" style="background:#f0fdf4;border-color:#86efac;margin-bottom:10px">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-      <div style="font-size:13px;font-weight:700;color:#15803d">💬 Fina dice</div>
-      <button onclick="fetchFinaInsight('${mes}',${ing},${fij},${vrs},${sal},true)" style="font-size:11px;color:#15803d;background:#dcfce7;border:0.5px solid #86efac;border-radius:6px;padding:3px 8px;cursor:pointer">↻ Actualizar</button>
-    </div>
-    <div id="fina-card-txt" style="font-size:13px;line-height:1.6;color:#1a1a1a">${cached?cached:'<span style="color:#888;font-style:italic">Analizando tus finanzas del mes...</span>'}</div>
-  </div>`;
-  if(!cached)fetchFinaInsight(mes,ing,fij,vrs,sal,false);
-}
-window.fetchFinaInsight=async(mes,ing,fij,vrs,sal,force)=>{
-  const txtEl=document.getElementById('fina-card-txt');
-  if(!txtEl)return;
-  if(force)txtEl.innerHTML='<span style="color:#888;font-style:italic">Analizando...</span>';
-  const prev=mesAnterior(mes);
-  const ingP=sumarMes(prev,'Ingreso'),fijP=sumarMes(prev,'Gasto fijo'),vrsP=sumarMes(prev,'Gasto variable');
-  const salP=ingP-fijP-vrsP;
-  const gA=gastos.filter(g=>g.mes===mes&&g.tipo==='Gasto variable');
-  const topVars=Object.entries(gA.reduce((a,g)=>{a[g.categoria]=(a[g.categoria]||0)+(g.monto||0);return a},{})).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([c,v])=>`${c}: ${fmtK(v)}`).join(', ');
-  const ctx=`Sos Fina, agente financiera personal de Sebas y Male. ${(mes===mesActualStr())?`OJO: \x60${nombreMes(mes)}\x60 es el mes EN CURSO (hoy \x60${new Date().toLocaleDateString('es-AR',{day:'numeric',month:'long'})}\x60, dia ${new Date().getDate()} de ${new Date(new Date().getFullYear(),new Date().getMonth()+1,0).getDate()}). Los numeros son PARCIALES, hablá en presente (\'vas\', \'estás\'), nunca como si el mes hubiera cerrado.`:`${nombreMes(mes)} es un mes ya cerrado, numeros finales.`} En ${nombreMes(mes)}: ingresos ${fmt(ing)}, gastos fijos ${fmt(fij)}, gastos variables ${fmt(vrs)}, saldo neto ${fmt(sal)}. Mes anterior: ingresos ${fmt(ingP)}, saldo ${fmt(salP)}. Top gastos variables: ${topVars||'sin datos'}. Dá exactamente UN insight concreto y accionable en máximo 2 oraciones cortas. En español rioplatense. Sin saludos, sin emojis, directo al punto.`;
-  try{
-    const r=await fetch('/.netlify/functions/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:120,system:ctx,messages:[{role:'user',content:'Dame el insight del mes.'}]})});
-    const data=await r.json();
-    const text=data.content?.[0]?.text||'Sin datos suficientes para analizar.';
-    sessionStorage.setItem('fina-card-'+mes,text);
-    const el=document.getElementById('fina-card-txt');if(el)el.textContent=text;
-  }catch(e){const el=document.getElementById('fina-card-txt');if(el)el.textContent='Sin conexión con el agente.';}
-};
 
 // ── RESUMEN ──
 window.renderResumen=()=>{
@@ -1780,7 +1747,6 @@ function renderResumenMes(mes){
   const fij=sumarMes(mes,'Gasto fijo'),fijP=sumarMes(prev,'Gasto fijo');
   const vrs=sumarMes(mes,'Gasto variable'),vrsP=sumarMes(prev,'Gasto variable');
   const sal=ing-fij-vrs;const ahP=ing>0?Math.round(sal/ing*100):0;
-  renderFinaCard(mes,ing,fij,vrs,sal);
   document.getElementById('metrics').innerHTML=`<div class="metric" onclick="abrirMetricModal('Ingreso','${mes}','${prev}')"><div class="metric-label">Ingresos</div><div class="metric-value pos">${fmt(ing)}</div><div class="metric-var">${varBadge(ing,ingP,false)}<span style="font-size:11px;color:#888">vs ${mesCorto(prev)} · ver ▸</span></div></div><div class="metric" onclick="abrirMetricModal('Gasto fijo','${mes}','${prev}')"><div class="metric-label">Gastos fijos</div><div class="metric-value">${fmt(fij)}</div><div class="metric-var">${varBadge(fij,fijP,true)}<span style="font-size:11px;color:#888">vs ${mesCorto(prev)} · ver ▸</span></div></div><div class="metric" onclick="abrirMetricModal('Gasto variable','${mes}','${prev}')"><div class="metric-label">Variables</div><div class="metric-value">${fmt(vrs)}</div><div class="metric-var">${varBadge(vrs,vrsP,true)}<span style="font-size:11px;color:#888">vs ${mesCorto(prev)} · ver ▸</span></div></div><div class="metric" onclick="abrirMetricModal('saldo','${mes}','${prev}')"><div class="metric-label">Saldo neto</div><div class="metric-value ${sal>=0?'pos':'neg'}">${fmt(sal)}</div><div class="metric-var">${varBadge(sal,sumarMes(prev,'Ingreso')-sumarMes(prev,'Gasto fijo')-sumarMes(prev,'Gasto variable'),false)}<span style="font-size:11px;color:#888">ahorro ${ahP}% · ver ▸</span></div></div>`;
   document.getElementById('ahorro-resumen').innerHTML=renderAhorroCard(mes,prev);
   renderDonaCard(mes,prev);
