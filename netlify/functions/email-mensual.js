@@ -24,7 +24,7 @@ const fmtK = n => Math.abs(n) >= 1000000 ? (n < 0 ? '-' : '') + '$' + (Math.abs(
 async function getGastosMes(mes) {
   try {
     const db = getDB();
-    const snapshot = await db.collection('gastos').where('mes', '==', mes).get();
+    const snapshot = await db.collection('hogares').doc('sjpouiller').collection('gastos').where('mes', '==', mes).get();
     return snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
   } catch (e) {
     console.error('Error:', e);
@@ -80,7 +80,7 @@ Español rioplatense, directo, máximo 250 palabras.`;
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'x-api-key': process.env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01' },
-    body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 600, messages: [{ role: 'user', content: prompt }] })
+    body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 600, messages: [{ role: 'user', content: prompt }] })
   });
   const data = await res.json();
   return data.content?.[0]?.text || 'No se pudo generar el análisis.';
