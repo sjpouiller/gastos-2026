@@ -2172,8 +2172,9 @@ function renderPresSeg(){
   // ── Vista personal (Sebas / Male) ──
   if(presScope!=='conjunto'){
     const _nombre=presScope==='sebas'?'Sebas':'Male';
-    // Últimos 3 meses con datos para este scope
-    const _meses3=[...new Set(_gsScope.map(g=>g.mes).filter(Boolean))].sort().slice(-3);
+    // Últimos 3 meses pasados/actuales con datos para este scope
+    const _hoyM=mesActualStr();
+    const _meses3=[...new Set(_gsScope.map(g=>g.mes).filter(Boolean).filter(m=>m<=_hoyM))].sort().slice(-3);
     const _n=_meses3.length||1;
     const _periodoLabel=_meses3.map(m=>mesCorto(m)).join(' · ');
     // Promedio por tipo
