@@ -2168,6 +2168,59 @@ function renderPresSeg(){
   const tP=top.reduce((s,c)=>s+(presupuestos[c]||0),0);
   const pctT=tP>0?Math.round(tTop/tP*100):null;
   const colT=!pctT?'#888':pctT>=100?'#dc2626':pctT>=80?'#f59e0b':'#16a34a';
+
+  // ── Vista personal (Sebas / Male) ──
+  if(presScope!=='conjunto'){
+    const _nombre=presScope==='sebas'?'Sebas':'Male';
+    const _ing=sumarMesScope(mes,'Ingreso');
+    const _fij=sumarMesScope(mes,'Gasto fijo');
+    const _dispV=Math.max(0,_ing-_fij);
+    const _gastV=tTop+tResto;
+    const _libre=_dispV-_gastV;
+    const _pctG=_dispV>0?Math.min(Math.round(_gastV/_dispV*100),999):(_gastV>0?100:0);
+    const _colG=_pctG>=100?'#dc2626':_pctG>=80?'#f59e0b':'#16a34a';
+    // Agrupados por categoría
+    const _grp=(tipo,key)=>Object.entries(_gsScope.filter(g=>g.mes===mes&&g.tipo===tipo).reduce((a,g)=>{const k=g[key]||'?';a[k]=(a[k]||0)+(g.monto||0);return a},{})).sort((a,b)=>b[1]-a[1]);
+    const _ings=_grp('Ingreso','tipoIngreso');
+    const _fijs=_grp('Gasto fijo','categoria');
+    const _vars=Object.entries(_gsScope.filter(g=>g.mes===mes&&g.tipo==='Gasto variable').reduce((a,g)=>{a[g.categoria]=(a[g.categoria]||0)+(g.monto||0);return a},{})).sort((a,b)=>b[1]-a[1]);
+    const _tog=id=>`var el=document.getElementById('${id}');el.style.display=el.style.display==='none'?'block':'none';var arr=document.getElementById('arr-${id}');if(arr)arr.textContent=el.style.display==='none'?'▸':'▾'`;
+    let ph=`<div class="card" style="padding:0;overflow:hidden;margin-bottom:12px">`;
+    ph+=`<div style="background:#1a1a1a;color:#fff;padding:14px 16px"><span style="font-size:14px;font-weight:700">${_nombre}</span><span style="font-size:12px;color:#888;margin-left:8px">${nombreMes(mes)}</span></div>`;
+    // Ingresos
+    ph+=`<div onclick="${_tog('det-ing')}" style="cursor:pointer;display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid #f3f3f0"><div style="font-size:13px;color:#555">💰 Ingresos<span id="arr-det-ing" style="margin-left:6px;font-size:11px;color:#aaa">▸</span></div><span style="font-size:15px;font-weight:800;color:#16a34a">${fmt(_ing)}</span></div>`;
+    ph+=`<div id="det-ing" style="display:none;background:#f8fdf8;padding:6px 16px 10px;border-bottom:1px solid #f3f3f0">`;
+    if(_ings.length){_ings.forEach(([c,v])=>{ph+=`<div style="display:flex;justify-content:space-between;font-size:12px;padding:5px 0;border-bottom:0.5px solid #edfaed"><span style="color:#444">${c}</span><span style="font-weight:600;color:#16a34a">${fmt(v)}</span></div>`;});}else{ph+=`<div style="font-size:12px;color:#aaa;padding:6px 0">Sin ingresos este mes</div>`;}
+    ph+=`</div>`;
+    // Gastos fijos
+    ph+=`<div onclick="${_tog('det-fij')}" style="cursor:pointer;display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid #f3f3f0"><div style="font-size:13px;color:#555">🏠 Gastos fijos<span id="arr-det-fij" style="margin-left:6px;font-size:11px;color:#aaa">▸</span></div><span style="font-size:15px;font-weight:800;color:#dc2626">−${fmt(_fij)}</span></div>`;
+    ph+=`<div id="det-fij" style="display:none;background:#fff8f8;padding:6px 16px 10px;border-bottom:1px solid #f3f3f0">`;
+    if(_fijs.length){_fijs.forEach(([c,v])=>{ph+=`<div style="display:flex;justify-content:space-between;font-size:12px;padding:5px 0;border-bottom:0.5px solid #fdecea"><span style="color:#444">${c}</span><span style="font-weight:600;color:#dc2626">${fmt(v)}</span></div>`;});}else{ph+=`<div style="font-size:12px;color:#aaa;padding:6px 0">Sin gastos fijos este mes</div>`;}
+    ph+=`</div>`;
+    // = Para variables
+    ph+=`<div style="padding:14px 16px;background:${_pctG>=100?'#fef2f2':_pctG>=80?'#fffbeb':'#f0fdf4'}">`;
+    ph+=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:${_dispV>0?'10px':'0'}"><span style="font-size:13px;font-weight:700">= Para variables</span><span style="font-size:17px;font-weight:800;color:${_colG}">${fmt(_dispV)}</span></div>`;
+    if(_dispV>0){ph+=`<div class="bar-bg"><div class="bar-fill ${_pctG>=100?'bar-over':_pctG>=80?'bar-warn':'bar-ok'}" style="width:${Math.min(_pctG,100)}%"></div></div>`;ph+=`<div style="display:flex;justify-content:space-between;font-size:11.5px;margin-top:5px"><span style="color:#888">Gastado: <strong style="color:${_colG}">${fmt(_gastV)} · ${_pctG}%</strong></span><span style="font-weight:700;color:${_libre>=0?'#16a34a':'#dc2626'}">${_libre>=0?'Libre '+fmt(_libre):'Exceso '+fmt(Math.abs(_libre))}</span></div>`;}
+    ph+=`</div>`;
+    // Variables por categoría desplegable
+    if(_vars.length){
+      ph+=`<div onclick="${_tog('det-var')}" style="cursor:pointer;display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-top:1px solid #f3f3f0;background:#fafafa"><div style="font-size:12.5px;color:#555">🛒 Desglose variables<span id="arr-det-var" style="margin-left:6px;font-size:11px;color:#aaa">▸</span></div><span style="font-size:13px;font-weight:700;color:#888">${fmt(_gastV)}</span></div>`;
+      ph+=`<div id="det-var" style="display:none;padding:6px 16px 12px;border-top:0.5px solid #f3f3f0">`;
+      _vars.forEach(([cat,v])=>{
+        const sug=calcSugerido(cat);
+        const pct=sug>0?Math.round(v/sug*100):null;
+        ph+=`<div style="padding:7px 0;border-bottom:0.5px solid #f5f5f3"><div style="display:flex;justify-content:space-between;font-size:12.5px"><span style="color:#333">${cat}</span><span style="font-weight:700">${fmt(v)}</span></div>`;
+        if(sug>0)ph+=`<div style="font-size:10.5px;color:${pct>=100?'#dc2626':pct>=80?'#f59e0b':'#aaa'};margin-top:2px">sugerido ${fmt(sug)}/mes${pct!=null?' · '+pct+'%':''}</div>`;
+        ph+=`</div>`;
+      });
+      ph+=`</div>`;
+    }
+    ph+=`</div>`;
+    ph+=`<div style="margin-top:8px"><button id="btn-sugerencia-agente" class="btn-secondary" onclick="pedirSugerenciaAgente()">🤖 Sugerencia del agente</button><div id="sugerencia-agente-panel" style="display:none;margin-top:10px"></div></div>`;
+    document.getElementById('pres-seg').innerHTML=ph;
+    return;
+  }
+
   let html='';
   html+=`<div style="margin-bottom:12px"><div onclick="var b=document.getElementById('pres-help-box');var a=document.getElementById('pres-help-arrow');var o=b.style.display!=='none';b.style.display=o?'none':'block';a.textContent=o?'\u25b8':'\u25be';" style="cursor:pointer;font-size:13px;color:#2563eb;font-weight:600;display:flex;align-items:center;gap:4px"><span>\u2139\ufe0f \u00bfC\u00f3mo funciona el presupuesto?</span><span id="pres-help-arrow">\u25b8</span></div><div id="pres-help-box" style="display:none;margin-top:8px;font-size:12.5px;color:#555;line-height:1.55;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:10px 12px">Se presupuestan tus <strong>gastos variables</strong> (las 10 categorías top por gasto; el resto se agrupa en <strong>“Otros”</strong>). Arriba ves tu <strong>disponible para variables</strong> = ingreso base − fijos − % de ahorro. El <strong>ingreso base</strong> es el promedio de tus últimos 3 meses (podés editarlo) y el <strong>% de ahorro</strong> viene en 20% pero lo cambiás a gusto. Si lo presupuestado supera el disponible, se marca en rojo. En cada categoría mostramos tu <strong>promedio</strong> mensual como referencia. Editá los montos en la pestaña <strong>Editar</strong>.</div></div>`;
   if(sinP.length)html+=`<div class="alert alert-info">${sinP.length} categoría${sinP.length>1?'s':''} sin presupuesto: <strong>${sinP.slice(0,3).join(', ')}</strong>. <span style="text-decoration:underline;cursor:pointer" onclick="presTabs('edit',document.querySelectorAll('.pres-tab')[1])">Configurar →</span></div>`;
