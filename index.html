@@ -2172,21 +2172,27 @@ function renderPresSeg(){
   // ── Vista personal (Sebas / Male) ──
   if(presScope!=='conjunto'){
     const _nombre=presScope==='sebas'?'Sebas':'Male';
-    const _ing=sumarMesScope(mes,'Ingreso');
-    const _fij=sumarMesScope(mes,'Gasto fijo');
+    // Últimos 3 meses con datos para este scope
+    const _meses3=[...new Set(_gsScope.map(g=>g.mes).filter(Boolean))].sort().slice(-3);
+    const _n=_meses3.length||1;
+    const _periodoLabel=_meses3.map(m=>mesCorto(m)).join(' · ');
+    // Promedio por tipo
+    const _avgTipo=tipo=>Math.round(_meses3.reduce((s,m)=>s+_gsScope.filter(g=>g.mes===m&&g.tipo===tipo).reduce((ss,g)=>ss+(g.monto||0),0),0)/_n);
+    const _ing=_avgTipo('Ingreso');
+    const _fij=_avgTipo('Gasto fijo');
+    const _gastV=_avgTipo('Gasto variable');
     const _dispV=Math.max(0,_ing-_fij);
-    const _gastV=tTop+tResto;
     const _libre=_dispV-_gastV;
     const _pctG=_dispV>0?Math.min(Math.round(_gastV/_dispV*100),999):(_gastV>0?100:0);
     const _colG=_pctG>=100?'#dc2626':_pctG>=80?'#f59e0b':'#16a34a';
-    // Agrupados por categoría
-    const _grp=(tipo,key)=>Object.entries(_gsScope.filter(g=>g.mes===mes&&g.tipo===tipo).reduce((a,g)=>{const k=g[key]||'?';a[k]=(a[k]||0)+(g.monto||0);return a},{})).sort((a,b)=>b[1]-a[1]);
-    const _ings=_grp('Ingreso','tipoIngreso');
-    const _fijs=_grp('Gasto fijo','categoria');
-    const _vars=Object.entries(_gsScope.filter(g=>g.mes===mes&&g.tipo==='Gasto variable').reduce((a,g)=>{a[g.categoria]=(a[g.categoria]||0)+(g.monto||0);return a},{})).sort((a,b)=>b[1]-a[1]);
+    // Promedio por categoría
+    const _grpAvg=(tipo,key)=>{const map={};_meses3.forEach(m=>{_gsScope.filter(g=>g.mes===m&&g.tipo===tipo).forEach(g=>{const k=g[key]||'?';map[k]=(map[k]||0)+(g.monto||0);});});return Object.entries(map).map(([k,v])=>[k,Math.round(v/_n)]).sort((a,b)=>b[1]-a[1]);};
+    const _ings=_grpAvg('Ingreso','tipoIngreso');
+    const _fijs=_grpAvg('Gasto fijo','categoria');
+    const _vars=_grpAvg('Gasto variable','categoria');
     const _tog=id=>`var el=document.getElementById('${id}');el.style.display=el.style.display==='none'?'block':'none';var arr=document.getElementById('arr-${id}');if(arr)arr.textContent=el.style.display==='none'?'▸':'▾'`;
     let ph=`<div class="card" style="padding:0;overflow:hidden;margin-bottom:12px">`;
-    ph+=`<div style="background:#1a1a1a;color:#fff;padding:14px 16px"><span style="font-size:14px;font-weight:700">${_nombre}</span><span style="font-size:12px;color:#888;margin-left:8px">${nombreMes(mes)}</span></div>`;
+    ph+=`<div style="background:#1a1a1a;color:#fff;padding:14px 16px"><span style="font-size:14px;font-weight:700">${_nombre}</span><span style="font-size:12px;color:#888;margin-left:8px">Promedio ${_periodoLabel}</span></div>`;
     // Ingresos
     ph+=`<div onclick="${_tog('det-ing')}" style="cursor:pointer;display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid #f3f3f0"><div style="font-size:13px;color:#555">💰 Ingresos<span id="arr-det-ing" style="margin-left:6px;font-size:11px;color:#aaa">▸</span></div><span style="font-size:15px;font-weight:800;color:#16a34a">${fmt(_ing)}</span></div>`;
     ph+=`<div id="det-ing" style="display:none;background:#f8fdf8;padding:6px 16px 10px;border-bottom:1px solid #f3f3f0">`;
