@@ -43,7 +43,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#1
 .bnav-btn.active{color:#1a1a1a}
 .bnav-icon{font-size:22px;line-height:1}
 .section{display:none;padding:16px}.section.active{display:block}
-.period-selector{margin-bottom:14px}
+.period-selector{margin-bottom:14px;position:sticky;top:var(--topbar-h,52px);z-index:90;background:#f5f5f3;padding-top:10px;margin-top:-10px}
 .year-tabs{display:flex;gap:6px;margin-bottom:8px}
 .year-tab{padding:4px 14px;border-radius:999px;font-size:12px;font-weight:700;border:1px solid #e5e5e0;background:#fff;color:#888;cursor:pointer;letter-spacing:.03em}
 .year-tab.active{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
@@ -1233,6 +1233,12 @@ window.rechazarInvitacion=()=>{
 };
 window.logout=async()=>{unsub?.();hogarId=null;await signOut(auth);};
 
+function syncTopbarHeight(){
+  const tb=document.querySelector('.topbar');
+  if(tb)document.documentElement.style.setProperty('--topbar-h',tb.offsetHeight+'px');
+}
+window.addEventListener('resize',syncTopbarHeight);
+
 function mostrarApp(user){
   document.getElementById('login-screen').style.display='none';
   document.getElementById('invite-screen').style.display='none';
@@ -1244,6 +1250,7 @@ function mostrarApp(user){
   wrap.innerHTML=user.photoURL?`<img src="${user.photoURL}" class="user-avatar">`:`<div class="user-initials">${(user.displayName||'?')[0]}</div>`;
   window._authUser=user;
   if(window._authUserReady)window._authUserReady(user);
+  requestAnimationFrame(syncTopbarHeight);
 }
 
 async function iniciarApp(user){
