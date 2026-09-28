@@ -1380,7 +1380,7 @@ const gastosCol=()=>collection(db,'hogares',hogarId,'gastos');
 const gastosDoc=(id)=>doc(db,'hogares',hogarId,'gastos',id);
 async function cargarPresupuestos(scope){scope=scope||presScope;const docId=scope==='conjunto'?'config':scope;try{const s=await getDoc(doc(db,'hogares',hogarId,'presupuestos',docId));if(s.exists()){const d=s.data();presupuestos=d.montos||{};catConfigActivas=d.activas||[];pctAhorroPres=typeof d.pctAhorro==='number'?d.pctAhorro:20;ingresoBasePres=typeof d.ingresoBase==='number'?d.ingresoBase:null;}else{presupuestos={};catConfigActivas=[];pctAhorroPres=20;ingresoBasePres=null;}}catch(e){console.error(e);}}
 async function guardarPresupuestos(){const docId=presScope==='conjunto'?'config':presScope;try{await setDoc(doc(db,'hogares',hogarId,'presupuestos',docId),{montos:presupuestos,activas:catConfigActivas,pctAhorro:pctAhorroPres,ingresoBase:ingresoBasePres});}catch(e){console.error(e);}}
-function promedioIngresos3m(){var gs=gastosScopeActual();var ms=[...new Set(gs.filter(g=>g.tipo==='Ingreso').map(g=>g.mes))].sort().slice(-3);if(!ms.length)return 0;var vs=ms.map(m=>gs.filter(g=>g.mes===m&&g.tipo==='Ingreso').reduce((s,g)=>s+(g.monto||0),0));return Math.round(vs.reduce((s,v)=>s+v,0)/vs.length);}
+function promedioIngresos3m(){var hoyM=mesActualStr();var ms=[...new Set(gastos.filter(g=>g.tipo==='Ingreso'&&g.mes<=hoyM).map(g=>g.mes))].sort().slice(-3);if(!ms.length)return 0;var vs=ms.map(m=>gastos.filter(g=>g.mes===m&&g.tipo==='Ingreso').reduce((s,g)=>s+(g.monto||0),0));return Math.round(vs.reduce((s,v)=>s+v,0)/vs.length);}
 function ingresoBaseEfectivo(){return (typeof ingresoBasePres==='number'&&ingresoBasePres>0)?ingresoBasePres:promedioIngresos3m();}
 window.setPctAhorro=function(v){var n=parseFloat(v);if(isNaN(n)||n<0)n=0;if(n>90)n=90;pctAhorroPres=Math.round(n);guardarPresupuestos();renderPresSeg();};
 window.setIngresoBase=function(v){var n=parseFloat(String(v).replace(/[^0-9]/g,''));ingresoBasePres=(isNaN(n)||n<=0)?null:Math.round(n);guardarPresupuestos();renderPresSeg();};
@@ -2181,23 +2181,25 @@ function renderPresSeg(){
     const _nombre=presScope==='sebas'?'Sebas':'Male';
     // Últimos 3 meses pasados/actuales con datos para este scope
     const _hoyM=mesActualStr();
-    const _meses3=[...new Set(_gsScope.map(g=>g.mes).filter(Boolean).filter(m=>m<=_hoyM))].sort().slice(-3);
+    const _meses3=[...new Set(gastos.filter(g=>g.mes<=_hoyM).map(g=>g.mes).filter(Boolean))].sort().slice(-3);
     const _n=_meses3.length||1;
     const _periodoLabel=_meses3.map(m=>mesCorto(m)).join(' · ');
-    // Promedio por tipo
-    const _avgTipo=tipo=>Math.round(_meses3.reduce((s,m)=>s+_gsScope.filter(g=>g.mes===m&&g.tipo===tipo).reduce((ss,g)=>ss+(g.monto||0),0),0)/_n);
-    const _ing=_avgTipo('Ingreso');
-    const _fij=_avgTipo('Gasto fijo');
-    const _gastV=_avgTipo('Gasto variable');
+    // Ingreso y fijos usan gastos sin filtrar (no están tageados por persona)
+    const _avgAll=tipo=>Math.round(_meses3.reduce((s,m)=>s+gastos.filter(g=>g.mes===m&&g.tipo===tipo).reduce((ss,g)=>ss+(g.monto||0),0),0)/_n);
+    // Variables usan _gsScope (sí están tageados por persona)
+    const _avgScope=tipo=>Math.round(_meses3.reduce((s,m)=>s+_gsScope.filter(g=>g.mes===m&&g.tipo===tipo).reduce((ss,g)=>ss+(g.monto||0),0),0)/_n);
+    const _ing=_avgAll('Ingreso');
+    const _fij=_avgAll('Gasto fijo');
+    const _gastV=_avgScope('Gasto variable');
     const _dispV=Math.max(0,_ing-_fij);
     const _libre=_dispV-_gastV;
     const _pctG=_dispV>0?Math.min(Math.round(_gastV/_dispV*100),999):(_gastV>0?100:0);
     const _colG=_pctG>=100?'#dc2626':_pctG>=80?'#f59e0b':'#16a34a';
     // Promedio por categoría
-    const _grpAvg=(tipo,key)=>{const map={};_meses3.forEach(m=>{_gsScope.filter(g=>g.mes===m&&g.tipo===tipo).forEach(g=>{const k=g[key]||'?';map[k]=(map[k]||0)+(g.monto||0);});});return Object.entries(map).map(([k,v])=>[k,Math.round(v/_n)]).sort((a,b)=>b[1]-a[1]);};
-    const _ings=_grpAvg('Ingreso','tipoIngreso');
-    const _fijs=_grpAvg('Gasto fijo','categoria');
-    const _vars=_grpAvg('Gasto variable','categoria');
+    const _grpAvg=(gs,tipo,key)=>{const map={};_meses3.forEach(m=>{gs.filter(g=>g.mes===m&&g.tipo===tipo).forEach(g=>{const k=g[key]||'?';map[k]=(map[k]||0)+(g.monto||0);});});return Object.entries(map).map(([k,v])=>[k,Math.round(v/_n)]).sort((a,b)=>b[1]-a[1]);};
+    const _ings=_grpAvg(gastos,'Ingreso','tipoIngreso');
+    const _fijs=_grpAvg(gastos,'Gasto fijo','categoria');
+    const _vars=_grpAvg(_gsScope,'Gasto variable','categoria');
     const _tog=id=>`var el=document.getElementById('${id}');el.style.display=el.style.display==='none'?'block':'none';var arr=document.getElementById('arr-${id}');if(arr)arr.textContent=el.style.display==='none'?'▸':'▾'`;
     let ph=`<div class="card" style="padding:0;overflow:hidden;margin-bottom:12px">`;
     ph+=`<div style="background:#1a1a1a;color:#fff;padding:14px 16px"><span style="font-size:14px;font-weight:700">${_nombre}</span><span style="font-size:12px;color:#888;margin-left:8px">Promedio ${_periodoLabel}</span></div>`;
@@ -3545,7 +3547,7 @@ window.confirmarImport=async()=>{
   let cargados=0;
   const authU=window._auth?.currentUser;
   const quien=authU?.email?.includes('sjpouiller')?'Sebas':'Male';
-  const fpago='Tarjeta Debito';
+  const fpago='Tarjeta Credito - VISA';
   const mesHoy=(window.mesActualStr||mesActualStr)();
   try{
     for(let i=0;i<_importMovimientos.length;i++){
