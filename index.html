@@ -3547,7 +3547,7 @@ window.confirmarImport=async()=>{
   let cargados=0;
   const authU=window._auth?.currentUser;
   const quien=authU?.email?.includes('sjpouiller')?'Sebas':'Male';
-  const fpago='Tarjeta Credito - VISA';
+  const fpago=quien==='Sebas'?'Tarjeta Credito - VISA Sebas':'Tarjeta Credito - VISA Male';
   const mesHoy=(window.mesActualStr||mesActualStr)();
   try{
     for(let i=0;i<_importMovimientos.length;i++){
