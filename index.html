@@ -3521,14 +3521,25 @@ function renderImportPreview(movs){
   const preview=document.getElementById('ib-preview');
   const list=document.getElementById('ib-preview-list');
   document.getElementById('ib-preview-title').textContent=`${movs.length} movimientos detectados — revisá y confirmá:`;
-  // Selector global de pagador — usar window._quienesPagan (módulo → script normal)
+  // Datos desde módulo → script normal
   const _qp=window._quienesPagan||window._getQuienesPagan?.()||[];
+  const _fp=window._formasDePago||window._getFormasDePago?.()||[];
+  // Default forma de pago: primera VISA disponible
+  const _defaultFp=_fp.find(f=>/visa/i.test(f))||_fp[0]||'Transferencia';
   const qpOpts=_qp.map(q=>`<option>${q}</option>`).join('');
-  const globalBar=_qp.length?`<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:#f0f4ff;border-radius:8px;margin-bottom:8px">
-    <span style="font-size:11px;font-weight:600;color:#2563eb;flex-shrink:0">¿Quién pagó?</span>
-    <select id="ib-quien-global" style="font-size:11px;padding:3px 6px;border:0.5px solid #c7d7f5;border-radius:6px;background:#fff;flex:1">${qpOpts}</select>
-    <button onclick="window.aplicarQuienATodos()" style="font-size:10px;padding:4px 8px;border:none;border-radius:6px;background:#2563eb;color:#fff;cursor:pointer;flex-shrink:0">Aplicar a todos</button>
-  </div>`:'';
+  const fpOpts=_fp.map(f=>`<option ${f===_defaultFp?'selected':''}>${f}</option>`).join('');
+  const globalBar=`<div style="display:flex;flex-direction:column;gap:6px;padding:10px 12px;background:#f0f4ff;border-radius:8px;margin-bottom:8px">
+    <div style="display:flex;align-items:center;gap:8px">
+      <span style="font-size:11px;font-weight:600;color:#2563eb;width:90px;flex-shrink:0">¿Quién pagó?</span>
+      ${_qp.length?`<select id="ib-quien-global" style="font-size:11px;padding:3px 6px;border:0.5px solid #c7d7f5;border-radius:6px;background:#fff;flex:1">${qpOpts}</select>`:'<span style="font-size:11px;color:#aaa;flex:1">Sin pagadores configurados</span>'}
+      <button onclick="window.aplicarATodos('quien')" style="font-size:10px;padding:4px 8px;border:none;border-radius:6px;background:#2563eb;color:#fff;cursor:pointer;flex-shrink:0">Aplicar a todos</button>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <span style="font-size:11px;font-weight:600;color:#2563eb;width:90px;flex-shrink:0">Forma de pago</span>
+      ${_fp.length?`<select id="ib-fpago-global" style="font-size:11px;padding:3px 6px;border:0.5px solid #c7d7f5;border-radius:6px;background:#fff;flex:1">${fpOpts}</select>`:'<span style="font-size:11px;color:#aaa;flex:1">Sin formas configuradas</span>'}
+      <button onclick="window.aplicarATodos('fpago')" style="font-size:10px;padding:4px 8px;border:none;border-radius:6px;background:#2563eb;color:#fff;cursor:pointer;flex-shrink:0">Aplicar a todos</button>
+    </div>
+  </div>`;
   list.innerHTML=globalBar+movs.map((m,i)=>{
     const color=m.es_debito===false?'#16a34a':'#dc2626';
     const signo=m.es_debito===false?'+':'-';
@@ -3537,6 +3548,7 @@ function renderImportPreview(movs){
       cats.map(c=>`<option value="${tipo}|${c}" ${(`${tipo}|${c}`)===selVal?'selected':''}>${tipo} · ${c}</option>`).join('')
     ).join('');
     const quienOpts=_qp.map(q=>`<option>${q}</option>`).join('');
+    const fpagoOpts=_fp.map(f=>`<option ${f===_defaultFp?'selected':''}>${f}</option>`).join('');
     return`<div style="display:flex;align-items:flex-start;gap:8px;padding:8px 0;border-bottom:0.5px solid #e5e5e0">
       <input type="checkbox" id="ibmov-${i}" checked style="margin-top:4px;flex-shrink:0">
       <div style="flex:1;min-width:0">
@@ -3545,6 +3557,7 @@ function renderImportPreview(movs){
           <input type="date" id="ibfecha-${i}" value="${m.fecha}" style="font-size:10px;padding:2px 4px;border:0.5px solid #e5e5e0;border-radius:4px;background:#fff;width:118px">
           <select id="ibcat-${i}" style="font-size:10px;padding:2px 4px;border:0.5px solid #e5e5e0;border-radius:4px;background:#fff;max-width:180px;flex:1">${opts}</select>
           ${quienOpts?`<select id="ibquien-${i}" style="font-size:10px;padding:2px 4px;border:0.5px solid #e5e5e0;border-radius:4px;background:#fff">${quienOpts}</select>`:''}
+          ${fpagoOpts?`<select id="ibfpago-${i}" style="font-size:10px;padding:2px 4px;border:0.5px solid #e5e5e0;border-radius:4px;background:#fff;max-width:140px">${fpagoOpts}</select>`:''}
         </div>
       </div>
       <div style="display:flex;align-items:center;gap:1px;flex-shrink:0;color:${color}">
@@ -3557,16 +3570,23 @@ function renderImportPreview(movs){
   const email=window._authUser?.email||window._auth?.currentUser?.email||'';
   const display=window._authUser?.displayName||window._auth?.currentUser?.displayName||'';
   const autoQuien=_qp.find(q=>email.toLowerCase().includes(q.toLowerCase())||display.toLowerCase().includes(q.toLowerCase()))||_qp[0]||'';
-  const globalSel=document.getElementById('ib-quien-global');
-  if(globalSel&&autoQuien){globalSel.value=autoQuien;window.aplicarQuienATodos();}
+  const globalSelQ=document.getElementById('ib-quien-global');
+  if(globalSelQ&&autoQuien){globalSelQ.value=autoQuien;window.aplicarATodos('quien');}
+  // Autodetectar forma de pago: VISA del pagador detectado, o primera VISA
+  const autoFp=_fp.find(f=>/visa/i.test(f)&&f.toLowerCase().includes(autoQuien.toLowerCase()))||_defaultFp;
+  const globalSelFp=document.getElementById('ib-fpago-global');
+  if(globalSelFp&&autoFp){globalSelFp.value=autoFp;window.aplicarATodos('fpago');}
   preview.style.display='block';
 }
-window.aplicarQuienATodos=()=>{
-  const v=document.getElementById('ib-quien-global')?.value;
+window.aplicarATodos=(tipo)=>{
+  const v=document.getElementById(tipo==='quien'?'ib-quien-global':'ib-fpago-global')?.value;
+  const prefix=tipo==='quien'?'ibquien-':'ibfpago-';
   if(!v)return;
   let i=0;
-  while(document.getElementById(`ibquien-${i}`)!==null){document.getElementById(`ibquien-${i}`).value=v;i++;}
+  while(document.getElementById(`${prefix}${i}`)!==null){document.getElementById(`${prefix}${i}`).value=v;i++;}
 };
+// Mantener compatibilidad con botón viejo si existe
+window.aplicarQuienATodos=()=>window.aplicarATodos('quien');
 
 window.confirmarImport=async()=>{
   const btn=document.querySelector('#ib-preview button');
@@ -3587,11 +3607,9 @@ window.confirmarImport=async()=>{
       const[tipo,cat]=(document.getElementById(`ibcat-${i}`)?.value||'Gasto variable|Otros').split('|');
       // Pagador por fila, con fallback al global
       const quien=document.getElementById(`ibquien-${i}`)?.value||globalQuien;
-      // Forma de pago: buscar VISA del pagador, o primera VISA, o primera disponible
-      const _fp=window._formasDePago||window._getFormasDePago?.()||[];
-      const fpago=_fp.find(f=>/visa/i.test(f)&&f.toLowerCase().includes(quien.toLowerCase()))
-        ||_fp.find(f=>/visa/i.test(f))
-        ||_fp[0]||'Transferencia';
+      // Forma de pago: leer del selector por fila, fallback al global
+      const globalFpago=document.getElementById('ib-fpago-global')?.value||'Transferencia';
+      const fpago=document.getElementById(`ibfpago-${i}`)?.value||globalFpago;
       await window._addGasto({
         fecha,mes:fecha.slice(0,7),tipo,
         tipoIngreso:tipo==='Ingreso'?cat:'',categoria:tipo!=='Ingreso'?cat:'',
