@@ -3547,8 +3547,6 @@ function renderImportPreview(movs){
     const opts=Object.entries(CATEGORIAS).map(([tipo,cats])=>
       cats.map(c=>`<option value="${tipo}|${c}" ${(`${tipo}|${c}`)===selVal?'selected':''}>${tipo} · ${c}</option>`).join('')
     ).join('');
-    const quienOpts=_qp.map(q=>`<option>${q}</option>`).join('');
-    const fpagoOpts=_fp.map(f=>`<option ${f===_defaultFp?'selected':''}>${f}</option>`).join('');
     return`<div style="display:flex;align-items:flex-start;gap:8px;padding:8px 0;border-bottom:0.5px solid #e5e5e0">
       <input type="checkbox" id="ibmov-${i}" checked style="margin-top:4px;flex-shrink:0">
       <div style="flex:1;min-width:0">
@@ -3556,8 +3554,6 @@ function renderImportPreview(movs){
         <div style="font-size:10px;margin-top:4px;display:flex;gap:4px;align-items:center;flex-wrap:wrap">
           <input type="date" id="ibfecha-${i}" value="${m.fecha}" style="font-size:10px;padding:2px 4px;border:0.5px solid #e5e5e0;border-radius:4px;background:#fff;width:118px">
           <select id="ibcat-${i}" style="font-size:10px;padding:2px 4px;border:0.5px solid #e5e5e0;border-radius:4px;background:#fff;max-width:180px;flex:1">${opts}</select>
-          ${quienOpts?`<select id="ibquien-${i}" style="font-size:10px;padding:2px 4px;border:0.5px solid #e5e5e0;border-radius:4px;background:#fff">${quienOpts}</select>`:''}
-          ${fpagoOpts?`<select id="ibfpago-${i}" style="font-size:10px;padding:2px 4px;border:0.5px solid #e5e5e0;border-radius:4px;background:#fff;max-width:140px">${fpagoOpts}</select>`:''}
         </div>
       </div>
       <div style="display:flex;align-items:center;gap:1px;flex-shrink:0;color:${color}">
@@ -3606,10 +3602,8 @@ window.confirmarImport=async()=>{
       const monto=parseFloat(document.getElementById(`ibmonto-${i}`)?.value)||m.monto;
       const[tipo,cat]=(document.getElementById(`ibcat-${i}`)?.value||'Gasto variable|Otros').split('|');
       // Pagador por fila, con fallback al global
-      const quien=document.getElementById(`ibquien-${i}`)?.value||globalQuien;
-      // Forma de pago: leer del selector por fila, fallback al global
-      const globalFpago=document.getElementById('ib-fpago-global')?.value||'Transferencia';
-      const fpago=document.getElementById(`ibfpago-${i}`)?.value||globalFpago;
+      const quien=globalQuien;
+      const fpago=document.getElementById('ib-fpago-global')?.value||'Transferencia';
       await window._addGasto({
         fecha,mes:fecha.slice(0,7),tipo,
         tipoIngreso:tipo==='Ingreso'?cat:'',categoria:tipo!=='Ingreso'?cat:'',
